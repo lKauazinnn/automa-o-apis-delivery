@@ -1,0 +1,17 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# frontend
+viewer/node_modules/
+viewer/dist/
+
+# dados de negócio (planilhas e resultados de carga não vão pro repo)
+data/
+viewer/src/catalogo.json
+
+# estado interno do Claude Code
+.claude/
+
