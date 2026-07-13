@@ -107,3 +107,14 @@ def update_item_status(merchant_id: str, item_id: str, status: str) -> None:
         timeout=30,
     )
     resp.raise_for_status()
+
+
+def update_item_price(merchant_id: str, item_id: str, price: float) -> None:
+    """Atualiza globalmente o preço de um item já existente no catálogo."""
+    resp = requests.patch(
+        f"{CATALOG_BASE}/merchants/{merchant_id}/items/price",
+        headers=auth_headers(),
+        json={"itemId": item_id, "price": {"value": price, "originalValue": price}},
+        timeout=30,
+    )
+    resp.raise_for_status()

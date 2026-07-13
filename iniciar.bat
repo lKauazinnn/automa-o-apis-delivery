@@ -37,6 +37,22 @@ if errorlevel 1 (
 )
 
 echo.
+echo  Verificando dependencias do BACKEND...
+"%~dp0.venv\Scripts\python.exe" -c "import flask" >nul 2>&1
+if errorlevel 1 (
+	echo  Instalando dependencias do backend...
+	"%~dp0.venv\Scripts\python.exe" -m pip install -r "%~dp0requirements.txt"
+	if errorlevel 1 (
+		echo.
+		echo  ERRO ao instalar dependencias do backend.
+		pause
+		exit /b 1
+	)
+) else (
+	echo  Backend OK.
+)
+
+echo.
 echo  Verificando dependencias do FRONTEND...
 if not exist "%~dp0viewer\node_modules" (
 	echo  Instalando dependencias do frontend...
