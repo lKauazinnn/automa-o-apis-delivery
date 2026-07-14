@@ -89,6 +89,7 @@ function PainelEsqueciSenha({ onVoltar }) {
           type="email"
           required
           autoFocus
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="voce@empresa.com"
@@ -98,10 +99,9 @@ function PainelEsqueciSenha({ onVoltar }) {
       <button
         type="submit"
         disabled={carregando}
-        className="flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
-        style={{ background: 'linear-gradient(135deg,#F56C35,#AF2D0A)', color: '#fff', boxShadow: '0 4px 14px rgba(245,108,53,0.35)' }}
+        className="botao-primario flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
       >
-        {carregando && <Loader2 size={15} className="animate-spin" />}
+        {carregando ? <Loader2 key="icone" size={15} className="animate-spin" /> : null}
         {carregando ? 'Enviando...' : 'Enviar link de recuperação'}
       </button>
       <button type="button" onClick={onVoltar} className="text-[11px] text-center" style={{ color: TEXT_2 }}>
@@ -155,6 +155,7 @@ export function TelaLogin({ onLogar, avisoInicial }) {
               type="email"
               required
               autoFocus
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="voce@empresa.com"
@@ -167,6 +168,7 @@ export function TelaLogin({ onLogar, avisoInicial }) {
               style={inputStyle}
               type="password"
               required
+              autoComplete="current-password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               placeholder="Senha"
@@ -176,10 +178,9 @@ export function TelaLogin({ onLogar, avisoInicial }) {
           <button
             type="submit"
             disabled={carregando}
-            className="flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg,#F56C35,#AF2D0A)', color: '#fff', boxShadow: '0 4px 14px rgba(245,108,53,0.35)' }}
+            className="botao-primario flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
           >
-            {carregando ? <Loader2 size={15} className="animate-spin" /> : <LogIn size={15} />}
+            {carregando ? <Loader2 key="carregando" size={15} className="animate-spin" /> : <LogIn key="entrar" size={15} />}
             {carregando ? 'Entrando...' : 'Entrar'}
           </button>
           <div className="flex items-center justify-between">
@@ -192,7 +193,7 @@ export function TelaLogin({ onLogar, avisoInicial }) {
               Esqueci minha senha
             </button>
             <p className="text-[11px]" style={{ color: TEXT_2 }}>
-              Sem conta? Peça um convite.
+              Sem conta? Peça pra um administrador criar a sua.
             </p>
           </div>
         </form>
@@ -201,7 +202,10 @@ export function TelaLogin({ onLogar, avisoInicial }) {
   )
 }
 
-export function TelaDefinirSenha({ convite, onDefinida }) {
+// Serve dois fluxos: o convite/recuperação por link (accessToken vem do #hash da URL) e a
+// troca obrigatória de senha temporária (accessToken vem da sessão já logada). `onSair` só
+// existe no segundo caso — dá pra sair em vez de trocar, mas não dá pra fechar sem escolher.
+export function TelaDefinirSenha({ accessToken, eyebrow, aviso, onDefinida, onSair }) {
   const [senha, setSenha] = useState('')
   const [confirmacao, setConfirmacao] = useState('')
   const [carregando, setCarregando] = useState(false)
@@ -220,8 +224,8 @@ export function TelaDefinirSenha({ convite, onDefinida }) {
     }
     setCarregando(true)
     try {
-      await definirSenha(convite.accessToken, senha)
-      onDefinida(convite.accessToken)
+      await definirSenha(accessToken, senha)
+      await onDefinida()
     } catch (e) {
       setErro(e.message)
     } finally {
@@ -232,11 +236,16 @@ export function TelaDefinirSenha({ convite, onDefinida }) {
   return (
     <Casca>
       <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#F56C35' }}>
-        {convite.tipo === 'invite' ? 'Bem-vindo(a)' : 'Recuperar acesso'}
+        {eyebrow}
       </p>
-      <h1 className="text-lg font-bold mb-5" style={{ color: TEXT_1 }}>
+      <h1 className="text-lg font-bold mb-2" style={{ color: TEXT_1 }}>
         Defina sua senha
       </h1>
+      {aviso && (
+        <p className="text-xs mb-4 leading-relaxed" style={{ color: TEXT_2 }}>
+          {aviso}
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <div className="relative">
           <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: TEXT_2 }} />
@@ -246,6 +255,7 @@ export function TelaDefinirSenha({ convite, onDefinida }) {
             type="password"
             required
             autoFocus
+            autoComplete="new-password"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             placeholder="Nova senha (mín. 6 caracteres)"
@@ -258,6 +268,7 @@ export function TelaDefinirSenha({ convite, onDefinida }) {
             style={inputStyle}
             type="password"
             required
+            autoComplete="new-password"
             value={confirmacao}
             onChange={(e) => setConfirmacao(e.target.value)}
             placeholder="Confirme a senha"
@@ -274,13 +285,22 @@ export function TelaDefinirSenha({ convite, onDefinida }) {
         <button
           type="submit"
           disabled={carregando}
-          className="flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
-          style={{ background: 'linear-gradient(135deg,#F56C35,#AF2D0A)', color: '#fff', boxShadow: '0 4px 14px rgba(245,108,53,0.35)' }}
+          className="botao-primario flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
         >
           {carregando && <Loader2 size={15} className="animate-spin" />}
           {carregando ? 'Salvando...' : 'Salvar e entrar'}
         </button>
       </form>
+      {onSair && (
+        <button
+          type="button"
+          onClick={onSair}
+          className="text-[11px] text-center mt-4 w-full"
+          style={{ color: TEXT_2 }}
+        >
+          Sair
+        </button>
+      )}
     </Casca>
   )
 }

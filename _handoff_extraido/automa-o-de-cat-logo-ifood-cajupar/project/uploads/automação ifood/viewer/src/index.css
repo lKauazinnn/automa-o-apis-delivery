@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Barlow', sans-serif;
+  background: #0a0a0c;
+  color: #dbe3ee;
+  min-height: 100vh;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+body.tema-claro {
+  background: #f7f7f8;
+  color: #1e293b;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0806;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #3a2e24;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4d3d2e;
+}
+
+body.tema-claro ::-webkit-scrollbar-track {
+  background: #e8edf3;
+}
+body.tema-claro ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+body.tema-claro ::-webkit-scrollbar-thumb:hover {
+  background: #aab8c9;
+}
+
+::selection {
+  background: rgba(245, 108, 53, 0.25);
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #f56c35;
+  box-shadow: 0 0 0 3px rgba(245, 108, 53, 0.15);
+}
+
+button {
+  transition: all 0.15s ease;
+}
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Botão de ícone "fantasma": sem fundo/borda em repouso, só o ícone colorido — pensado pra
+   listas longas (tabela de itens), onde uma caixinha colorida em toda linha vira ruído visual
+   repetido. O fundo só aparece no hover, como affordance. */
+.botao-icone-fantasma {
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease;
+}
+.botao-icone-fantasma:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.16);
+}
+
+/* Botões sólidos, cor lisa — sem gradiente nem glow. Uma ação principal por tela já chama
+   atenção sozinha; gradiente+sombra colorida em todo botão "Salvar" é ruído, não hierarquia. */
+.botao-primario {
+  background: #f56c35;
+  color: #fff;
+}
+.botao-primario:hover:not(:disabled) {
+  background: #dd5220;
+}
+
+.botao-perigo {
+  background: #dc2626;
+  color: #fff;
+}
+.botao-perigo:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+@keyframes toast-entrar {
+  from {
+    opacity: 0;
+    transform: translateX(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toast-progresso {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.toast-entrada {
+  animation: toast-entrar 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-progresso {
+  animation: toast-progresso 5s linear forwards;
+  transform-origin: left;
+}
+
+@keyframes modal-entrar {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-entrada {
+  animation: modal-entrar 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}

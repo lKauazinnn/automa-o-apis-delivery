@@ -44,7 +44,10 @@ export async function recuperarSenha(email) {
   const resp = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
     method: 'POST',
     headers: headersSupabase(),
-    body: JSON.stringify({ email }),
+    // manda pra origem de onde a pessoa tá acessando agora (localhost, IP da rede, domínio
+    // futuro etc.) — sem isso o link do e-mail usa a URL padrão configurada no Supabase, que
+    // pode não ser onde essa pessoa realmente acessa o painel.
+    body: JSON.stringify({ email, redirect_to: window.location.origin }),
   })
   if (!resp.ok) {
     const dados = await resp.json().catch(() => ({}))
@@ -78,6 +81,21 @@ export async function definirSenha(accessToken, novaSenha) {
   return dados
 }
 
+// Troca o refresh_token por um access_token novo, sem precisar a pessoa logar de novo —
+// usado pelo banner "sua sessão expira em Xmin" quando ela clica em "Renovar sessão".
+export async function renovarSessao(refreshToken) {
+  const resp = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: 'POST',
+    headers: headersSupabase(),
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  })
+  const dados = await resp.json()
+  if (!resp.ok) {
+    throw new Error(dados.error_description || dados.msg || 'Não consegui renovar a sessão.')
+  }
+  return dados // { access_token, refresh_token, expires_in, user }
+}
+
 export async function logoutSupabase(accessToken) {
   try {
     await fetch(`${SUPABASE_URL}/auth/v1/logout`, { method: 'POST', headers: headersSupabase(accessToken) })
@@ -90,4 +108,13 @@ export async function buscarEu(accessToken) {
   const resp = await fetch(`${API}/eu`, { headers: { Authorization: `Bearer ${accessToken}` } })
   if (!resp.ok) throw new Error('sessão inválida')
   return resp.json()
+}
+
+// Chamado logo depois que a própria pessoa troca a senha — desliga a flag que força a troca
+// no próximo login (senha deixou de ser a temporária que um admin definiu).
+export async function marcarSenhaTrocada(accessToken) {
+  await fetch(`${API}/eu/senha-trocada`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
 }

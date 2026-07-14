@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0D; --card:#141419; --card2:#1B1B22; --inset:#101015; --hover:rgba(255,255,255,0.04);
+    --bd:#26262F; --bd2:#1D1D25;
+    --t1:#F5F5F7; --t2:#9A9AA6; --t3:#5C5C67;
+    --brand:#F56C35; --brand2:#FBB34A; --ifood:#EA1D2C;
+    --ok:#34C77B; --ok-bg:rgba(52,199,123,0.13); --ok-bd:rgba(52,199,123,0.30);
+    --warn:#F5A623; --warn-bg:rgba(245,166,35,0.13); --warn-bd:rgba(245,166,35,0.32);
+    --danger:#F0473F; --danger-bg:rgba(240,71,63,0.12); --danger-bd:rgba(240,71,63,0.30);
+    --ring:rgba(245,108,53,0.32);
+    --sh:0 1px 0 rgba(255,255,255,0.02), 0 18px 48px -16px rgba(0,0,0,0.65);
+    --sh-sm:0 1px 2px rgba(0,0,0,0.4);
+  }
+  .tema-claro{
+    --bg:#F5F5F6; --card:#FFFFFF; --card2:#F6F6F8; --inset:#F0F0F3; --hover:rgba(16,16,20,0.035);
+    --bd:#E6E6EA; --bd2:#EDEDF1;
+    --t1:#15151A; --t2:#6A6A75; --t3:#9A9AA4;
+    --ok:#12924C; --ok-bg:rgba(18,146,76,0.09); --ok-bd:rgba(18,146,76,0.24);
+    --warn:#B57200; --warn-bg:rgba(181,114,0,0.09); --warn-bd:rgba(181,114,0,0.24);
+    --danger:#DB3B33; --danger-bg:rgba(219,59,51,0.08); --danger-bd:rgba(219,59,51,0.22);
+    --sh:0 1px 2px rgba(16,16,20,0.05), 0 16px 40px -22px rgba(16,16,20,0.28);
+    --sh-sm:0 1px 2px rgba(16,16,20,0.06);
+  }
+  *{box-sizing:border-box}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:var(--bd);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
+  ::-webkit-scrollbar-thumb:hover{background:var(--t3);background-clip:padding-box;border:2px solid transparent}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::selection{background:rgba(245,108,53,0.28)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes toastin{from{opacity:0;transform:translateX(14px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes modalin{from{opacity:0;transform:scale(.97) translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  @keyframes barin{from{opacity:0;transform:translate(-50%,120%)}to{opacity:1;transform:translate(-50%,0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+  @keyframes flashok{0%{opacity:0;transform:translateY(3px)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+</style>
+</helmet>
+
+<div class="app {{ temaClasse }}" data-screen-label="{{ screenLabel }}" style="position:relative;width:100%;height:100%;overflow:hidden;display:flex;background:var(--bg);color:var(--t1);font-family:'Geist',system-ui,sans-serif;border-radius:16px;border:1px solid var(--bd);font-variant-numeric:tabular-nums;{{ temaVars }}">
+
+  <sc-if value="{{ ehSidebar }}" hint-placeholder-val="{{ true }}">
+  <aside style="width:220px;flex-shrink:0;border-right:1px solid var(--bd);background:var(--card);display:flex;flex-direction:column;padding:18px 14px;gap:4px">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 18px">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#F56C35,#E0491A);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px -4px rgba(245,108,53,0.6)">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M9 3a6 6 0 0 0 0 12a6 6 0 0 1 0 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M15 3a6 6 0 0 1 0 12a6 6 0 0 0 0 6" stroke="rgba(255,255,255,0.55)" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </div>
+      <div style="line-height:1.05">
+        <div style="font-size:14px;font-weight:700;letter-spacing:-0.02em">Cajupar</div>
+        <div style="font-size:9.5px;font-weight:600;letter-spacing:0.16em;color:var(--brand);text-transform:uppercase;margin-top:2px">Catálogo</div>
+      </div>
+    </div>
+    <sc-for list="{{ navItens }}" as="n" hint-placeholder-count="4">
+      <button type="button" onClick="{{ n.onClick }}" style="{{ n.estilo }}" style-hover="background:var(--hover)">
+        <span style="display:flex;width:17px;height:17px" dangerouslySetInnerHTML="{{ n.icone }}"></span>
+        <span style="flex:1;text-align:left">{{ n.label }}</span>
+        <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:700;background:var(--warn-bg);color:var(--warn);padding:1px 7px;border-radius:20px">{{ n.badge }}</span></sc-if>
+      </button>
+    </sc-for>
+    <div style="margin-top:auto;padding:12px 8px 4px;border-top:1px solid var(--bd2);display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#F56C35,#FBB34A);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">MR</div>
+      <div style="min-width:0;flex:1;line-height:1.15">
+        <div style="font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Marina Reis</div>
+        <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em">Gerente</div>
+      </div>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="color:var(--t3);cursor:pointer"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </aside>
+  </sc-if>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+    <!-- TOP BAR -->
+    <header style="{{ topbarEstilo }}">
+      <sc-if value="{{ ehTopbar }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:11px">
+        <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#F56C35,#E0491A);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px -4px rgba(245,108,53,0.6)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M9 3a6 6 0 0 0 0 12a6 6 0 0 1 0 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M15 3a6 6 0 0 1 0 12a6 6 0 0 0 0 6" stroke="rgba(255,255,255,0.55)" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </div>
+        <div style="line-height:1.05">
+          <div style="font-size:14px;font-weight:700;letter-spacing:-0.02em">Cajupar</div>
+          <div style="font-size:9.5px;font-weight:600;letter-spacing:0.16em;color:var(--brand);text-transform:uppercase;margin-top:2px">Catálogo iFood</div>
+        </div>
+        <div style="display:flex;gap:2px;margin-left:18px;background:var(--inset);border:1px solid var(--bd2);border-radius:11px;padding:3px">
+          <sc-for list="{{ navItens }}" as="n" hint-placeholder-count="4">
+            <button type="button" onClick="{{ n.onClick }}" style="{{ n.estiloTab }}">{{ n.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <div style="display:flex;align-items:center;gap:8px;{{ topbarDireita }}">
+        <!-- store selector -->
+        <button type="button" onClick="{{ onCiclarLoja }}" style="display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:10px;background:var(--inset);border:1px solid var(--bd);cursor:pointer;color:var(--t1)" style-hover="border-color:var(--brand)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="color:var(--t2)"><path d="M3 9l1-5h16l1 5M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9M4 9h16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="font-size:12.5px;font-weight:600;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ lojaAtual }}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="color:var(--t3)"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" onClick="{{ onToggleTema }}" title="Alternar tema" style="width:36px;height:36px;border-radius:10px;background:var(--inset);border:1px solid var(--bd);cursor:pointer;color:var(--t2);display:flex;align-items:center;justify-content:center" style-hover="color:var(--t1);border-color:var(--brand)">
+          <span dangerouslySetInnerHTML="{{ iconeTema }}"></span>
+        </button>
+        <sc-if value="{{ ehTopbar }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:9px;padding-left:12px;margin-left:2px;border-left:1px solid var(--bd)">
+          <div style="text-align:right;line-height:1.15">
+            <div style="font-size:12px;font-weight:600">Marina Reis</div>
+            <div style="font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em">Gerente</div>
+          </div>
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#F56C35,#FBB34A);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">MR</div>
+        </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <!-- SESSION BANNER -->
+    <sc-if value="{{ banner }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:12px;padding:9px 22px;background:var(--warn-bg);border-bottom:1px solid var(--warn-bd);animation:fadein .3s ease">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="color:var(--warn);flex-shrink:0"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="font-size:12.5px;color:var(--t1);font-weight:500">Sua sessão expira em <b style="color:var(--warn)">4 min 52 s</b>. Renove para não perder o trabalho em andamento.</span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button type="button" onClick="{{ onReautenticar }}" style="font-size:12px;font-weight:600;padding:6px 13px;border-radius:9px;background:var(--warn);color:#1a1205;border:none;cursor:pointer">Renovar sessão</button>
+        <button type="button" onClick="{{ onDismissBanner }}" style="font-size:12px;font-weight:600;padding:6px 10px;border-radius:9px;background:transparent;color:var(--t2);border:none;cursor:pointer" style-hover="color:var(--t1)">Agora não</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- CONTENT -->
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:22px">
+      <!-- KPIs -->
+      <div style="{{ kpiGrid }}">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <div style="{{ k.estilo }}">
+            <div style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:{{ k.iconBg }};border:1px solid {{ k.iconBd }};flex-shrink:0">
+              <span style="display:flex;color:{{ k.cor }}" dangerouslySetInnerHTML="{{ k.icone }}"></span>
+            </div>
+            <div style="min-width:0">
+              <div style="font-size:26px;font-weight:800;letter-spacing:-0.03em;line-height:1">{{ k.valor }}</div>
+              <div style="font-size:11.5px;color:var(--t2);margin-top:3px;white-space:nowrap">{{ k.label }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="{{ mainGrid }}">
+        <!-- TABLE CARD -->
+        <div style="background:var(--card);border:1px solid var(--bd);border-radius:15px;box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column;min-width:0">
+          <!-- toolbar -->
+          <div style="padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div style="position:relative;flex:1;min-width:200px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3)"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <input value="{{ buscaRaw }}" onInput="{{ onBusca }}" placeholder="Buscar por nome ou código PDV…" style="width:100%;padding:9px 12px 9px 34px;border-radius:10px;background:var(--inset);border:1px solid var(--bd);color:var(--t1);font-size:13px;font-family:inherit;outline:none" style-focus="border-color:var(--brand);box-shadow:0 0 0 3px var(--ring)">
+            </div>
+            <select value="{{ filtroCat }}" onChange="{{ onFiltroCat }}" style="padding:9px 11px;border-radius:10px;background:var(--inset);border:1px solid var(--bd);color:var(--t1);font-size:12.5px;font-family:inherit;outline:none;cursor:pointer;max-width:170px">
+              <sc-for list="{{ categoriasFiltro }}" as="c" hint-placeholder-count="5"><option value="{{ c.valor }}">{{ c.label }}</option></sc-for>
+            </select>
+            <div style="display:flex;gap:3px;background:var(--inset);border:1px solid var(--bd);border-radius:10px;padding:3px">
+              <sc-for list="{{ statusFiltros }}" as="s" hint-placeholder-count="3">
+                <button type="button" onClick="{{ s.onClick }}" style="{{ s.estilo }}">{{ s.label }}</button>
+              </sc-for>
+            </div>
+            <button type="button" onClick="{{ onRecarregar }}" title="Recarregar" style="width:36px;height:36px;flex-shrink:0;border-radius:10px;background:var(--inset);border:1px solid var(--bd);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="color:var(--t1);border-color:var(--brand)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="{{ recarregandoEstilo }}"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+
+          <!-- table -->
+          <div style="overflow:auto;max-height:{{ tabelaAltura }}">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="position:sticky;top:0;z-index:1;background:var(--card)">
+                  <th style="width:42px;padding:11px 10px 11px 16px;text-align:left;border-bottom:1px solid var(--bd)">
+                    <input type="checkbox" checked="{{ todosSel }}" onChange="{{ onSelTodos }}" style="width:15px;height:15px;accent-color:var(--brand);cursor:pointer">
+                  </th>
+                  <th style="{{ thEstilo }};text-align:left">Item</th>
+                  <th style="{{ thEstilo }};text-align:left;width:130px">Categoria</th>
+                  <th style="{{ thEstilo }};text-align:left;width:150px">Código PDV</th>
+                  <th style="{{ thEstilo }};text-align:right;width:120px">Preço</th>
+                  <th style="{{ thEstilo }};text-align:center;width:120px">Status</th>
+                  <th style="{{ thEstilo }};text-align:center;width:96px">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-if value="{{ semResultados }}" hint-placeholder-val="{{ false }}">
+                  <tr><td colspan="7" style="padding:56px 20px;text-align:center;color:var(--t3);font-size:13px">Nenhum item encontrado com esses filtros.</td></tr>
+                </sc-if>
+                <sc-for list="{{ linhas }}" as="r" hint-placeholder-count="9">
+                  <tr style="{{ r.rowEstilo }}" style-hover="background:var(--hover)">
+                    <td style="padding:0 10px 0 16px;text-align:center">
+                      <input type="checkbox" checked="{{ r.selecionado }}" onChange="{{ r.onSelecionar }}" style="width:15px;height:15px;accent-color:var(--brand);cursor:pointer">
+                    </td>
+                    <td style="padding:11px 12px">
+                      <div style="font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">{{ r.nome }}</div>
+                      <sc-if value="{{ r.salvo }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:var(--ok);font-weight:600;margin-top:2px;animation:flashok 1.6s ease forwards">✓ Salvo</div></sc-if>
+                      <sc-if value="{{ r.salvando }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:var(--t2);font-weight:600;margin-top:2px;display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="animation:spin .7s linear infinite"><path d="M12 3a9 9 0 1 0 9 9" stroke="var(--brand)" stroke-width="3" stroke-linecap="round"/></svg>Salvando…</div></sc-if>
+                    </td>
+                    <td style="padding:11px 12px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">{{ r.categoria }}</td>
+                    <td style="padding:11px 12px">
+                      <sc-if value="{{ r.editandoPdv }}" hint-placeholder-val="{{ false }}">
+                        <input value="{{ r.editValor }}" autoFocus="{{ true }}" onInput="{{ r.onEditInput }}" onBlur="{{ r.onEditBlur }}" onKeyDown="{{ r.onEditKey }}" style="width:130px;padding:5px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--brand);box-shadow:0 0 0 3px var(--ring);color:var(--t1);font-size:12px;font-family:'Geist Mono',monospace;outline:none">
+                      </sc-if>
+                      <sc-if value="{{ r.mostrarPdv }}" hint-placeholder-val="{{ true }}">
+                        <button type="button" onClick="{{ r.onEditPdv }}" title="Editar código PDV" style="font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--t2);background:var(--inset);border:1px solid var(--bd);padding:4px 8px;border-radius:7px;cursor:text;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block" style-hover="border-color:var(--brand);color:var(--t1)">{{ r.codigoPdv }}</button>
+                      </sc-if>
+                    </td>
+                    <td style="padding:11px 12px;text-align:right">
+                      <sc-if value="{{ r.editandoPreco }}" hint-placeholder-val="{{ false }}">
+                        <input value="{{ r.editValor }}" autoFocus="{{ true }}" inputmode="decimal" onInput="{{ r.onEditInput }}" onBlur="{{ r.onEditBlur }}" onKeyDown="{{ r.onEditKey }}" style="width:92px;padding:5px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--brand);box-shadow:0 0 0 3px var(--ring);color:var(--t1);font-size:12.5px;font-family:'Geist Mono',monospace;outline:none;text-align:right">
+                      </sc-if>
+                      <sc-if value="{{ r.mostrarPreco }}" hint-placeholder-val="{{ true }}">
+                        <button type="button" onClick="{{ r.onEditPreco }}" title="Editar preço" style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;color:var(--t1);background:transparent;border:1px solid transparent;padding:4px 8px;border-radius:7px;cursor:text;white-space:nowrap" style-hover="background:var(--inset);border-color:var(--bd)">{{ r.precoFmt }}</button>
+                      </sc-if>
+                    </td>
+                    <td style="padding:11px 12px;text-align:center">
+                      <span style="{{ r.pillEstilo }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ r.pillDot }}"></span>{{ r.statusLabel }}</span>
+                    </td>
+                    <td style="padding:11px 12px">
+                      <div style="display:flex;gap:5px;justify-content:center">
+                        <button type="button" onClick="{{ r.onAbrirEdicao }}" title="Editar" style="width:30px;height:30px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:var(--hover);color:var(--t1)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <button type="button" onClick="{{ r.onToggleStatus }}" title="{{ r.acaoTitle }}" style="{{ r.toggleEstilo }}">
+                          <span dangerouslySetInnerHTML="{{ r.toggleIcone }}"></span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:10px 16px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--t3)">
+            <span>Mostrando <b style="color:var(--t2)">{{ contagem }}</b> de {{ totalItens }} itens</span>
+            <span style="font-family:'Geist Mono',monospace">Cajupar · {{ lojaAtual }}</span>
+          </div>
+        </div>
+
+        <!-- AUDIT TIMELINE RAIL -->
+        <div style="background:var(--card);border:1px solid var(--bd);border-radius:15px;box-shadow:var(--sh);display:flex;flex-direction:column;min-width:0;max-height:{{ railAltura }}">
+          <div style="padding:15px 16px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="color:var(--brand)"><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+            <h3 style="font-size:13px;font-weight:700;margin:0">Atividade recente</h3>
+          </div>
+          <div style="overflow-y:auto;padding:6px 8px 10px">
+            <sc-for list="{{ auditoria }}" as="a" hint-placeholder-count="6">
+              <div style="display:flex;gap:11px;padding:11px 8px">
+                <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+                  <div style="width:28px;height:28px;border-radius:50%;background:{{ a.avatarBg }};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff">{{ a.iniciais }}</div>
+                  <div style="flex:1;width:2px;background:var(--bd2);margin-top:4px;min-height:8px"></div>
+                </div>
+                <div style="min-width:0;flex:1;padding-bottom:4px">
+                  <div style="font-size:12px;line-height:1.5;color:var(--t2)"><b style="color:var(--t1)">{{ a.operador }}</b> {{ a.acao }} <b style="color:var(--t1)">{{ a.alvo }}</b></div>
+                  <sc-if value="{{ a.temDelta }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:4px;display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:11px">
+                      <span style="color:var(--danger);text-decoration:line-through;opacity:.8">{{ a.de }}</span>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="color:var(--t3)"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      <span style="color:var(--ok);font-weight:600">{{ a.para }}</span>
+                    </div>
+                  </sc-if>
+                  <div style="font-size:10.5px;color:var(--t3);margin-top:4px">{{ a.quando }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING ACTION BAR -->
+    <sc-if value="{{ temSel }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:6px;padding:9px 10px 9px 18px;border-radius:16px;background:var(--card);border:1px solid var(--bd);box-shadow:0 20px 50px -12px rgba(0,0,0,0.6);animation:barin .28s cubic-bezier(.16,1,.3,1)">
+      <div style="display:flex;align-items:center;gap:9px;padding-right:14px;border-right:1px solid var(--bd)">
+        <span style="width:24px;height:24px;border-radius:7px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ selCount }}</span>
+        <span style="font-size:12.5px;font-weight:600;white-space:nowrap">{{ selTexto }}</span>
+      </div>
+      <button type="button" onClick="{{ onPausarMassa }}" style="display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit" style-hover="background:var(--warn)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="6" y="5" width="4" height="14" rx="1.3" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.3" fill="currentColor"/></svg>Pausar
+      </button>
+      <button type="button" onClick="{{ onDespausarMassa }}" style="display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:var(--ok-bg);border:1px solid var(--ok-bd);color:var(--ok);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit" style-hover="background:var(--ok)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 5l12 7-12 7z" fill="currentColor"/></svg>Despausar
+      </button>
+      <button type="button" onClick="{{ onLimparSel }}" title="Limpar seleção" style="width:34px;height:34px;border-radius:10px;background:transparent;border:1px solid transparent;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:2px" style-hover="background:var(--hover);color:var(--t1)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    </sc-if>
+  </div>
+
+  <!-- RELATED ITEMS MODAL -->
+  <sc-if value="{{ modalRel }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ onFecharRel }}" style="position:absolute;inset:0;z-index:40;background:rgba(4,4,8,0.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .18s ease">
+    <div onClick="{{ pararProp }}" style="width:100%;max-width:480px;max-height:88%;overflow:hidden;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--bd);border-radius:18px;box-shadow:0 30px 80px -20px rgba(0,0,0,0.7);animation:modalin .22s cubic-bezier(.16,1,.3,1)">
+      <div style="padding:20px 22px 16px;border-bottom:1px solid var(--bd)">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:38px;height:38px;border-radius:11px;background:var(--warn-bg);border:1px solid var(--warn-bd);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" style="color:var(--warn)"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <h3 style="font-size:15.5px;font-weight:700;margin:0 0 4px">{{ relTitulo }}</h3>
+            <p style="font-size:12.5px;color:var(--t2);margin:0;line-height:1.5">Encontramos itens que usam o mesmo insumo. Pausar todos de uma vez evita vender o que já acabou no estoque.</p>
+          </div>
+          <button type="button" onClick="{{ onFecharRel }}" style="width:30px;height:30px;border-radius:9px;background:var(--inset);border:1px solid var(--bd);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" style-hover="color:var(--t1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        </div>
+        <div style="margin-top:14px;display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;background:var(--inset);border:1px solid var(--bd)">
+          <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--brand);background:rgba(245,108,53,0.12);padding:3px 8px;border-radius:6px;flex-shrink:0">Item base</span>
+          <span style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ relBase }}</span>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:12px 14px">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);padding:4px 6px 8px">Itens parecidos ({{ relQtd }})</div>
+        <sc-for list="{{ relLista }}" as="r" hint-placeholder-count="3">
+          <label style="{{ r.estilo }}" style-hover="border-color:var(--brand)">
+            <input type="checkbox" checked="{{ r.marcado }}" onChange="{{ r.onToggle }}" style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;flex-shrink:0">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.nome }}</div>
+              <div style="font-size:11px;color:var(--t3);font-family:'Geist Mono',monospace;margin-top:1px">{{ r.codigoPdv }} · {{ r.precoFmt }}</div>
+            </div>
+            <span style="{{ r.pillEstilo }}">{{ r.statusLabel }}</span>
+          </label>
+        </sc-for>
+      </div>
+      <div style="padding:14px 18px;border-top:1px solid var(--bd);display:flex;gap:9px;align-items:center">
+        <button type="button" onClick="{{ onConfirmarRel }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;border-radius:12px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:inherit" style-hover="background:#E0491A">{{ relBotao }}</button>
+        <button type="button" onClick="{{ onSoEste }}" style="padding:11px 15px;border-radius:12px;background:var(--inset);border:1px solid var(--bd);color:var(--t2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit" style-hover="color:var(--t1)">Só o item base</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- EDIT MODAL -->
+  <sc-if value="{{ modalEdit }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ onFecharEdit }}" style="position:absolute;inset:0;z-index:40;background:rgba(4,4,8,0.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .18s ease">
+    <div onClick="{{ pararProp }}" style="width:100%;max-width:400px;background:var(--card);border:1px solid var(--bd);border-radius:18px;box-shadow:0 30px 80px -20px rgba(0,0,0,0.7);animation:modalin .22s cubic-bezier(.16,1,.3,1);overflow:hidden">
+      <div style="padding:18px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+        <h3 style="font-size:14.5px;font-weight:700;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Editar · {{ editNome }}</h3>
+        <button type="button" onClick="{{ onFecharEdit }}" style="width:30px;height:30px;border-radius:9px;background:var(--inset);border:1px solid var(--bd);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" style-hover="color:var(--t1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
+        <div>
+          <label style="display:block;font-size:10.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--t2);margin-bottom:7px">Preço (R$)</label>
+          <input value="{{ editPreco }}" autoFocus="{{ true }}" inputmode="decimal" onInput="{{ onEditModalPreco }}" style="width:100%;padding:11px 13px;border-radius:11px;background:var(--inset);border:1px solid var(--bd);color:var(--t1);font-size:14px;font-family:'Geist Mono',monospace;outline:none" style-focus="border-color:var(--brand);box-shadow:0 0 0 3px var(--ring)">
+        </div>
+        <div>
+          <label style="display:block;font-size:10.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--t2);margin-bottom:7px">Código PDV</label>
+          <input value="{{ editPdv }}" onInput="{{ onEditModalPdv }}" style="width:100%;padding:11px 13px;border-radius:11px;background:var(--inset);border:1px solid var(--bd);color:var(--t1);font-size:14px;font-family:'Geist Mono',monospace;outline:none" style-focus="border-color:var(--brand);box-shadow:0 0 0 3px var(--ring)">
+        </div>
+        <div style="display:flex;gap:9px;padding-top:2px">
+          <button type="button" onClick="{{ onSalvarEdit }}" style="flex:1;padding:11px;border-radius:11px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:inherit" style-hover="background:#E0491A">Salvar alterações</button>
+          <button type="button" onClick="{{ onFecharEdit }}" style="padding:11px 15px;border-radius:11px;background:var(--inset);border:1px solid var(--bd);color:var(--t2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- TOASTS -->
+  <div style="position:absolute;top:16px;right:16px;z-index:50;display:flex;flex-direction:column;gap:9px;width:320px;pointer-events:none">
+    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+      <div style="{{ t.estilo }}">
+        <span style="display:flex;flex-shrink:0;margin-top:1px;color:{{ t.cor }}" dangerouslySetInnerHTML="{{ t.icone }}"></span>
+        <span style="font-size:12.5px;font-weight:500;color:var(--t1);flex:1;line-height:1.4">{{ t.mensagem }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1320,&quot;height&quot;:880},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sidebar&quot;,&quot;topbar&quot;],&quot;default&quot;:&quot;sidebar&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;variantNome&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Painel&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      tema: 'escuro',
+      itens: this.dadosIniciais(),
+      buscaRaw: '', busca: '',
+      filtroCat: 'TODAS', filtroStatus: 'TODOS',
+      sel: [],
+      edit: null, salvando: null, salvo: null,
+      modalRel: null, modalEdit: null,
+      toasts: [], auditoria: this.auditSeed(),
+      banner: true, nav: 'catalogo',
+      recarregando: false, lojaIdx: 0,
+    };
+    this._tid = 0; this._buscaTimer = null;
+    this.PALAVRAS_IGNORADAS = new Set(['com','de','da','do','das','dos','e','a','o','as','os','na','no','em','pra','ao','aos','add','fam','exec','kids','promo','pro','week','def','fest','esp','dose','arg','bout','chapa','bife']);
+    this.LOJAS = ['Cajupar · Moema', 'Cajupar · Pinheiros', 'Cajupar · Itaim'];
+  }
+
+  dadosIniciais() {
+    const D = (categoria, nome, codigo_pdv, preco, status) => ({ id: codigo_pdv, categoria, nome, codigo_pdv, preco, status: status || 'AVAILABLE' });
+    return [
+      D('Parrilla', 'Ancho Black - 250g', '3701000000210', 68.90),
+      D('Parrilla', 'Com Ancho Black - 500g', '3701000000211', 119.90),
+      D('Parrilla', 'Fam Ancho Black - 750g', '3701000000212', 169.90),
+      D('Parrilla', 'Chapa Bife Ancho 400g', '3701000000213', 98.90),
+      D('Executivo', 'Exec Bife Ancho 200g', '3701000000214', 54.90),
+      D('Massas & Parm', 'Parmegiana de filé mignon 400g', '3701000000220', 79.90),
+      D('Massas & Parm', 'Parmegiana de frango 400g', '3701000000221', 62.90),
+      D('Massas & Parm', 'Parmegiana de berinjela 400g', '3701000000222', 52.90),
+      D('Executivo', 'Exec Filé à Parmegiana 200g', '3701000000223', 44.90, 'UNAVAILABLE'),
+      D('Petiscos', 'Choripán', '3701000000230', 32.90),
+      D('Petiscos', 'Empanada de Carne', '3701000000231', 9.90),
+      D('Petiscos', 'Provolone na Brasa', '3701000000232', 38.90),
+      D('Petiscos', 'Tábua de Frios', '3701000000233', 74.90, 'UNAVAILABLE'),
+      D('Burgers', 'Burger dos Quesos', '3701000000240', 39.90),
+      D('Burgers', 'Cheese Salada', '3701000000241', 34.90),
+      D('Saladas', 'Salada Caesar', '3701000000250', 36.90),
+      D('Saladas', 'Poke de Salmão', '3701000000251', 48.90),
+      D('Sushi', 'Combinado Premium 20 pçs', '3701000000260', 129.90),
+      D('Sushi', 'Temaki Salmão', '3701000000261', 32.90),
+      D('Sushi', 'Niguiri Salmão 2un', '3701000000262', 18.90, 'UNAVAILABLE'),
+      D('Sushi', 'Hot Filadélfia 8un', '3701000000263', 34.90),
+      D('Sobremesas', 'Torta Brownie', '3701000000270', 26.90),
+      D('Sobremesas', 'Petit Gâteau', '3701000000271', 29.90),
+      D('Bebidas', 'Coca-Cola 350ml', '3701000000280', 8.90),
+      D('Bebidas', 'Água com Gás 500ml', '3701000000281', 6.90),
+      D('Bebidas', 'Suco de Laranja 500ml', '3701000000282', 14.90, 'UNAVAILABLE'),
+      D('Chopes', 'Chopp Brahma 500ml', '3701000000290', 16.90),
+      D('Drinks', 'Caipirinha de Limão', '3701000000300', 24.90),
+      D('Drinks', 'Gin Tônica', '3701000000301', 32.90, 'UNAVAILABLE'),
+      D('Drinks', 'Aperol Spritz', '3701000000302', 36.90),
+      D('Vinhos', 'Malbec Taça', '3701000000310', 34.90),
+      D('Vinhos', 'Espumante Brut Taça', '3701000000311', 38.90),
+      D('Executivo', 'Filé Executivo 200g', '3701000000320', 49.90),
+      D('Executivo', 'Peito de Frango 200g', '3701000000321', 39.90),
+    ];
+  }
+
+  auditSeed() {
+    return [
+      { operador: 'Marina R.', iniciais: 'MR', avatarBg: 'linear-gradient(135deg,#F56C35,#FBB34A)', acao: 'alterou o preço de', alvo: 'Ancho Black - 250g', temDelta: true, de: 'R$ 64,90', para: 'R$ 68,90', quando: 'há 6 min' },
+      { operador: 'João P.', iniciais: 'JP', avatarBg: 'linear-gradient(135deg,#6366F1,#8B5CF6)', acao: 'pausou', alvo: 'Gin Tônica', temDelta: false, quando: 'há 22 min' },
+      { operador: 'Marina R.', iniciais: 'MR', avatarBg: 'linear-gradient(135deg,#F56C35,#FBB34A)', acao: 'pausou (em massa)', alvo: '4 itens · Parmegiana', temDelta: false, quando: 'há 1 h' },
+      { operador: 'Ana L.', iniciais: 'AL', avatarBg: 'linear-gradient(135deg,#0EA5E9,#22D3EE)', acao: 'alterou o código PDV de', alvo: 'Choripán', temDelta: true, de: '37010...229', para: '37010...230', quando: 'há 2 h' },
+      { operador: 'João P.', iniciais: 'JP', avatarBg: 'linear-gradient(135deg,#6366F1,#8B5CF6)', acao: 'despausou', alvo: 'Combinado Premium 20 pçs', temDelta: false, quando: 'há 3 h' },
+      { operador: 'Ana L.', iniciais: 'AL', avatarBg: 'linear-gradient(135deg,#0EA5E9,#22D3EE)', acao: 'criou o item', alvo: 'Aperol Spritz', temDelta: false, quando: 'ontem' },
+    ];
+  }
+
+  // helpers
+  fmtBRL(n) { return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
+  removerAcentos(t) { return Array.from(t).filter(ch => { const c = ch.codePointAt(0); return c < 0x0300 || c > 0x036f; }).join(''); }
+  palavrasChave(nome) {
+    return this.removerAcentos((nome || '').toLowerCase().normalize('NFD'))
+      .split(/[^a-z0-9]+/).filter(Boolean)
+      .filter(p => p.length >= 4).filter(p => !/\d/.test(p))
+      .filter(p => !this.PALAVRAS_IGNORADAS.has(p));
+  }
+  relacionados(item) {
+    const chave = this.palavrasChave(item.nome);
+    if (!chave.length) return [];
+    return this.state.itens.filter(i => i.id !== item.id)
+      .map(i => ({ item: i, comuns: this.palavrasChave(i.nome).filter(p => chave.includes(p)).length }))
+      .filter(r => r.comuns > 0).sort((a, b) => b.comuns - a.comuns).map(r => r.item);
+  }
+
+  notificar(tipo, msg) {
+    const id = ++this._tid;
+    this.setState(s => ({ toasts: [...s.toasts, { id, tipo, mensagem: msg }] }));
+    setTimeout(() => this.setState(s => ({ toasts: s.toasts.filter(t => t.id !== id) })), 4200);
+  }
+  pushAudit(entry) {
+    this.setState(s => ({ auditoria: [{ operador: 'Você', iniciais: 'VC', avatarBg: 'linear-gradient(135deg,#F56C35,#E0491A)', temDelta: false, quando: 'agora', ...entry }, ...s.auditoria] }));
+  }
+
+  // actions
+  toggleTema = () => this.setState(s => ({ tema: s.tema === 'escuro' ? 'claro' : 'escuro' }));
+  onBusca = (e) => { const v = e.target.value; this.setState({ buscaRaw: v }); clearTimeout(this._buscaTimer); this._buscaTimer = setTimeout(() => this.setState({ busca: v }), 250); };
+  setFiltroCat = (e) => this.setState({ filtroCat: e.target.value });
+  setFiltroStatus = (v) => this.setState({ filtroStatus: v });
+  recarregar = () => { this.setState({ recarregando: true }); setTimeout(() => { this.setState({ recarregando: false }); this.notificar('sucesso', 'Catálogo sincronizado com o iFood.'); }, 850); };
+  ciclarLoja = () => { this.setState(s => { const i = (s.lojaIdx + 1) % this.LOJAS.length; return { lojaIdx: i }; }, () => this.notificar('sucesso', 'Loja ativa: ' + this.LOJAS[this.state.lojaIdx])); };
+  setNav = (k) => this.setState({ nav: k });
+  reautenticar = () => { this.setState({ banner: false }); this.notificar('sucesso', 'Sessão renovada por mais 1 hora.'); };
+  dismissBanner = () => this.setState({ banner: false });
+
+  toggleSel = (id) => this.setState(s => ({ sel: s.sel.includes(id) ? s.sel.filter(x => x !== id) : [...s.sel, id] }));
+  limparSel = () => this.setState({ sel: [] });
+  selTodos = (ids) => this.setState(s => {
+    const todos = ids.every(id => s.sel.includes(id));
+    if (todos) return { sel: s.sel.filter(id => !ids.includes(id)) };
+    return { sel: Array.from(new Set([...s.sel, ...ids])) };
+  });
+
+  aplicarStatus(ids, status) {
+    this.setState(s => ({ itens: s.itens.map(i => ids.includes(i.id) ? { ...i, status } : i) }));
+  }
+  prepararToggle = (item) => {
+    const novo = item.status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
+    const rel = this.relacionados(item).filter(i => i.status !== novo);
+    if (!rel.length) { this.executarToggle(item, novo); return; }
+    this.setState({ modalRel: { item, novo, rel, sel: rel.map(r => r.id) } });
+  };
+  executarToggle(item, novo) {
+    this.aplicarStatus([item.id], novo);
+    this.notificar('sucesso', `"${item.nome}" ${novo === 'UNAVAILABLE' ? 'pausado' : 'despausado'}.`);
+    this.pushAudit({ acao: novo === 'UNAVAILABLE' ? 'pausou' : 'despausou', alvo: item.nome });
+  }
+  pausarIds(ids, status) {
+    this.aplicarStatus(ids, status);
+    const acao = status === 'UNAVAILABLE' ? 'pausados' : 'despausados';
+    this.notificar('sucesso', `${ids.length} itens ${acao}.`);
+    this.pushAudit({ acao: status === 'UNAVAILABLE' ? 'pausou (em massa)' : 'despausou (em massa)', alvo: `${ids.length} itens` });
+  }
+  acaoMassa = (status) => { const ids = [...this.state.sel]; if (!ids.length) return; this.pausarIds(ids, status); this.setState({ sel: [] }); };
+
+  toggleRelSel = (id) => this.setState(s => { const set = s.modalRel.sel; const nova = set.includes(id) ? set.filter(x => x !== id) : [...set, id]; return { modalRel: { ...s.modalRel, sel: nova } }; });
+  confirmarRel = () => { const { item, novo, sel } = this.state.modalRel; const ids = [item.id, ...sel]; this.setState({ modalRel: null }); this.pausarIds(ids, novo); };
+  soEste = () => { const { item, novo } = this.state.modalRel; this.setState({ modalRel: null }); this.executarToggle(item, novo); };
+  fecharRel = () => this.setState({ modalRel: null });
+
+  // inline edit
+  abrirEdit = (item, campo) => { const valor = campo === 'preco' ? String(item.preco).replace('.', ',') : item.codigo_pdv; this.setState({ edit: { id: item.id, campo, valor } }); };
+  onEditInput = (e) => { const v = e.target.value; this.setState(s => ({ edit: { ...s.edit, valor: v } })); };
+  cancelarEdit = () => this.setState({ edit: null });
+  salvarEdit = () => {
+    const edit = this.state.edit; if (!edit) return;
+    const item = this.state.itens.find(i => i.id === edit.id); if (!item) { this.setState({ edit: null }); return; }
+    const id = edit.id, campo = edit.campo, valor = edit.valor;
+    this.setState({ edit: null, salvando: id });
+    setTimeout(() => {
+      let mudou = false, de, para;
+      this.setState(s => ({
+        itens: s.itens.map(i => {
+          if (i.id !== id) return i;
+          if (campo === 'preco') { const n = Number(String(valor).replace(',', '.')); if (!n || n <= 0 || n === i.preco) return i; de = this.fmtBRL(i.preco); para = this.fmtBRL(n); mudou = true; return { ...i, preco: n }; }
+          const c = String(valor).trim(); if (!c || c === i.codigo_pdv) return i; de = i.codigo_pdv; para = c; mudou = true; return { ...i, codigo_pdv: c };
+        }),
+        salvando: null, salvo: mudou ? id : null,
+      }), () => {
+        if (mudou) { this.notificar('sucesso', `${campo === 'preco' ? 'Preço' : 'Código PDV'} de "${item.nome}" atualizado.`); this.pushAudit({ acao: campo === 'preco' ? 'alterou o preço de' : 'alterou o código PDV de', alvo: item.nome, temDelta: true, de, para }); setTimeout(() => this.setState(s => (s.salvo === id ? { salvo: null } : {})), 1700); }
+      });
+    }, 650);
+  };
+  onEditKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); this.salvarEdit(); } else if (e.key === 'Escape') { this.cancelarEdit(); } };
+
+  // edit modal
+  abrirModalEdit = (item) => this.setState({ modalEdit: { id: item.id, nome: item.nome, preco: String(item.preco).replace('.', ','), pdv: item.codigo_pdv } });
+  fecharEdit = () => this.setState({ modalEdit: null });
+  onModalPreco = (e) => { const v = e.target.value; this.setState(s => ({ modalEdit: { ...s.modalEdit, preco: v } })); };
+  onModalPdv = (e) => { const v = e.target.value; this.setState(s => ({ modalEdit: { ...s.modalEdit, pdv: v } })); };
+  salvarModalEdit = () => {
+    const m = this.state.modalEdit; const n = Number(String(m.preco).replace(',', '.'));
+    if (!n || n <= 0) { this.notificar('erro', 'Preço deve ser maior que zero.'); return; }
+    if (!String(m.pdv).trim()) { this.notificar('erro', 'Código PDV não pode ficar vazio.'); return; }
+    const item = this.state.itens.find(i => i.id === m.id);
+    this.aplicarStatus; this.setState(s => ({ itens: s.itens.map(i => i.id === m.id ? { ...i, preco: n, codigo_pdv: String(m.pdv).trim() } : i), modalEdit: null }));
+    this.notificar('sucesso', `"${item.nome}" atualizado.`);
+    this.pushAudit({ acao: 'editou', alvo: item.nome });
+  };
+
+  pararProp = (e) => e.stopPropagation();
+
+  // ---- icons ----
+  ico(path, extra) { return { __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none">${path}</svg>` }; }
+  get icones() {
+    return {
+      catalogo: '<path d="M3.5 3.5h7v7h-7zM13.5 3.5h7v7h-7zM3.5 13.5h7v7h-7zM13.5 13.5h7v7h-7z" stroke="currentColor" stroke-width="1.8"/>',
+      auditoria: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+      usuarios: '<path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM22 20v-2a4 4 0 0 0-3-3.9M15 3.1a4 4 0 0 1 0 7.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+      lojas: '<path d="M3 9l1-5h16l1 5M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9M4 9h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const ehSidebar = (this.props.layout || 'sidebar') === 'sidebar';
+    const disp = s.itens.filter(i => i.status === 'AVAILABLE').length;
+    const paus = s.itens.length - disp;
+    const cats = Array.from(new Set(s.itens.map(i => i.categoria))).sort();
+
+    const termo = s.busca.trim().toLowerCase();
+    const filtrados = s.itens.filter(i => {
+      if (s.filtroCat !== 'TODAS' && i.categoria !== s.filtroCat) return false;
+      if (s.filtroStatus !== 'TODOS' && i.status !== s.filtroStatus) return false;
+      if (termo && !`${i.nome} ${i.codigo_pdv}`.toLowerCase().includes(termo)) return false;
+      return true;
+    });
+    const idsVisiveis = filtrados.map(i => i.id);
+
+    const pill = (av) => av
+      ? 'display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-bd)'
+      : 'display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-bd)';
+
+    const linhas = filtrados.map(i => {
+      const av = i.status === 'AVAILABLE';
+      const editP = s.edit && s.edit.id === i.id && s.edit.campo === 'preco';
+      const editD = s.edit && s.edit.id === i.id && s.edit.campo === 'pdv';
+      return {
+        id: i.id, nome: i.nome, categoria: i.categoria, codigoPdv: i.codigo_pdv,
+        precoFmt: this.fmtBRL(i.preco),
+        statusLabel: av ? 'Disponível' : 'Pausado',
+        pillEstilo: pill(av), pillDot: av ? 'var(--ok)' : 'var(--warn)',
+        selecionado: s.sel.includes(i.id),
+        editandoPreco: !!editP, editandoPdv: !!editD,
+        mostrarPreco: !editP, mostrarPdv: !editD,
+        editValor: (editP || editD) ? s.edit.valor : '',
+        salvando: s.salvando === i.id, salvo: s.salvo === i.id,
+        acaoTitle: av ? 'Pausar item' : 'Despausar item',
+        toggleIcone: av
+          ? { __html: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="6" y="5" width="4" height="14" rx="1.3" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.3" fill="currentColor"/></svg>' }
+          : { __html: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 5l12 7-12 7z" fill="currentColor"/></svg>' },
+        toggleEstilo: av
+          ? 'width:30px;height:30px;border-radius:8px;background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn);cursor:pointer;display:flex;align-items:center;justify-content:center'
+          : 'width:30px;height:30px;border-radius:8px;background:var(--ok-bg);border:1px solid var(--ok-bd);color:var(--ok);cursor:pointer;display:flex;align-items:center;justify-content:center',
+        rowEstilo: 'border-top:1px solid var(--bd2)' + (s.sel.includes(i.id) ? ';background:rgba(245,108,53,0.06)' : ''),
+        onSelecionar: () => this.toggleSel(i.id),
+        onToggleStatus: () => this.prepararToggle(i),
+        onEditPreco: () => this.abrirEdit(i, 'preco'),
+        onEditPdv: () => this.abrirEdit(i, 'pdv'),
+        onEditInput: this.onEditInput, onEditBlur: this.salvarEdit, onEditKey: this.onEditKey,
+        onAbrirEdicao: () => this.abrirModalEdit(i),
+      };
+    });
+
+    const kpiCard = (compact) => compact
+      ? 'display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--bd);border-radius:13px;box-shadow:var(--sh-sm)'
+      : 'display:flex;align-items:center;gap:14px;padding:18px 18px;background:var(--card);border:1px solid var(--bd);border-radius:15px;box-shadow:var(--sh)';
+    const compact = ehSidebar;
+    const kpis = [
+      { valor: s.itens.length, label: 'Itens no catálogo', cor: 'var(--brand)', iconBg: 'rgba(245,108,53,0.12)', iconBd: 'rgba(245,108,53,0.28)', icone: this.ico(), estilo: kpiCard(compact) },
+      { valor: cats.length, label: 'Categorias', cor: 'var(--brand2)', iconBg: 'rgba(251,179,74,0.12)', iconBd: 'rgba(251,179,74,0.28)', icone: this.ico(), estilo: kpiCard(compact) },
+      { valor: disp, label: 'Disponíveis', cor: 'var(--ok)', iconBg: 'var(--ok-bg)', iconBd: 'var(--ok-bd)', icone: this.ico(), estilo: kpiCard(compact) },
+      { valor: paus, label: 'Pausados', cor: 'var(--warn)', iconBg: 'var(--warn-bg)', iconBd: 'var(--warn-bd)', icone: this.ico(), estilo: kpiCard(compact) },
+    ];
+    // kpi icons
+    kpis[0].icone = { __html: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>' };
+    kpis[1].icone = { __html: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5M3 17l9 5 9-5" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>' };
+    kpis[2].icone = { __html: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.9"/></svg>' };
+    kpis[3].icone = { __html: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="6" y="5" width="4" height="14" rx="1.3" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.3" fill="currentColor"/></svg>' };
+
+    const ic = this.icones;
+    const navDef = [
+      { k: 'catalogo', label: 'Catálogo', icone: { __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none">${ic.catalogo}</svg>` } },
+      { k: 'auditoria', label: 'Auditoria', icone: { __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none">${ic.auditoria}</svg>` } },
+      { k: 'usuarios', label: 'Usuários', icone: { __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none">${ic.usuarios}</svg>` } },
+      { k: 'lojas', label: 'Lojas', icone: { __html: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none">${ic.lojas}</svg>` }, badge: paus ? String(paus) : '' },
+    ];
+    const navItens = navDef.map(n => {
+      const ativo = s.nav === n.k;
+      return {
+        label: n.label, icone: n.icone, badge: n.k === 'lojas' ? '' : (n.k === 'catalogo' ? '' : ''),
+        onClick: () => this.setNav(n.k),
+        estilo: `display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;font-size:13px;font-weight:${ativo ? 600 : 500};cursor:pointer;border:1px solid ${ativo ? 'var(--bd)' : 'transparent'};background:${ativo ? 'var(--inset)' : 'transparent'};color:${ativo ? 'var(--t1)' : 'var(--t2)'};font-family:inherit;text-align:left;width:100%`,
+        estiloTab: `padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;background:${ativo ? 'var(--card)' : 'transparent'};color:${ativo ? 'var(--t1)' : 'var(--t2)'};box-shadow:${ativo ? 'var(--sh-sm)' : 'none'};font-family:inherit`,
+      };
+    });
+
+    const statusFiltros = [
+      { valor: 'TODOS', label: 'Todos' },
+      { valor: 'AVAILABLE', label: 'Disponível' },
+      { valor: 'UNAVAILABLE', label: 'Pausado' },
+    ].map(o => ({
+      label: o.label, onClick: () => this.setFiltroStatus(o.valor),
+      estilo: `padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:${s.filtroStatus === o.valor ? 'var(--card)' : 'transparent'};color:${s.filtroStatus === o.valor ? 'var(--t1)' : 'var(--t2)'};box-shadow:${s.filtroStatus === o.valor ? 'var(--sh-sm)' : 'none'}`,
+    }));
+
+    const CTOAST = { sucesso: 'var(--ok)', erro: 'var(--danger)', aviso: 'var(--warn)' };
+    const ITOAST = {
+      sucesso: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>',
+      erro: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v6M12 16h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+      aviso: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+    const toasts = s.toasts.map(t => ({
+      mensagem: t.mensagem, cor: CTOAST[t.tipo] || 'var(--t1)', icone: { __html: ITOAST[t.tipo] || ITOAST.sucesso },
+      estilo: `pointer-events:auto;display:flex;gap:10px;padding:12px 14px;border-radius:13px;background:var(--card);border:1px solid ${CTOAST[t.tipo] || 'var(--bd)'}40;box-shadow:var(--sh);animation:toastin .24s cubic-bezier(.16,1,.3,1)`,
+    }));
+
+    const modalRel = s.modalRel ? true : false;
+    let relTitulo = '', relBase = '', relQtd = 0, relLista = [], relBotao = '';
+    if (s.modalRel) {
+      const pausar = s.modalRel.novo === 'UNAVAILABLE';
+      relTitulo = pausar ? 'Pausar itens parecidos?' : 'Despausar itens parecidos?';
+      relBase = s.modalRel.item.nome;
+      relQtd = s.modalRel.rel.length;
+      relBotao = `${pausar ? 'Pausar' : 'Despausar'} ${s.modalRel.sel.length + 1} itens`;
+      relLista = s.modalRel.rel.map(r => {
+        const av = r.status === 'AVAILABLE';
+        return {
+          nome: r.nome, codigoPdv: r.codigo_pdv, precoFmt: this.fmtBRL(r.preco),
+          statusLabel: av ? 'Disponível' : 'Pausado', pillEstilo: pill(av),
+          marcado: s.modalRel.sel.includes(r.id), onToggle: () => this.toggleRelSel(r.id),
+          estilo: `display:flex;align-items:center;gap:12px;padding:11px 12px;margin-bottom:7px;border-radius:12px;background:var(--inset);border:1px solid ${s.modalRel.sel.includes(r.id) ? 'var(--brand)' : 'var(--bd)'};cursor:pointer`,
+        };
+      });
+    }
+
+    const me = s.modalEdit;
+    const th = 'padding:11px 12px;font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--bd)';
+
+    return {
+      screenLabel: this.props.variantNome || (ehSidebar ? 'Painel Sidebar' : 'Painel Topbar'),
+      ehSidebar, ehTopbar: !ehSidebar,
+      temaVars: '',
+      temaClasse: s.tema === 'claro' ? 'tema-claro' : '',
+      // KPI + layout
+      kpis,
+      kpiGrid: ehSidebar
+        ? 'display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px'
+        : 'display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px',
+      mainGrid: 'display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start',
+      tabelaAltura: s.banner ? '452px' : '496px',
+      railAltura: s.banner ? '452px' : '496px',
+      thEstilo: th,
+      // topbar
+      topbarEstilo: ehSidebar
+        ? 'display:flex;align-items:center;padding:14px 22px;border-bottom:1px solid var(--bd);background:var(--card)'
+        : 'display:flex;align-items:center;justify-content:space-between;padding:13px 22px;border-bottom:1px solid var(--bd);background:var(--card)',
+      topbarDireita: ehSidebar ? 'margin-left:auto' : '',
+      navItens,
+      lojaAtual: this.LOJAS[s.lojaIdx],
+      onCiclarLoja: this.ciclarLoja,
+      onToggleTema: this.toggleTema,
+      iconeTema: { __html: s.tema === 'escuro'
+        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>' },
+      // banner
+      banner: s.banner, onReautenticar: this.reautenticar, onDismissBanner: this.dismissBanner,
+      // table toolbar
+      buscaRaw: s.buscaRaw, onBusca: this.onBusca,
+      filtroCat: s.filtroCat, onFiltroCat: this.setFiltroCat,
+      categoriasFiltro: [{ valor: 'TODAS', label: 'Todas as categorias' }, ...cats.map(c => ({ valor: c, label: c }))],
+      statusFiltros,
+      onRecarregar: this.recarregar,
+      recarregandoEstilo: 'color:var(--t2)' + (s.recarregando ? ';animation:spin .8s linear infinite' : ''),
+      // table
+      linhas, semResultados: linhas.length === 0,
+      todosSel: idsVisiveis.length > 0 && idsVisiveis.every(id => s.sel.includes(id)),
+      onSelTodos: () => this.selTodos(idsVisiveis),
+      contagem: filtrados.length, totalItens: s.itens.length,
+      // audit
+      auditoria: s.auditoria,
+      // floating
+      temSel: s.sel.length > 0, selCount: s.sel.length,
+      selTexto: s.sel.length === 1 ? 'item selecionado' : 'itens selecionados',
+      onPausarMassa: () => this.acaoMassa('UNAVAILABLE'),
+      onDespausarMassa: () => this.acaoMassa('AVAILABLE'),
+      onLimparSel: this.limparSel,
+      // related modal
+      modalRel, relTitulo, relBase, relQtd, relLista, relBotao,
+      onFecharRel: this.fecharRel, onConfirmarRel: this.confirmarRel, onSoEste: this.soEste,
+      pararProp: this.pararProp,
+      // edit modal
+      modalEdit: !!me, editNome: me ? me.nome : '', editPreco: me ? me.preco : '', editPdv: me ? me.pdv : '',
+      onEditModalPreco: this.onModalPreco, onEditModalPdv: this.onModalPdv,
+      onSalvarEdit: this.salvarModalEdit, onFecharEdit: this.fecharEdit,
+      toasts,
+    };
+  }
+
+}
+</script>
+</body>
+</html>

@@ -50,7 +50,12 @@ logging.basicConfig(
 logger = logging.getLogger("ifood_app")
 
 app = Flask(__name__)
-CORS(app, origins=os.environ.get("VIEWER_ORIGIN", "http://localhost:5173"))
+# VIEWER_ORIGIN aceita uma ou mais origens separadas por vírgula (ex: localhost + IP da
+# rede local), pra dar pra acessar o painel de outro dispositivo na mesma rede.
+VIEWER_ORIGINS = [
+    origem.strip() for origem in os.environ.get("VIEWER_ORIGIN", "http://localhost:5173").split(",") if origem.strip()
+]
+CORS(app, origins=VIEWER_ORIGINS)
 
 MERCHANT_ID_PADRAO = os.environ["IFOOD_MERCHANT_ID"]
 PAUSA_ENTRE_CHAMADAS = 0.15  # segundos, para não estourar rate limit em operações em massa
@@ -67,10 +72,6 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
 SUPABASE_CONFIGURADO = bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)
-# Pra onde o e-mail de convite manda a pessoa definir a senha (a SPA lê o token do #hash da URL).
-CONVITE_REDIRECT_URL = os.environ.get("CONVITE_REDIRECT_URL") or os.environ.get(
-    "VIEWER_ORIGIN", "http://localhost:5173"
-)
 
 
 def _supabase_headers():
@@ -118,7 +119,7 @@ def usuario_atual():
         resp_perfil = requests.get(
             f"{SUPABASE_URL}/rest/v1/perfis",
             headers=_supabase_headers(),
-            params={"select": "id,email,nome,papel", "id": f"eq.{usuario_auth.get('id')}"},
+            params={"select": "id,email,nome,papel,senha_temporaria", "id": f"eq.{usuario_auth.get('id')}"},
             timeout=10,
         )
         resp_perfil.raise_for_status()
@@ -174,11 +175,12 @@ def _categoria_id(nome_categoria, categorias_existentes, merchant_id, catalog_id
     return nova.get("categoryId") or nova["id"]
 
 
-def registrar_auditoria(operador, acao, item_id="", codigo_pdv="", nome="", detalhe=""):
+def registrar_auditoria(operador, acao, item_id="", codigo_pdv="", nome="", detalhe="", valor_de="", valor_para=""):
     """Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o catálogo
     real. É best-effort: se o Supabase estiver fora do ar ou mal configurado, só loga o erro
     e segue — auditoria não pode derrubar a ação de verdade (pausar/criar/etc) que já aconteceu
-    no iFood."""
+    no iFood. `valor_de`/`valor_para` alimentam o "antes → depois" da tela de Auditoria (só
+    preenchido em alterar_preco/alterar_codigo_pdv, onde o front já sabe o valor anterior)."""
     operador = operador or "desconhecido"
     logger.info("auditoria: operador=%s acao=%s item_id=%s %s", operador, acao, item_id, detalhe)
 
@@ -197,6 +199,8 @@ def registrar_auditoria(operador, acao, item_id="", codigo_pdv="", nome="", deta
                 "codigo_pdv": codigo_pdv,
                 "nome": nome,
                 "detalhe": detalhe,
+                "valor_de": valor_de,
+                "valor_para": valor_para,
             },
             timeout=10,
         )
@@ -287,6 +291,8 @@ def criar_loja():
 @app.delete("/api/lojas/<loja_id>")
 @requer_papel("administrador")
 def remover_loja(loja_id):
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
     resp = requests.delete(
         f"{SUPABASE_URL}/rest/v1/lojas",
         headers=_supabase_headers(),
@@ -294,7 +300,7 @@ def remover_loja(loja_id):
         timeout=10,
     )
     resp.raise_for_status()
-    registrar_auditoria(g.usuario["nome"], "remover_loja", item_id=loja_id)
+    registrar_auditoria(g.usuario["nome"], "remover_loja", item_id=loja_id, nome=nome)
     return jsonify({"ok": True})
 
 
@@ -386,6 +392,7 @@ def alterar_status(item_id):
 def alterar_preco(item_id):
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get("nome", "")).strip()
+    preco_anterior = str(dados.get("preco_anterior", "")).strip()
     operador = g.usuario["nome"]
     try:
         preco = float(str(dados.get("preco", "")).replace(",", "."))
@@ -396,7 +403,15 @@ def alterar_preco(item_id):
 
     merchant_id = _merchant_id()
     com_retry(update_item_price, merchant_id, item_id, preco)
-    registrar_auditoria(operador, "alterar_preco", item_id=item_id, nome=nome, detalhe=f"novo preço: R$ {preco:.2f}")
+    registrar_auditoria(
+        operador,
+        "alterar_preco",
+        item_id=item_id,
+        nome=nome,
+        detalhe=f"novo preço: R$ {preco:.2f}",
+        valor_de=preco_anterior,
+        valor_para=f"R$ {preco:.2f}".replace(".", ","),
+    )
     return jsonify({"itemId": item_id, "preco": preco})
 
 
@@ -405,6 +420,7 @@ def alterar_preco(item_id):
 def alterar_codigo_pdv(item_id):
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get("nome", "")).strip()
+    codigo_anterior = str(dados.get("codigo_anterior", "")).strip()
     operador = g.usuario["nome"]
     codigo_pdv = str(dados.get("codigo_pdv", "")).strip()
     if not codigo_pdv:
@@ -412,7 +428,15 @@ def alterar_codigo_pdv(item_id):
 
     merchant_id = _merchant_id()
     com_retry(patch_item_external_code, merchant_id, item_id, codigo_pdv)
-    registrar_auditoria(operador, "alterar_codigo_pdv", item_id=item_id, nome=nome, codigo_pdv=codigo_pdv)
+    registrar_auditoria(
+        operador,
+        "alterar_codigo_pdv",
+        item_id=item_id,
+        nome=nome,
+        codigo_pdv=codigo_pdv,
+        valor_de=codigo_anterior,
+        valor_para=codigo_pdv,
+    )
     return jsonify({"itemId": item_id, "codigo_pdv": codigo_pdv})
 
 
@@ -483,6 +507,8 @@ def get_auditoria():
             "codigo_pdv": row.get("codigo_pdv"),
             "nome": row.get("nome"),
             "detalhe": row.get("detalhe"),
+            "valor_de": row.get("valor_de"),
+            "valor_para": row.get("valor_para"),
         }
         for row in resp.json()
     ]
@@ -502,11 +528,37 @@ def listar_usuarios():
     return jsonify(resp.json())
 
 
+def _gerar_senha_aleatoria():
+    alfabeto = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alfabeto) for _ in range(14))
+
+
+def _marcar_senha_temporaria(usuario_id, valor):
+    """Liga/desliga a flag que força troca de senha no próximo login. Chamado com True sempre
+    que um administrador define a senha de alguém (criação ou reset); o próprio usuário desliga
+    (False) ao trocar a senha dele mesmo, via POST /api/eu/senha-trocada."""
+    resp = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/perfis",
+        headers=_supabase_headers(),
+        params={"id": f"eq.{usuario_id}"},
+        json={"senha_temporaria": valor},
+        timeout=10,
+    )
+    resp.raise_for_status()
+
+
 @app.post("/api/usuarios/convidar")
 @requer_papel("administrador")
 def convidar_usuario():
-    """Convida alguém por e-mail (Supabase manda o link de convite). O perfil (nome + papel)
-    é criado sozinho quando a pessoa aceita, via trigger no banco (sql/002_*)."""
+    """Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida, e
+    devolve essa senha pro administrador repassar por fora (WhatsApp, presencial, etc).
+
+    Antes isso mandava um e-mail de convite (Supabase `/auth/v1/invite`) com um link mágico —
+    só que esse link depende do e-mail chegar E de ninguém "clicar" nele antes da pessoa
+    (scanner de segurança de e-mail corporativo costuma pré-visitar links e queima o token de
+    um só uso). Criar a conta com senha já definida não depende de e-mail nenhum — sempre
+    funciona, e o administrador já sabe a senha na hora, sem precisar torcer pro e-mail chegar.
+    O perfil (nome + papel) é criado sozinho pelo trigger no banco (sql/002_*)."""
     dados = request.get_json(silent=True) or {}
     email = str(dados.get("email", "")).strip().lower()
     nome = str(dados.get("nome", "")).strip()
@@ -517,30 +569,39 @@ def convidar_usuario():
     if papel not in PAPEIS_VALIDOS:
         raise ValueError("Papel inválido.")
 
+    senha_nova = _gerar_senha_aleatoria()
     resp = requests.post(
-        f"{SUPABASE_URL}/auth/v1/invite",
+        f"{SUPABASE_URL}/auth/v1/admin/users",
         headers=_supabase_headers(),
-        json={"email": email, "data": {"nome": nome, "papel": papel}, "redirect_to": CONVITE_REDIRECT_URL},
+        json={
+            "email": email,
+            "password": senha_nova,
+            "email_confirm": True,
+            "user_metadata": {"nome": nome, "papel": papel},
+        },
         timeout=15,
     )
     resp.raise_for_status()
-    registrar_auditoria(g.usuario["nome"], "convidar_usuario", detalhe=f"{email} como {papel}")
-    return jsonify({"ok": True}), 201
+    novo_id = resp.json().get("id")
+    if novo_id:
+        _marcar_senha_temporaria(novo_id, True)
+    registrar_auditoria(g.usuario["nome"], "convidar_usuario", nome=nome, detalhe=f"{email} como {papel}")
+    return jsonify({"email": email, "nome": nome, "senha": senha_nova}), 201
 
 
 @app.post("/api/usuarios/<usuario_id>/resetar-senha")
 @requer_papel("administrador")
 def resetar_senha_usuario(usuario_id):
     """Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela pro
-    administrador repassar por fora (WhatsApp, presencial, etc).
-
-    Existe por causa de um problema real: o link de convite/recuperação por e-mail depende do
-    Supabase mandar o e-mail E de nada "clicar" nele antes da pessoa (scanner de segurança de
-    e-mail corporativo costuma pré-visitar links e queima o token de um só uso, dando
-    'otp_expired' pra quem clica de verdade depois). Esse endpoint não depende de e-mail
-    nenhum — sempre funciona."""
-    alfabeto = string.ascii_letters + string.digits
-    senha_nova = "".join(secrets.choice(alfabeto) for _ in range(14))
+    administrador repassar por fora (WhatsApp, presencial, etc). Se o corpo do pedido trouxer
+    uma `senha` específica, usa ela (validada com pelo menos 6 caracteres); senão gera uma
+    aleatória — mesma ideia do `convidar_usuario` acima, mas pra quem já tem conta."""
+    dados = request.get_json(silent=True) or {}
+    senha_escolhida = str(dados.get("senha", "")).strip()
+    nome = str(dados.get("nome", "")).strip()
+    if senha_escolhida and len(senha_escolhida) < 6:
+        raise ValueError("A senha precisa ter pelo menos 6 caracteres.")
+    senha_nova = senha_escolhida or _gerar_senha_aleatoria()
 
     resp = requests.put(
         f"{SUPABASE_URL}/auth/v1/admin/users/{usuario_id}",
@@ -549,8 +610,18 @@ def resetar_senha_usuario(usuario_id):
         timeout=15,
     )
     resp.raise_for_status()
-    registrar_auditoria(g.usuario["nome"], "resetar_senha_usuario", item_id=usuario_id)
+    _marcar_senha_temporaria(usuario_id, True)
+    registrar_auditoria(g.usuario["nome"], "resetar_senha_usuario", item_id=usuario_id, nome=nome)
     return jsonify({"id": usuario_id, "senha": senha_nova})
+
+
+@app.post("/api/eu/senha-trocada")
+@requer_login
+def senha_trocada():
+    """Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Supabase,
+    com o token dele) — desliga a flag que força a troca no próximo login."""
+    _marcar_senha_temporaria(g.usuario["id"], False)
+    return jsonify({"ok": True})
 
 
 @app.patch("/api/usuarios/<usuario_id>/papel")
@@ -558,6 +629,7 @@ def resetar_senha_usuario(usuario_id):
 def alterar_papel_usuario(usuario_id):
     dados = request.get_json(silent=True) or {}
     papel = str(dados.get("papel", "")).strip().lower()
+    nome = str(dados.get("nome", "")).strip()
     if papel not in PAPEIS_VALIDOS:
         raise ValueError("Papel inválido.")
 
@@ -569,11 +641,14 @@ def alterar_papel_usuario(usuario_id):
         timeout=10,
     )
     resp.raise_for_status()
-    registrar_auditoria(g.usuario["nome"], "alterar_papel_usuario", item_id=usuario_id, detalhe=f"novo papel: {papel}")
+    registrar_auditoria(
+        g.usuario["nome"], "alterar_papel_usuario", item_id=usuario_id, nome=nome, detalhe=f"novo papel: {papel}"
+    )
     return jsonify({"id": usuario_id, "papel": papel})
 
 
 if __name__ == "__main__":
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     logger.info("Servidor iniciando (debug=%s)", debug)
-    app.run(port=5000, debug=debug)
+    # host 0.0.0.0: acessível por outros dispositivos na mesma rede local (não só localhost).
+    app.run(host="0.0.0.0", port=5000, debug=debug)

@@ -5,6 +5,7 @@ import {
   Check,
   CheckCircle2,
   History,
+  KeyRound,
   Layers,
   ListChecks,
   Loader2,
@@ -23,41 +24,86 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { API, buscarEu, lerConviteDaUrl, lerErroDaUrl, limparHashDaUrl, logoutSupabase } from './auth'
+import {
+  API,
+  buscarEu,
+  definirSenha,
+  lerConviteDaUrl,
+  lerErroDaUrl,
+  limparHashDaUrl,
+  logoutSupabase,
+  marcarSenhaTrocada,
+} from './auth'
+import { GraficoItensReincidentes, GraficoTendenciaAtividade } from './Graficos'
 import { TelaDefinirSenha, TelaLogin } from './TelasAuth'
 
+// Tokens do redesign "App Cajupar iFood" (handoff do Claude Design). `neutral` representa
+// "pausado" em toda a UI (pills, stat card, gráficos) — nesse redesign isso é âmbar/aviso, não
+// cinza neutro, porque um item pausado merece atenção (possível ruptura de estoque).
 const PALETAS = {
   escuro: {
-    cardBg: '#0f0f18',
-    cardBorder: '#1e1e2e',
-    inputBg: '#1a1a25',
-    text1: '#f1f5f9',
-    text2: '#64748b',
-    text3: '#475569',
-    headerBg: 'rgba(10,9,8,0.92)',
-    rowBorder: '#151520',
-    good: '#22c55e',
-    neutral: '#94a3b8',
-    bad: '#ef4444',
-    overlay: 'rgba(5,5,10,0.55)',
-    modalBg: 'rgba(20,20,32,0.72)',
-    modalBorder: 'rgba(255,255,255,0.08)',
+    bg: '#0A0A0D',
+    bg2: '#08080B',
+    cardBg: '#141419',
+    card2: '#1B1B22',
+    inputBg: '#101015',
+    hover: 'rgba(255,255,255,0.04)',
+    cardBorder: '#26262F',
+    rowBorder: '#1D1D25',
+    text1: '#F5F5F7',
+    text2: '#9A9AA6',
+    text3: '#5C5C67',
+    headerBg: '#141419',
+    good: '#34C77B',
+    goodBg: 'rgba(52,199,123,0.13)',
+    goodBd: 'rgba(52,199,123,0.30)',
+    neutral: '#F5A623',
+    neutralBg: 'rgba(245,166,35,0.13)',
+    neutralBd: 'rgba(245,166,35,0.32)',
+    bad: '#F0473F',
+    badBg: 'rgba(240,71,63,0.12)',
+    badBd: 'rgba(240,71,63,0.30)',
+    info: '#5B8CFF',
+    infoBg: 'rgba(91,140,255,0.12)',
+    brand2: '#FBB34A',
+    ring: 'rgba(245,108,53,0.32)',
+    overlay: 'rgba(4,4,8,0.6)',
+    modalBg: '#141419',
+    modalBorder: '#26262F',
+    sh: '0 1px 0 rgba(255,255,255,0.02), 0 18px 48px -16px rgba(0,0,0,0.65)',
+    shSm: '0 1px 2px rgba(0,0,0,0.4)',
   },
   claro: {
-    cardBg: '#ffffff',
-    cardBorder: '#e2e8f0',
-    inputBg: '#f1f5f9',
-    text1: '#0f172a',
-    text2: '#64748b',
-    text3: '#94a3b8',
-    headerBg: 'rgba(255,255,255,0.85)',
-    rowBorder: '#eef1f5',
-    good: '#15803d',
-    neutral: '#64748b',
-    bad: '#dc2626',
-    overlay: 'rgba(15,23,42,0.35)',
-    modalBg: 'rgba(255,255,255,0.78)',
-    modalBorder: 'rgba(15,23,42,0.08)',
+    bg: '#F4F4F6',
+    bg2: '#ECECEF',
+    cardBg: '#FFFFFF',
+    card2: '#F6F6F8',
+    inputBg: '#F0F0F3',
+    hover: 'rgba(16,16,20,0.035)',
+    cardBorder: '#E6E6EA',
+    rowBorder: '#EDEDF1',
+    text1: '#15151A',
+    text2: '#6A6A75',
+    text3: '#9A9AA4',
+    headerBg: '#FFFFFF',
+    good: '#12924C',
+    goodBg: 'rgba(18,146,76,0.09)',
+    goodBd: 'rgba(18,146,76,0.24)',
+    neutral: '#B57200',
+    neutralBg: 'rgba(181,114,0,0.09)',
+    neutralBd: 'rgba(181,114,0,0.24)',
+    bad: '#DB3B33',
+    badBg: 'rgba(219,59,51,0.08)',
+    badBd: 'rgba(219,59,51,0.22)',
+    info: '#2F6BE0',
+    infoBg: 'rgba(47,107,224,0.09)',
+    brand2: '#FBB34A',
+    ring: 'rgba(245,108,53,0.32)',
+    overlay: 'rgba(4,4,8,0.6)',
+    modalBg: '#FFFFFF',
+    modalBorder: '#E6E6EA',
+    sh: '0 1px 2px rgba(16,16,20,0.05), 0 16px 40px -22px rgba(16,16,20,0.28)',
+    shSm: '0 1px 2px rgba(16,16,20,0.06)',
   },
 }
 
@@ -73,6 +119,11 @@ const ACAO_LABEL = {
   despausar_em_massa: 'despausou (em massa)',
   pausar_em_massa_erro: 'falhou ao pausar (em massa)',
   despausar_em_massa_erro: 'falhou ao despausar (em massa)',
+  convidar_usuario: 'criou o usuário',
+  resetar_senha_usuario: 'definiu a senha de',
+  alterar_papel_usuario: 'trocou o papel de',
+  criar_loja: 'cadastrou a loja',
+  remover_loja: 'removeu a loja',
 }
 
 const PAPEIS = [
@@ -203,6 +254,99 @@ function Modal({ titulo, onClose, children, largura = 'max-w-md' }) {
   )
 }
 
+// Usado tanto pra dar a alguém uma senha inicial (ao definir por um admin) quanto pra
+// redefinir a de quem já tem conta — sempre sem depender de e-mail chegar.
+function FormDefinirSenha({ usuario, carregando, onConfirmar, onCancelar, C }) {
+  const [modo, setModo] = useState('aleatoria')
+  const [senha, setSenha] = useState('')
+  const [erro, setErro] = useState('')
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    setErro('')
+    if (modo === 'especifica') {
+      if (senha.length < 6) {
+        setErro('A senha precisa ter pelo menos 6 caracteres.')
+        return
+      }
+      onConfirmar(senha)
+    } else {
+      onConfirmar('')
+    }
+  }
+
+  const botaoEstiloAtivo = { background: '#F56C35', color: '#fff' }
+  const botaoEstiloInativo = { background: C.inputBg, color: C.text2 }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+      <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: C.cardBorder }}>
+        <button
+          type="button"
+          onClick={() => setModo('aleatoria')}
+          className="flex-1 text-xs font-semibold py-2 transition-colors"
+          style={modo === 'aleatoria' ? botaoEstiloAtivo : botaoEstiloInativo}
+        >
+          Gerar aleatória
+        </button>
+        <button
+          type="button"
+          onClick={() => setModo('especifica')}
+          className="flex-1 text-xs font-semibold py-2 transition-colors"
+          style={modo === 'especifica' ? botaoEstiloAtivo : botaoEstiloInativo}
+        >
+          Escolher senha
+        </button>
+      </div>
+
+      {modo === 'especifica' ? (
+        <input
+          type="text"
+          autoFocus
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
+          placeholder="Nova senha (mín. 6 caracteres)"
+          className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+          style={{ background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }}
+        />
+      ) : (
+        <p className="text-xs leading-relaxed" style={{ color: C.text2 }}>
+          O sistema gera uma senha segura e mostra ela na próxima tela, pra você repassar pra{' '}
+          {usuario.nome} por fora (WhatsApp, presencial etc).
+        </p>
+      )}
+
+      {erro && (
+        <p
+          className="text-xs rounded-lg px-3 py-2"
+          style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+        >
+          {erro}
+        </p>
+      )}
+
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={carregando}
+          className="botao-primario flex-1 flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
+        >
+          {carregando && <Loader2 size={13} className="animate-spin" />}
+          {carregando ? 'Salvando...' : modo === 'especifica' ? 'Definir essa senha' : 'Gerar e definir'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancelar}
+          className="text-xs font-semibold px-3.5 py-2.5 rounded-xl"
+          style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
+  )
+}
+
 let contadorToast = 0
 const CHAVE_SESSAO = 'sessao_ifood_v1'
 
@@ -244,9 +388,16 @@ function Painel({ sessao, onSair }) {
   const [convidando, setConvidando] = useState(false)
   const [resetandoSenha, setResetandoSenha] = useState(null)
   const [senhaResetada, setSenhaResetada] = useState(null)
+  const [modalDefinirSenha, setModalDefinirSenha] = useState(null)
+
+  const [modalMinhaSenha, setModalMinhaSenha] = useState(false)
+  const [minhaSenhaForm, setMinhaSenhaForm] = useState({ senha: '', confirmacao: '' })
+  const [salvandoMinhaSenha, setSalvandoMinhaSenha] = useState(false)
+  const [erroMinhaSenha, setErroMinhaSenha] = useState('')
 
   const [selecionados, setSelecionados] = useState(new Set())
   const [executandoMassa, setExecutandoMassa] = useState(false)
+  const [progressoMassa, setProgressoMassa] = useState(null)
   const [modalAcoesMassa, setModalAcoesMassa] = useState(false)
   const [modalRelacionados, setModalRelacionados] = useState(null)
 
@@ -255,6 +406,7 @@ function Painel({ sessao, onSair }) {
 
   const [auditoria, setAuditoria] = useState([])
   const [toasts, setToasts] = useState([])
+  const [confirmacao, setConfirmacao] = useState(null)
 
   function notificar(tipo, mensagem) {
     const id = ++contadorToast
@@ -301,7 +453,9 @@ function Painel({ sessao, onSair }) {
 
   async function carregarAuditoria() {
     try {
-      setAuditoria(await apiFetch('/auditoria?limite=20'))
+      // limite maior que os 20 exibidos na lista: os gráficos de tendência precisam
+      // de mais histórico pra mostrar padrão ao longo dos dias, não só o mais recente.
+      setAuditoria(await apiFetch('/auditoria?limite=200'))
     } catch {
       // painel de atividade é informativo; falha aqui não deve travar o resto da tela
     }
@@ -336,13 +490,27 @@ function Painel({ sessao, onSair }) {
 
   async function removerLoja(loja) {
     try {
-      await apiFetch(`/lojas/${loja.id}`, { method: 'DELETE' })
+      await apiFetch(`/lojas/${loja.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: loja.nome }),
+      })
       setLojas((prev) => prev.filter((l) => l.id !== loja.id))
       if (lojaId === loja.merchant_id) setLojaId('')
       notificar('sucesso', `Loja "${loja.nome}" removida.`)
     } catch (e) {
       notificar('erro', e.message)
     }
+  }
+
+  function pedirConfirmacaoRemoverLoja(loja) {
+    setConfirmacao({
+      titulo: 'Remover loja?',
+      mensagem: `Isso tira "${loja.nome || loja.merchant_id}" da lista aqui do painel. Os itens continuam existindo no iFood — só o atalho pra essa loja some.`,
+      textoConfirmar: 'Remover',
+      perigo: true,
+      aoConfirmar: () => removerLoja(loja),
+    })
   }
 
   async function carregarUsuarios() {
@@ -358,12 +526,12 @@ function Painel({ sessao, onSair }) {
     carregarUsuarios()
   }
 
-  async function trocarPapelUsuario(id, papel) {
+  async function trocarPapelUsuario(id, papel, nome) {
     try {
       await apiFetch(`/usuarios/${id}/papel`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ papel }),
+        body: JSON.stringify({ papel, nome }),
       })
       setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, papel } : u)))
       notificar('sucesso', 'Papel atualizado.')
@@ -376,13 +544,14 @@ function Painel({ sessao, onSair }) {
     e.preventDefault()
     setConvidando(true)
     try {
-      await apiFetch('/usuarios/convidar', {
+      const data = await apiFetch('/usuarios/convidar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(conviteForm),
       })
-      notificar('sucesso', `Convite enviado pra ${conviteForm.email}.`)
+      notificar('sucesso', `Usuário "${conviteForm.nome}" criado.`)
       setConviteForm({ nome: '', email: '', papel: 'operador' })
+      setSenhaResetada({ usuario: { nome: data.nome }, senha: data.senha })
       carregarUsuarios()
     } catch (e) {
       notificar('erro', e.message)
@@ -394,15 +563,48 @@ function Painel({ sessao, onSair }) {
   // Bypassa o e-mail inteiramente: gera uma senha nova direto pela Admin API do Supabase.
   // Existe porque o link por e-mail é frágil (expira, e-mail corporativo às vezes consome o
   // token de um scanner de segurança antes da pessoa clicar).
-  async function resetarSenhaUsuario(usuario) {
+  // senhaEscolhida vazia = backend gera uma aleatória; preenchida = usa exatamente essa.
+  async function resetarSenhaUsuario(usuario, senhaEscolhida = '') {
     setResetandoSenha(usuario.id)
     try {
-      const data = await apiFetch(`/usuarios/${usuario.id}/resetar-senha`, { method: 'POST' })
+      const data = await apiFetch(`/usuarios/${usuario.id}/resetar-senha`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senha: senhaEscolhida, nome: usuario.nome }),
+      })
+      setModalDefinirSenha(null)
       setSenhaResetada({ usuario, senha: data.senha })
     } catch (e) {
       notificar('erro', e.message)
     } finally {
       setResetandoSenha(null)
+    }
+  }
+
+  // Qualquer usuário logado troca a própria senha, sem depender de e-mail — pensado pra quem
+  // recebeu uma senha inicial de um administrador e quer definir uma só sua.
+  async function handleTrocarMinhaSenha(e) {
+    e.preventDefault()
+    setErroMinhaSenha('')
+    if (minhaSenhaForm.senha.length < 6) {
+      setErroMinhaSenha('A senha precisa ter pelo menos 6 caracteres.')
+      return
+    }
+    if (minhaSenhaForm.senha !== minhaSenhaForm.confirmacao) {
+      setErroMinhaSenha('As senhas não são iguais.')
+      return
+    }
+    setSalvandoMinhaSenha(true)
+    try {
+      await definirSenha(sessao.accessToken, minhaSenhaForm.senha)
+      await marcarSenhaTrocada(sessao.accessToken)
+      notificar('sucesso', 'Senha alterada.')
+      setModalMinhaSenha(false)
+      setMinhaSenhaForm({ senha: '', confirmacao: '' })
+    } catch (e) {
+      setErroMinhaSenha(e.message)
+    } finally {
+      setSalvandoMinhaSenha(false)
     }
   }
 
@@ -514,29 +716,47 @@ function Painel({ sessao, onSair }) {
   // ficar legível, sem precisar o backend ir buscar no iFood.
   async function pausarComIds(alvos, status) {
     setExecutandoMassa(true)
+    setProgressoMassa({ atual: 0, total: alvos.length, status })
     try {
-      const data = await apiFetch('/itens/pausar-em-massa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ alvos, status }),
-      })
+      const resultados = []
+      for (let i = 0; i < alvos.length; i++) {
+        const alvo = alvos[i]
+        try {
+          await apiFetch(`/itens/${alvo.item_id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status, nome: alvo.nome }),
+          })
+          resultados.push({ itemId: alvo.item_id, ok: true })
+        } catch (e) {
+          resultados.push({ itemId: alvo.item_id, ok: false, erro: e.message })
+          // sessão caiu no meio da operação: não adianta insistir no resto da fila
+          if (e.message.includes('sessão expirou')) break
+        }
+        setProgressoMassa({ atual: i + 1, total: alvos.length, status })
+        if (i < alvos.length - 1) await new Promise((resolve) => setTimeout(resolve, 150))
+      }
+
       setItens((prev) =>
         prev.map((i) => {
-          const resultado = data.resultados.find((r) => r.itemId === i.itemId)
+          const resultado = resultados.find((r) => r.itemId === i.itemId)
           return resultado?.ok ? { ...i, status } : i
         })
       )
+      const ok = resultados.filter((r) => r.ok).length
+      const total = resultados.length
       const acao = status === 'UNAVAILABLE' ? 'pausados' : 'despausados'
-      if (data.erro > 0) {
-        notificar('aviso', `${data.ok} de ${data.total} itens ${acao}. ${data.erro} falharam.`)
+      if (ok < total) {
+        notificar('aviso', `${ok} de ${total} itens ${acao}. ${total - ok} falharam.`)
       } else {
-        notificar('sucesso', `${data.ok} itens ${acao}.`)
+        notificar('sucesso', `${ok} itens ${acao}.`)
       }
       carregarAuditoria()
     } catch (e) {
       notificar('erro', e.message)
     } finally {
       setExecutandoMassa(false)
+      setProgressoMassa(null)
     }
   }
 
@@ -610,7 +830,11 @@ function Painel({ sessao, onSair }) {
           apiFetch(`/itens/${item.itemId}/preco`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ preco: precoNum, nome: item.nome }),
+            body: JSON.stringify({
+              preco: precoNum,
+              nome: item.nome,
+              preco_anterior: `R$ ${Number(item.preco).toFixed(2).replace('.', ',')}`,
+            }),
           })
         )
       }
@@ -619,7 +843,7 @@ function Painel({ sessao, onSair }) {
           apiFetch(`/itens/${item.itemId}/codigo-pdv`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ codigo_pdv: codigoPdv.trim(), nome: item.nome }),
+            body: JSON.stringify({ codigo_pdv: codigoPdv.trim(), nome: item.nome, codigo_anterior: item.codigo_pdv }),
           })
         )
       }
@@ -668,26 +892,107 @@ function Painel({ sessao, onSair }) {
     erro: C.bad,
     aviso: '#f59e0b',
   }
+  const ICONES_TOAST = {
+    sucesso: CheckCircle2,
+    erro: AlertTriangle,
+    aviso: AlertTriangle,
+  }
+
+  function fecharToast(id) {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }
 
   return (
     <CoresContext.Provider value={C}>
       <div className="min-h-screen">
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
-          {toasts.map((t) => (
-            <div
-              key={t.id}
-              className="rounded-xl px-4 py-3 text-xs font-semibold shadow-lg flex items-start gap-2"
-              style={{
-                background: C.cardBg,
-                color: CORES_TOAST[t.tipo] || C.text1,
-                border: `1px solid ${(CORES_TOAST[t.tipo] || C.cardBorder)}40`,
-              }}
-            >
-              {t.tipo === 'erro' && <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />}
-              <span>{t.mensagem}</span>
-            </div>
-          ))}
+        <div className="fixed top-4 right-4 z-50 flex flex-col gap-2.5 max-w-sm">
+          {toasts.map((t) => {
+            const cor = CORES_TOAST[t.tipo] || C.text1
+            const Icone = ICONES_TOAST[t.tipo] || CheckCircle2
+            return (
+              <div
+                key={t.id}
+                className="toast-entrada rounded-xl shadow-lg overflow-hidden"
+                style={{ background: C.cardBg, border: `1px solid ${cor}40` }}
+              >
+                <div className="px-4 py-3 flex items-start gap-2.5">
+                  <Icone size={16} style={{ color: cor }} className="mt-0.5 flex-shrink-0" />
+                  <span className="text-xs font-semibold flex-1" style={{ color: C.text1 }}>
+                    {t.mensagem}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => fecharToast(t.id)}
+                    className="flex-shrink-0 -m-1 p-1 rounded"
+                    style={{ color: C.text3 }}
+                    title="Fechar"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+                <div className="h-[2px] toast-progresso" style={{ background: cor }} />
+              </div>
+            )
+          })}
         </div>
+
+        {confirmacao && (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            style={{ background: C.overlay, backdropFilter: 'blur(6px)' }}
+            onClick={() => setConfirmacao(null)}
+          >
+            <div
+              className="modal-entrada w-full max-w-sm rounded-2xl p-5"
+              style={{
+                background: C.modalBg,
+                backdropFilter: 'blur(24px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                border: `1px solid ${C.modalBorder}`,
+                boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-2.5 mb-2.5">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: (confirmacao.perigo ? C.bad : '#F56C35') + '18',
+                    border: `1px solid ${(confirmacao.perigo ? C.bad : '#F56C35')}30`,
+                  }}
+                >
+                  <AlertTriangle size={16} color={confirmacao.perigo ? C.bad : '#F56C35'} />
+                </div>
+                <h3 className="text-sm font-bold" style={{ color: C.text1 }}>
+                  {confirmacao.titulo}
+                </h3>
+              </div>
+              <p className="text-xs leading-relaxed mb-4" style={{ color: C.text2 }}>
+                {confirmacao.mensagem}
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setConfirmacao(null)}
+                  className="text-xs font-semibold px-3.5 py-2.5 rounded-xl"
+                  style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    confirmacao.aoConfirmar()
+                    setConfirmacao(null)
+                  }}
+                  className={`text-xs font-bold px-3.5 py-2.5 rounded-xl ${confirmacao.perigo ? 'botao-perigo' : 'botao-primario'}`}
+                >
+                  {confirmacao.textoConfirmar}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {modalLojas && (
           <Modal titulo="Gerenciar lojas" onClose={() => setModalLojas(false)} largura="max-w-lg">
@@ -727,7 +1032,7 @@ function Painel({ sessao, onSair }) {
                     {sessao.usuario.papel === 'administrador' && (
                       <button
                         type="button"
-                        onClick={() => removerLoja(l)}
+                        onClick={() => pedirConfirmacaoRemoverLoja(l)}
                         title="Remover loja"
                         className="w-7 h-7 inline-flex items-center justify-center rounded-lg flex-shrink-0"
                         style={{ color: C.bad, background: 'rgba(239,68,68,0.1)' }}
@@ -767,8 +1072,7 @@ function Painel({ sessao, onSair }) {
                   <button
                     type="submit"
                     disabled={criandoLoja}
-                    className="flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                    style={{ background: 'linear-gradient(135deg,#F56C35,#AF2D0A)', color: '#fff' }}
+                    className="botao-primario flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
                   >
                     {criandoLoja && <Loader2 size={12} className="animate-spin" />}
                     {criandoLoja ? 'Cadastrando...' : 'Cadastrar loja'}
@@ -806,7 +1110,7 @@ function Painel({ sessao, onSair }) {
                   </div>
                   <select
                     value={u.papel}
-                    onChange={(e) => trocarPapelUsuario(u.id, e.target.value)}
+                    onChange={(e) => trocarPapelUsuario(u.id, e.target.value, u.nome)}
                     className="px-2 py-1.5 rounded-md text-xs flex-shrink-0"
                     style={inputStyle}
                   >
@@ -819,20 +1123,20 @@ function Painel({ sessao, onSair }) {
                   <button
                     type="button"
                     disabled={resetandoSenha === u.id}
-                    onClick={() => resetarSenhaUsuario(u)}
-                    title="Gerar senha nova (não depende de e-mail)"
+                    onClick={() => setModalDefinirSenha(u)}
+                    title="Definir senha nova (não depende de e-mail)"
                     className="px-2 py-1.5 rounded-md text-[10px] font-semibold flex-shrink-0 disabled:opacity-40 flex items-center gap-1"
                     style={{ color: C.text2, background: C.cardBg, border: `1px solid ${C.cardBorder}` }}
                   >
                     {resetandoSenha === u.id && <Loader2 size={11} className="animate-spin" />}
-                    Redefinir senha
+                    Definir senha
                   </button>
                 </div>
               ))}
             </div>
             <div className="border-t pt-3.5" style={{ borderColor: C.cardBorder }}>
               <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: C.text2 }}>
-                Convidar novo usuário
+                Criar novo usuário
               </p>
               <form onSubmit={handleConvidar} className="flex flex-col gap-2.5">
                 <input
@@ -868,14 +1172,84 @@ function Painel({ sessao, onSair }) {
                 <button
                   type="submit"
                   disabled={convidando}
-                  className="flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                  style={{ background: 'linear-gradient(135deg,#F56C35,#AF2D0A)', color: '#fff' }}
+                  className="botao-primario flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
                 >
                   {convidando && <Loader2 size={12} className="animate-spin" />}
-                  {convidando ? 'Enviando...' : 'Enviar convite'}
+                  {convidando ? 'Criando...' : 'Criar usuário'}
                 </button>
               </form>
             </div>
+          </Modal>
+        )}
+
+        {modalMinhaSenha && (
+          <Modal
+            titulo="Trocar minha senha"
+            onClose={() => {
+              setModalMinhaSenha(false)
+              setMinhaSenhaForm({ senha: '', confirmacao: '' })
+              setErroMinhaSenha('')
+            }}
+          >
+            <form onSubmit={handleTrocarMinhaSenha} className="flex flex-col gap-3.5">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
+                  Nova senha
+                </label>
+                <input
+                  className={inputCls}
+                  style={inputStyle}
+                  type="password"
+                  autoFocus
+                  autoComplete="new-password"
+                  value={minhaSenhaForm.senha}
+                  onChange={(e) => setMinhaSenhaForm({ ...minhaSenhaForm, senha: e.target.value })}
+                  placeholder="Mín. 6 caracteres"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
+                  Confirme a senha
+                </label>
+                <input
+                  className={inputCls}
+                  style={inputStyle}
+                  type="password"
+                  autoComplete="new-password"
+                  value={minhaSenhaForm.confirmacao}
+                  onChange={(e) => setMinhaSenhaForm({ ...minhaSenhaForm, confirmacao: e.target.value })}
+                  placeholder="Repita a senha"
+                />
+              </div>
+              {erroMinhaSenha && (
+                <p
+                  className="text-xs rounded-lg px-3 py-2"
+                  style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+                >
+                  {erroMinhaSenha}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={salvandoMinhaSenha}
+                className="botao-primario flex items-center justify-center gap-2 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
+              >
+                {salvandoMinhaSenha && <Loader2 size={13} className="animate-spin" />}
+                {salvandoMinhaSenha ? 'Salvando...' : 'Salvar nova senha'}
+              </button>
+            </form>
+          </Modal>
+        )}
+
+        {modalDefinirSenha && (
+          <Modal titulo={`Definir senha pra ${modalDefinirSenha.nome}`} onClose={() => setModalDefinirSenha(null)}>
+            <FormDefinirSenha
+              usuario={modalDefinirSenha}
+              carregando={resetandoSenha === modalDefinirSenha.id}
+              onConfirmar={(senha) => resetarSenhaUsuario(modalDefinirSenha, senha)}
+              onCancelar={() => setModalDefinirSenha(null)}
+              C={C}
+            />
           </Modal>
         )}
 
@@ -883,7 +1257,7 @@ function Painel({ sessao, onSair }) {
           <Modal titulo={`Senha nova pra ${senhaResetada.usuario.nome}`} onClose={() => setSenhaResetada(null)}>
             <p className="text-xs mb-3 leading-relaxed" style={{ color: C.text2 }}>
               Repasse essa senha pra pessoa por fora (WhatsApp, presencial). Ela consegue trocar
-              depois fazendo login e usando "Esqueci minha senha".
+              por uma só dela depois, logada, em "Trocar minha senha".
             </p>
             <div
               className="flex items-center justify-between gap-2 rounded-xl px-3.5 py-3 mb-4"
@@ -949,8 +1323,7 @@ function Painel({ sessao, onSair }) {
                   type="button"
                   disabled={salvandoEdicao}
                   onClick={salvarEdicao}
-                  className="flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                  style={{ background: 'linear-gradient(135deg,#F56C35,#AF2D0A)', color: '#fff' }}
+                  className="botao-primario flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
                 >
                   {salvandoEdicao && <Loader2 size={12} className="animate-spin" />}
                   {salvandoEdicao ? 'Salvando...' : 'Salvar alterações'}
@@ -991,19 +1364,25 @@ function Painel({ sessao, onSair }) {
                 type="button"
                 disabled={executandoMassa}
                 onClick={() => acaoEmMassa('UNAVAILABLE')}
-                className="text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
+                className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
                 style={{ color: C.bad, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
               >
-                Pausar todos
+                {executandoMassa && progressoMassa?.status === 'UNAVAILABLE' && <Loader2 size={12} className="animate-spin" />}
+                {executandoMassa && progressoMassa?.status === 'UNAVAILABLE'
+                  ? `Pausando ${progressoMassa.atual}/${progressoMassa.total}...`
+                  : 'Pausar todos'}
               </button>
               <button
                 type="button"
                 disabled={executandoMassa}
                 onClick={() => acaoEmMassa('AVAILABLE')}
-                className="text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
+                className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
                 style={{ color: C.good, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}
               >
-                Despausar todos
+                {executandoMassa && progressoMassa?.status === 'AVAILABLE' && <Loader2 size={12} className="animate-spin" />}
+                {executandoMassa && progressoMassa?.status === 'AVAILABLE'
+                  ? `Despausando ${progressoMassa.atual}/${progressoMassa.total}...`
+                  : 'Despausar todos'}
               </button>
               <button
                 type="button"
@@ -1056,8 +1435,7 @@ function Painel({ sessao, onSair }) {
                 type="button"
                 disabled={executandoMassa}
                 onClick={confirmarModalRelacionados}
-                className="text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg,#F56C35,#AF2D0A)', color: '#fff' }}
+                className="botao-primario text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
               >
                 {modalRelacionados.novoStatus === 'UNAVAILABLE' ? 'Pausar' : 'Despausar'}{' '}
                 {modalRelacionados.selecionados.size + 1} itens
@@ -1112,8 +1490,8 @@ function Painel({ sessao, onSair }) {
               <button
                 type="button"
                 onClick={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
-                className="w-8 h-8 inline-flex items-center justify-center rounded-lg"
-                style={inputStyle}
+                className="botao-icone-fantasma w-8 h-8 inline-flex items-center justify-center rounded-lg"
+                style={{ color: C.text2 }}
                 title={tema === 'escuro' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
               >
                 {tema === 'escuro' ? <Sun size={14} /> : <Moon size={14} />}
@@ -1121,8 +1499,8 @@ function Painel({ sessao, onSair }) {
               <button
                 type="button"
                 onClick={() => setModalLojas(true)}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
-                style={inputStyle}
+                className="botao-icone-fantasma flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
+                style={{ color: C.text2 }}
                 title="Gerenciar lojas conectadas"
               >
                 <Store size={13} />
@@ -1132,8 +1510,8 @@ function Painel({ sessao, onSair }) {
                 <button
                   type="button"
                   onClick={abrirModalUsuarios}
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
-                  style={inputStyle}
+                  className="botao-icone-fantasma flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
+                  style={{ color: C.text2 }}
                   title="Gerenciar usuários e papéis"
                 >
                   <Users size={13} />
@@ -1151,9 +1529,18 @@ function Painel({ sessao, onSair }) {
                 </div>
                 <button
                   type="button"
+                  onClick={() => setModalMinhaSenha(true)}
+                  className="botao-icone-fantasma w-8 h-8 inline-flex items-center justify-center rounded-lg"
+                  style={{ color: C.text2 }}
+                  title="Trocar minha senha"
+                >
+                  <KeyRound size={14} />
+                </button>
+                <button
+                  type="button"
                   onClick={onSair}
-                  className="w-8 h-8 inline-flex items-center justify-center rounded-lg"
-                  style={inputStyle}
+                  className="botao-icone-fantasma w-8 h-8 inline-flex items-center justify-center rounded-lg"
+                  style={{ color: C.text2 }}
                   title="Sair"
                 >
                   <LogOut size={14} />
@@ -1164,12 +1551,44 @@ function Painel({ sessao, onSair }) {
           <div className="h-[2px]" style={{ background: 'linear-gradient(90deg,#AF2D0A,#F56C35,#FBB34A)' }} />
         </header>
 
+        {progressoMassa && (
+          <div
+            className="px-6 py-2.5"
+            style={{ background: C.headerBg, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${C.cardBorder}` }}
+          >
+            <div className="max-w-7xl mx-auto flex items-center gap-3">
+              <Loader2 size={14} className="animate-spin flex-shrink-0" style={{ color: '#F56C35' }} />
+              <span className="text-xs font-semibold flex-shrink-0" style={{ color: C.text1 }}>
+                {progressoMassa.status === 'UNAVAILABLE' ? 'Pausando' : 'Despausando'} itens: {progressoMassa.atual}/
+                {progressoMassa.total}
+              </span>
+              <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: C.inputBg }}>
+                <div
+                  className="h-full rounded-full transition-all duration-200 ease-out"
+                  style={{
+                    width: `${(progressoMassa.atual / progressoMassa.total) * 100}%`,
+                    background: 'linear-gradient(90deg,#F56C35,#FBB34A)',
+                  }}
+                />
+              </div>
+              <span className="text-[11px] font-mono flex-shrink-0" style={{ color: C.text3 }}>
+                {Math.round((progressoMassa.atual / progressoMassa.total) * 100)}%
+              </span>
+            </div>
+          </div>
+        )}
+
         <main className="max-w-7xl mx-auto px-6 py-7 space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard icon={Boxes} value={itens.length} label="Itens no catálogo" color="#F56C35" />
             <StatCard icon={Layers} value={categorias.length} label="Categorias" color="#FBB34A" />
             <StatCard icon={CheckCircle2} value={totalDisponiveis} label="Disponíveis" color={C.good} />
             <StatCard icon={Pause} value={totalPausados} label="Pausados" color={C.neutral} />
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-5 items-start">
+            <GraficoTendenciaAtividade auditoria={auditoria} C={C} />
+            <GraficoItensReincidentes auditoria={auditoria} C={C} />
           </div>
 
           <div className="grid lg:grid-cols-[300px_1fr] gap-5 items-start">
@@ -1280,11 +1699,7 @@ function Painel({ sessao, onSair }) {
                         <div key={r.chave} className="flex items-center gap-2.5 text-xs" style={{ color: r.ok ? C.text1 : C.text3 }}>
                           <span
                             className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={
-                              r.ok
-                                ? { background: 'linear-gradient(135deg,#F56C35,#AF2D0A)' }
-                                : { border: `1.5px solid ${C.cardBorder}` }
-                            }
+                            style={r.ok ? { background: '#F56C35' } : { border: `1.5px solid ${C.cardBorder}` }}
                           >
                             {r.ok && <Check size={11} color="#fff" strokeWidth={3} />}
                           </span>
@@ -1296,12 +1711,8 @@ function Painel({ sessao, onSair }) {
                     <button
                       type="submit"
                       disabled={!formValido || salvando}
-                      className="flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40 transition-all"
-                      style={
-                        formValido
-                          ? { background: 'linear-gradient(135deg,#F56C35,#AF2D0A)', color: '#fff', boxShadow: '0 4px 14px rgba(245,108,53,0.35)' }
-                          : { background: C.inputBg, color: C.text2, border: `1px solid ${C.cardBorder}` }
-                      }
+                      className={`flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40 transition-all ${formValido ? 'botao-primario' : ''}`}
+                      style={formValido ? {} : { background: C.inputBg, color: C.text2, border: `1px solid ${C.cardBorder}` }}
                     >
                       {salvando && <Loader2 size={14} className="animate-spin" />}
                       {salvando ? 'Criando...' : 'Criar item'}
@@ -1340,12 +1751,12 @@ function Painel({ sessao, onSair }) {
                       Nenhuma ação registrada ainda.
                     </p>
                   )}
-                  {auditoria.map((a, idx) => (
+                  {auditoria.slice(0, 20).map((a, idx) => (
                     <div key={idx} className="text-xs pb-2.5 border-b last:border-0" style={{ borderColor: C.rowBorder }}>
                       <p style={{ color: C.text1 }}>
                         <span className="font-semibold">{a.operador || 'desconhecido'}</span>{' '}
                         <span style={{ color: C.text2 }}>{ACAO_LABEL[a.acao] || a.acao}</span>{' '}
-                        {(a.nome || a.item_id) && <span className="font-semibold">{a.nome || a.item_id}</span>}
+                        {(a.nome || a.detalhe) && <span className="font-semibold">{a.nome || a.detalhe}</span>}
                       </p>
                       <p style={{ color: C.text3 }}>{formatarTimestamp(a.timestamp)}</p>
                     </div>
@@ -1555,8 +1966,8 @@ function Painel({ sessao, onSair }) {
                                   type="button"
                                   onClick={() => abrirEdicao(item)}
                                   title="Editar preço e código PDV"
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg"
-                                  style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+                                  className="botao-icone-fantasma inline-flex items-center justify-center w-7 h-7 rounded-lg"
+                                  style={{ color: C.text2 }}
                                 >
                                   <Pencil size={12} />
                                 </button>
@@ -1565,12 +1976,8 @@ function Painel({ sessao, onSair }) {
                                   disabled={alterandoStatus === item.itemId}
                                   onClick={() => prepararAlternarStatus(item)}
                                   title={item.status === 'AVAILABLE' ? 'Pausar item (some do cardápio no iFood)' : 'Despausar item (volta a aparecer no cardápio)'}
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg disabled:opacity-40"
-                                  style={
-                                    item.status === 'AVAILABLE'
-                                      ? { color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }
-                                      : { color: C.good, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.26)' }
-                                  }
+                                  className="botao-icone-fantasma inline-flex items-center justify-center w-7 h-7 rounded-lg disabled:opacity-40"
+                                  style={{ color: item.status === 'AVAILABLE' ? '#ef4444' : C.good }}
                                 >
                                   {item.status === 'AVAILABLE' ? <Pause size={13} /> : <Play size={13} />}
                                 </button>
@@ -1650,12 +2057,19 @@ export default function App() {
     setSessao({ accessToken, usuario })
   }
 
-  async function aoDefinirSenha(accessToken) {
+  async function aoDefinirSenha() {
     limparHashDaUrl()
-    const usuario = await buscarEu(accessToken)
-    localStorage.setItem(CHAVE_SESSAO, JSON.stringify({ accessToken }))
+    const usuario = await buscarEu(convite.accessToken)
+    localStorage.setItem(CHAVE_SESSAO, JSON.stringify({ accessToken: convite.accessToken }))
     setConvite(null)
-    setSessao({ accessToken, usuario })
+    setSessao({ accessToken: convite.accessToken, usuario })
+  }
+
+  // Senha temporária (definida por um admin) trocada com sucesso: desliga a flag no backend
+  // e libera o painel sem precisar buscar o perfil de novo.
+  async function aoTrocarSenhaObrigatoria() {
+    await marcarSenhaTrocada(sessao.accessToken)
+    setSessao((prev) => ({ ...prev, usuario: { ...prev.usuario, senha_temporaria: false } }))
   }
 
   async function sair() {
@@ -1665,7 +2079,24 @@ export default function App() {
   }
 
   if (verificando) return <TelaCarregando />
-  if (convite) return <TelaDefinirSenha convite={convite} onDefinida={aoDefinirSenha} />
+  if (convite)
+    return (
+      <TelaDefinirSenha
+        accessToken={convite.accessToken}
+        eyebrow={convite.tipo === 'invite' ? 'Bem-vindo(a)' : 'Recuperar acesso'}
+        onDefinida={aoDefinirSenha}
+      />
+    )
   if (!sessao) return <TelaLogin onLogar={aoLogar} avisoInicial={avisoLink} />
+  if (sessao.usuario.senha_temporaria)
+    return (
+      <TelaDefinirSenha
+        accessToken={sessao.accessToken}
+        eyebrow="Segurança da conta"
+        aviso="Você entrou com uma senha temporária, definida por um administrador. Por segurança, escolha agora uma senha só sua antes de continuar."
+        onDefinida={aoTrocarSenhaObrigatoria}
+        onSair={sair}
+      />
+    )
   return <Painel sessao={sessao} onSair={sair} />
 }
