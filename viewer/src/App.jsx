@@ -1,29 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import {
-  AlertTriangle,
-  Boxes,
-  Check,
-  CheckCircle2,
-  History,
-  KeyRound,
-  Layers,
-  ListChecks,
-  Loader2,
-  Lock,
-  LogOut,
-  Moon,
-  Pause,
-  Pencil,
-  Play,
-  RefreshCw,
-  Search,
-  Store,
-  Sun,
-  Tag,
-  Trash2,
-  Users,
-  X,
-} from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { AlertTriangle, CheckCircle2, Loader2, Moon, Store, Sun, Trash2, X } from 'lucide-react'
 import {
   API,
   buscarEu,
@@ -34,96 +10,22 @@ import {
   logoutSupabase,
   marcarSenhaTrocada,
 } from './auth'
-import { GraficoItensReincidentes, GraficoTendenciaAtividade } from './Graficos'
+import { CategoriasModal } from './modals/CategoriasModal'
+import { ComboModal } from './modals/ComboModal'
+import { GruposOpcaoModal } from './modals/GruposOpcaoModal'
+import { HorarioFuncionamentoModal } from './modals/HorarioFuncionamentoModal'
+import { InterrupcoesModal } from './modals/InterrupcoesModal'
+import { Sidebar } from './Sidebar'
 import { TelaDefinirSenha, TelaLogin } from './TelasAuth'
+import { Avatar, CoresContext, iniciaisDe, Modal, PALETAS, Pill } from './ui'
+import { AuditoriaView } from './views/AuditoriaView'
+import { CatalogoView } from './views/CatalogoView'
+import { DashboardView } from './views/DashboardView'
 
-// Tokens do redesign "App Cajupar iFood" (handoff do Claude Design). `neutral` representa
-// "pausado" em toda a UI (pills, stat card, gráficos) — nesse redesign isso é âmbar/aviso, não
-// cinza neutro, porque um item pausado merece atenção (possível ruptura de estoque).
-const PALETAS = {
-  escuro: {
-    bg: '#0A0A0D',
-    bg2: '#08080B',
-    cardBg: '#141419',
-    card2: '#1B1B22',
-    inputBg: '#101015',
-    hover: 'rgba(255,255,255,0.04)',
-    cardBorder: '#26262F',
-    rowBorder: '#1D1D25',
-    text1: '#F5F5F7',
-    text2: '#9A9AA6',
-    text3: '#5C5C67',
-    headerBg: '#141419',
-    good: '#34C77B',
-    goodBg: 'rgba(52,199,123,0.13)',
-    goodBd: 'rgba(52,199,123,0.30)',
-    neutral: '#F5A623',
-    neutralBg: 'rgba(245,166,35,0.13)',
-    neutralBd: 'rgba(245,166,35,0.32)',
-    bad: '#F0473F',
-    badBg: 'rgba(240,71,63,0.12)',
-    badBd: 'rgba(240,71,63,0.30)',
-    info: '#5B8CFF',
-    infoBg: 'rgba(91,140,255,0.12)',
-    brand2: '#FBB34A',
-    ring: 'rgba(245,108,53,0.32)',
-    overlay: 'rgba(4,4,8,0.6)',
-    modalBg: '#141419',
-    modalBorder: '#26262F',
-    sh: '0 1px 0 rgba(255,255,255,0.02), 0 18px 48px -16px rgba(0,0,0,0.65)',
-    shSm: '0 1px 2px rgba(0,0,0,0.4)',
-  },
-  claro: {
-    bg: '#F4F4F6',
-    bg2: '#ECECEF',
-    cardBg: '#FFFFFF',
-    card2: '#F6F6F8',
-    inputBg: '#F0F0F3',
-    hover: 'rgba(16,16,20,0.035)',
-    cardBorder: '#E6E6EA',
-    rowBorder: '#EDEDF1',
-    text1: '#15151A',
-    text2: '#6A6A75',
-    text3: '#9A9AA4',
-    headerBg: '#FFFFFF',
-    good: '#12924C',
-    goodBg: 'rgba(18,146,76,0.09)',
-    goodBd: 'rgba(18,146,76,0.24)',
-    neutral: '#B57200',
-    neutralBg: 'rgba(181,114,0,0.09)',
-    neutralBd: 'rgba(181,114,0,0.24)',
-    bad: '#DB3B33',
-    badBg: 'rgba(219,59,51,0.08)',
-    badBd: 'rgba(219,59,51,0.22)',
-    info: '#2F6BE0',
-    infoBg: 'rgba(47,107,224,0.09)',
-    brand2: '#FBB34A',
-    ring: 'rgba(245,108,53,0.32)',
-    overlay: 'rgba(4,4,8,0.6)',
-    modalBg: '#FFFFFF',
-    modalBorder: '#E6E6EA',
-    sh: '0 1px 2px rgba(16,16,20,0.05), 0 16px 40px -22px rgba(16,16,20,0.28)',
-    shSm: '0 1px 2px rgba(16,16,20,0.06)',
-  },
-}
-
-const CoresContext = createContext(PALETAS.escuro)
-
-const ACAO_LABEL = {
-  criar_item: 'criou o item',
-  pausar: 'pausou',
-  despausar: 'despausou',
-  alterar_preco: 'alterou o preço de',
-  alterar_codigo_pdv: 'alterou o código PDV de',
-  pausar_em_massa: 'pausou (em massa)',
-  despausar_em_massa: 'despausou (em massa)',
-  pausar_em_massa_erro: 'falhou ao pausar (em massa)',
-  despausar_em_massa_erro: 'falhou ao despausar (em massa)',
-  convidar_usuario: 'criou o usuário',
-  resetar_senha_usuario: 'definiu a senha de',
-  alterar_papel_usuario: 'trocou o papel de',
-  criar_loja: 'cadastrou a loja',
-  remover_loja: 'removeu a loja',
+const TITULOS_VIEW = {
+  dashboard: { t: 'Dashboard', sub: 'Visão geral da operação na loja ativa' },
+  catalogo: { t: 'Catálogo', sub: 'Gestão de itens da loja ativa' },
+  auditoria: { t: 'Central de auditoria', sub: 'Tudo que a equipe alterou, em ordem' },
 }
 
 const PAPEIS = [
@@ -173,85 +75,6 @@ function encontrarRelacionados(item, todosItens) {
 
 function campoPreenchido(valor) {
   return String(valor ?? '').trim().length > 0
-}
-
-function formatarTimestamp(iso) {
-  try {
-    return new Date(iso).toLocaleString('pt-BR')
-  } catch {
-    return iso
-  }
-}
-
-function StatCard({ icon: Icon, value, label, color }) {
-  const C = useContext(CoresContext)
-  return (
-    <div className="rounded-2xl border p-5 flex flex-col gap-3" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center"
-        style={{ background: color + '18', border: `1px solid ${color}30` }}
-      >
-        <Icon size={17} color={color} />
-      </div>
-      <div>
-        <p className="text-3xl font-black leading-none" style={{ color: C.text1, letterSpacing: '-0.04em' }}>
-          {value}
-        </p>
-        <p className="text-xs mt-1.5" style={{ color: C.text3 }}>
-          {label}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function Pill({ children, color }) {
-  return (
-    <span
-      className="text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider inline-flex items-center gap-1"
-      style={{ color, background: color + '15', border: `1px solid ${color}30` }}
-    >
-      {children}
-    </span>
-  )
-}
-
-function Modal({ titulo, onClose, children, largura = 'max-w-md' }) {
-  const C = useContext(CoresContext)
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: C.overlay, backdropFilter: 'blur(6px)' }}
-      onClick={onClose}
-    >
-      <div
-        className={`w-full ${largura} rounded-2xl p-5 max-h-[80vh] overflow-y-auto`}
-        style={{
-          background: C.modalBg,
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-          border: `1px solid ${C.modalBorder}`,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold" style={{ color: C.text1 }}>
-            {titulo}
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ color: C.text2, background: C.inputBg }}
-          >
-            <X size={14} />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  )
 }
 
 // Usado tanto pra dar a alguém uma senha inicial (ao definir por um admin) quanto pra
@@ -350,14 +173,8 @@ function FormDefinirSenha({ usuario, carregando, onConfirmar, onCancelar, C }) {
 let contadorToast = 0
 const CHAVE_SESSAO = 'sessao_ifood_v1'
 
-function Painel({ sessao, onSair }) {
-  const [tema, setTema] = useState(() => localStorage.getItem('tema') || 'escuro')
+function Painel({ sessao, onSair, tema, setTema }) {
   const C = PALETAS[tema]
-
-  useEffect(() => {
-    document.body.classList.toggle('tema-claro', tema === 'claro')
-    localStorage.setItem('tema', tema)
-  }, [tema])
 
   const [itens, setItens] = useState([])
   const [categorias, setCategorias] = useState([])
@@ -371,7 +188,6 @@ function Painel({ sessao, onSair }) {
   const [form, setForm] = useState({ nome: '', categoria: '', novaCategoria: '', codigo_pdv: '', preco: '' })
   const [salvando, setSalvando] = useState(false)
   const [erroForm, setErroForm] = useState('')
-  const [sucessoForm, setSucessoForm] = useState('')
   const [alterandoStatus, setAlterandoStatus] = useState(null)
 
   const podeCriarItem = PAPEIS_QUE_PODEM_CRIAR.has(sessao.usuario.papel)
@@ -403,6 +219,21 @@ function Painel({ sessao, onSair }) {
 
   const [modalEdicao, setModalEdicao] = useState(null)
   const [salvandoEdicao, setSalvandoEdicao] = useState(false)
+  const [salvandoTurnos, setSalvandoTurnos] = useState(false)
+
+  const [itemExcluindo, setItemExcluindo] = useState(null)
+
+  const [modalCategorias, setModalCategorias] = useState(false)
+  const [modalGruposOpcao, setModalGruposOpcao] = useState(false)
+  const [modalCombo, setModalCombo] = useState(false)
+  const [modalHorario, setModalHorario] = useState(false)
+  const [modalInterrupcoes, setModalInterrupcoes] = useState(false)
+
+  const [view, setView] = useState('dashboard')
+  const [modalNovoItem, setModalNovoItem] = useState(false)
+  const [edicaoInline, setEdicaoInline] = useState(null) // { itemId, campo: 'preco' | 'pdv', valor }
+  const [linhaSalvando, setLinhaSalvando] = useState(null)
+  const [linhaSalva, setLinhaSalva] = useState(null)
 
   const [auditoria, setAuditoria] = useState([])
   const [toasts, setToasts] = useState([])
@@ -612,6 +443,8 @@ function Painel({ sessao, onSair }) {
     carregar()
     carregarAuditoria()
     carregarLojas()
+    if (sessao.usuario.papel === 'administrador') carregarUsuarios()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -631,10 +464,8 @@ function Painel({ sessao, onSair }) {
   ]
   const formValido = requisitos.every((r) => r.ok)
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  async function handleSubmit() {
     setErroForm('')
-    setSucessoForm('')
     if (!formValido) {
       setErroForm('Preencha todos os campos antes de criar o item.')
       return
@@ -651,9 +482,9 @@ function Painel({ sessao, onSair }) {
           preco: form.preco,
         }),
       })
-      setSucessoForm(`"${form.nome}" criado no catálogo do iFood.`)
       notificar('sucesso', `Item "${form.nome}" criado.`)
       setForm({ nome: '', categoria: '', novaCategoria: '', codigo_pdv: '', preco: '' })
+      setModalNovoItem(false)
       carregar()
       carregarAuditoria()
     } catch (e) {
@@ -806,8 +637,79 @@ function Painel({ sessao, onSair }) {
     })
   }
 
+  const DIAS_SEMANA = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
   function abrirEdicao(item) {
-    setModalEdicao({ item, preco: String(item.preco ?? ''), codigoPdv: item.codigo_pdv || '' })
+    setModalEdicao({
+      item,
+      preco: String(item.preco ?? ''),
+      codigoPdv: item.codigo_pdv || '',
+      turnoAtivo: false,
+      turnoInicio: '11:00',
+      turnoFim: '15:00',
+      turnoDias: new Set(DIAS_SEMANA),
+    })
+  }
+
+  async function salvarTurnos() {
+    const { item, turnoAtivo, turnoInicio, turnoFim, turnoDias } = modalEdicao
+    if (turnoAtivo && turnoDias.size === 0) {
+      notificar('erro', 'Marque ao menos um dia da semana pro turno.')
+      return
+    }
+    setSalvandoTurnos(true)
+    try {
+      const turnos = turnoAtivo
+        ? [
+            {
+              startTime: turnoInicio,
+              endTime: turnoFim,
+              ...Object.fromEntries(DIAS_SEMANA.map((d) => [d, turnoDias.has(d)])),
+            },
+          ]
+        : [{ startTime: '00:00', endTime: '23:59', ...Object.fromEntries(DIAS_SEMANA.map((d) => [d, true])) }]
+      await apiFetch(`/itens/${item.itemId}/turnos`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ turnos, nome: item.nome }),
+      })
+      notificar('sucesso', `Turno de "${item.nome}" atualizado.`)
+      carregarAuditoria()
+    } catch (e) {
+      notificar('erro', `Não consegui salvar o turno: ${e.message}`)
+    } finally {
+      setSalvandoTurnos(false)
+    }
+  }
+
+  async function excluirItemDeVerdade(item) {
+    try {
+      await apiFetch(`/itens/${item.itemId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoryId: item.categoryId, productId: item.productId, nome: item.nome }),
+      })
+      setItens((prev) => prev.filter((i) => i.itemId !== item.itemId))
+      notificar('sucesso', `"${item.nome}" excluído do catálogo.`)
+      carregarAuditoria()
+    } catch (e) {
+      notificar('erro', `Não consegui excluir "${item.nome}": ${e.message}`)
+    } finally {
+      setItemExcluindo(null)
+    }
+  }
+
+  function pedirConfirmacaoExcluirItem(item) {
+    setConfirmacao({
+      titulo: 'Excluir item?',
+      mensagem: `Isso remove "${item.nome}" de vez do catálogo no iFood — diferente de pausar, não dá pra desfazer com um clique.`,
+      textoConfirmar: 'Excluir',
+      perigo: true,
+      aoConfirmar: () => {
+        setItemExcluindo(item.itemId)
+        excluirItemDeVerdade(item)
+      },
+    })
   }
 
   async function salvarEdicao() {
@@ -862,6 +764,71 @@ function Painel({ sessao, onSair }) {
       notificar('erro', `Não consegui salvar as alterações: ${e.message}`)
     } finally {
       setSalvandoEdicao(false)
+    }
+  }
+
+  // Edição de um campo direto na linha da tabela (clique no preço ou no código PDV), sem
+  // abrir o modal de edição completo — pensado pra ajuste rápido de um único campo.
+  function abrirEdicaoInline(item, campo) {
+    setEdicaoInline({ itemId: item.itemId, campo, valor: campo === 'preco' ? String(item.preco ?? '') : item.codigo_pdv || '' })
+  }
+
+  function onEdicaoInlineInput(valor) {
+    setEdicaoInline((prev) => (prev ? { ...prev, valor } : prev))
+  }
+
+  async function salvarEdicaoInline() {
+    const atual = edicaoInline
+    setEdicaoInline(null)
+    if (!atual) return
+    const item = itens.find((i) => i.itemId === atual.itemId)
+    if (!item) return
+
+    if (atual.campo === 'preco') {
+      const precoNum = Number(String(atual.valor).replace(',', '.'))
+      if (!precoNum || precoNum <= 0 || precoNum === Number(item.preco)) return
+      setLinhaSalvando(item.itemId)
+      try {
+        await apiFetch(`/itens/${item.itemId}/preco`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            preco: precoNum,
+            nome: item.nome,
+            preco_anterior: `R$ ${Number(item.preco).toFixed(2).replace('.', ',')}`,
+          }),
+        })
+        setItens((prev) => prev.map((i) => (i.itemId === item.itemId ? { ...i, preco: precoNum } : i)))
+        notificar('sucesso', `Preço de "${item.nome}" atualizado.`)
+        setLinhaSalva(item.itemId)
+        carregarAuditoria()
+        setTimeout(() => setLinhaSalva((atualId) => (atualId === item.itemId ? null : atualId)), 1700)
+      } catch (e) {
+        notificar('erro', `Não consegui salvar: ${e.message}`)
+      } finally {
+        setLinhaSalvando(null)
+      }
+      return
+    }
+
+    const codigo = String(atual.valor).trim()
+    if (!codigo || codigo === item.codigo_pdv) return
+    setLinhaSalvando(item.itemId)
+    try {
+      await apiFetch(`/itens/${item.itemId}/codigo-pdv`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo_pdv: codigo, nome: item.nome, codigo_anterior: item.codigo_pdv }),
+      })
+      setItens((prev) => prev.map((i) => (i.itemId === item.itemId ? { ...i, codigo_pdv: codigo } : i)))
+      notificar('sucesso', `Código PDV de "${item.nome}" atualizado.`)
+      setLinhaSalva(item.itemId)
+      carregarAuditoria()
+      setTimeout(() => setLinhaSalva((atualId) => (atualId === item.itemId ? null : atualId)), 1700)
+    } catch (e) {
+      notificar('erro', `Não consegui salvar: ${e.message}`)
+    } finally {
+      setLinhaSalvando(null)
     }
   }
 
@@ -1094,12 +1061,13 @@ function Painel({ sessao, onSair }) {
                   Nenhum usuário cadastrado ainda além de você.
                 </p>
               )}
-              {usuarios.map((u) => (
+              {usuarios.map((u, idx) => (
                 <div
                   key={u.id}
-                  className="flex items-center gap-2 text-xs rounded-lg px-2.5 py-2"
+                  className="flex items-center gap-2.5 text-xs rounded-lg px-2.5 py-2"
                   style={{ background: C.inputBg }}
                 >
+                  <Avatar nome={u.nome} idx={idx} size={26} />
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold truncate" style={{ color: C.text1 }}>
                       {u.nome}
@@ -1318,6 +1286,80 @@ function Painel({ sessao, onSair }) {
                   onChange={(e) => setModalEdicao({ ...modalEdicao, codigoPdv: e.target.value })}
                 />
               </div>
+              <div className="border-t pt-3.5" style={{ borderColor: C.cardBorder }}>
+                <label className="flex items-center gap-2 text-xs font-semibold mb-2.5 cursor-pointer" style={{ color: C.text1 }}>
+                  <input
+                    type="checkbox"
+                    checked={modalEdicao.turnoAtivo}
+                    onChange={(e) => setModalEdicao({ ...modalEdicao, turnoAtivo: e.target.checked })}
+                  />
+                  Só vende em turno específico (ex: só no almoço)
+                </label>
+                {modalEdicao.turnoAtivo && (
+                  <div className="flex flex-col gap-2.5 mb-1">
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <input
+                        type="time"
+                        value={modalEdicao.turnoInicio}
+                        onChange={(e) => setModalEdicao({ ...modalEdicao, turnoInicio: e.target.value })}
+                        className="rounded-xl px-3 py-2 text-xs outline-none"
+                        style={inputStyle}
+                      />
+                      <input
+                        type="time"
+                        value={modalEdicao.turnoFim}
+                        onChange={(e) => setModalEdicao({ ...modalEdicao, turnoFim: e.target.value })}
+                        className="rounded-xl px-3 py-2 text-xs outline-none"
+                        style={inputStyle}
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        ['monday', 'Seg'],
+                        ['tuesday', 'Ter'],
+                        ['wednesday', 'Qua'],
+                        ['thursday', 'Qui'],
+                        ['friday', 'Sex'],
+                        ['saturday', 'Sáb'],
+                        ['sunday', 'Dom'],
+                      ].map(([chave, label]) => {
+                        const ativo = modalEdicao.turnoDias.has(chave)
+                        return (
+                          <button
+                            key={chave}
+                            type="button"
+                            onClick={() => {
+                              const novo = new Set(modalEdicao.turnoDias)
+                              if (novo.has(chave)) novo.delete(chave)
+                              else novo.add(chave)
+                              setModalEdicao({ ...modalEdicao, turnoDias: novo })
+                            }}
+                            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
+                            style={
+                              ativo
+                                ? { background: 'rgba(245,108,53,0.15)', color: '#F56C35', border: '1px solid rgba(245,108,53,0.35)' }
+                                : { background: C.inputBg, color: C.text3, border: `1px solid ${C.cardBorder}` }
+                            }
+                          >
+                            {label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  disabled={salvandoTurnos}
+                  onClick={salvarTurnos}
+                  className="text-xs font-semibold px-3.5 py-2 rounded-xl disabled:opacity-40 flex items-center gap-1.5"
+                  style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+                >
+                  {salvandoTurnos && <Loader2 size={12} className="animate-spin" />}
+                  {salvandoTurnos ? 'Salvando turno...' : 'Salvar turno'}
+                </button>
+              </div>
+
               <div className="flex gap-2 pt-1">
                 <button
                   type="button"
@@ -1353,7 +1395,7 @@ function Painel({ sessao, onSair }) {
                   <span className="truncate" style={{ color: C.text1 }}>
                     {i.nome}
                   </span>
-                  <Pill color={i.status === 'AVAILABLE' ? C.good : C.neutral}>
+                  <Pill color={i.status === 'AVAILABLE' ? C.good : C.neutral} dot>
                     {i.status === 'AVAILABLE' ? 'Disponível' : 'Pausado'}
                   </Pill>
                 </div>
@@ -1424,6 +1466,9 @@ function Painel({ sessao, onSair }) {
                   <span className="truncate" style={{ color: C.text1 }}>
                     {r.nome}
                   </span>
+                  <Pill color={r.status === 'AVAILABLE' ? C.good : C.neutral} dot>
+                    {r.status === 'AVAILABLE' ? 'Disponível' : 'Pausado'}
+                  </Pill>
                   <span className="ml-auto font-mono flex-shrink-0" style={{ color: C.text3 }}>
                     {r.codigo_pdv}
                   </span>
@@ -1461,551 +1506,255 @@ function Painel({ sessao, onSair }) {
           </Modal>
         )}
 
-        <header
-          className="sticky top-0 z-20"
-          style={{ background: C.headerBg, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${C.cardBorder}` }}
-        >
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-4 flex-wrap">
-            <div
-              className="flex items-center"
-              style={
-                tema === 'claro'
-                  ? { background: '#151217', borderRadius: '10px', padding: '6px 10px' }
-                  : undefined
-              }
-            >
-              <img src="/brand/logo-cajupar.png" alt="Cajupar" className="h-9 w-auto object-contain" />
-            </div>
-            <div className="w-px h-8" style={{ background: C.cardBorder }} />
-            <div className="flex flex-col leading-none">
-              <span className="text-sm font-bold" style={{ color: C.text1 }}>
-                Catálogo iFood
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] mt-1" style={{ color: '#F56C35' }}>
-                Gestão de itens
-              </span>
-            </div>
-
-            <div className="ml-auto flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
-                className="botao-icone-fantasma w-8 h-8 inline-flex items-center justify-center rounded-lg"
-                style={{ color: C.text2 }}
-                title={tema === 'escuro' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-              >
-                {tema === 'escuro' ? <Sun size={14} /> : <Moon size={14} />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalLojas(true)}
-                className="botao-icone-fantasma flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
-                style={{ color: C.text2 }}
-                title="Gerenciar lojas conectadas"
-              >
-                <Store size={13} />
-                {lojaAtual?.nome || 'Lojas'}
-              </button>
-              {sessao.usuario.papel === 'administrador' && (
-                <button
-                  type="button"
-                  onClick={abrirModalUsuarios}
-                  className="botao-icone-fantasma flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
-                  style={{ color: C.text2 }}
-                  title="Gerenciar usuários e papéis"
-                >
-                  <Users size={13} />
-                  Usuários
-                </button>
-              )}
-              <div className="flex items-center gap-2 pl-2 ml-1" style={{ borderLeft: `1px solid ${C.cardBorder}` }}>
-                <div className="text-right leading-none">
-                  <p className="text-xs font-semibold" style={{ color: C.text1 }}>
-                    {sessao.usuario.nome}
-                  </p>
-                  <p className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: C.text3 }}>
-                    {sessao.usuario.papel}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setModalMinhaSenha(true)}
-                  className="botao-icone-fantasma w-8 h-8 inline-flex items-center justify-center rounded-lg"
-                  style={{ color: C.text2 }}
-                  title="Trocar minha senha"
-                >
-                  <KeyRound size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={onSair}
-                  className="botao-icone-fantasma w-8 h-8 inline-flex items-center justify-center rounded-lg"
-                  style={{ color: C.text2 }}
-                  title="Sair"
-                >
-                  <LogOut size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="h-[2px]" style={{ background: 'linear-gradient(90deg,#AF2D0A,#F56C35,#FBB34A)' }} />
-        </header>
-
-        {progressoMassa && (
-          <div
-            className="px-6 py-2.5"
-            style={{ background: C.headerBg, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${C.cardBorder}` }}
-          >
-            <div className="max-w-7xl mx-auto flex items-center gap-3">
-              <Loader2 size={14} className="animate-spin flex-shrink-0" style={{ color: '#F56C35' }} />
-              <span className="text-xs font-semibold flex-shrink-0" style={{ color: C.text1 }}>
-                {progressoMassa.status === 'UNAVAILABLE' ? 'Pausando' : 'Despausando'} itens: {progressoMassa.atual}/
-                {progressoMassa.total}
-              </span>
-              <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: C.inputBg }}>
-                <div
-                  className="h-full rounded-full transition-all duration-200 ease-out"
-                  style={{
-                    width: `${(progressoMassa.atual / progressoMassa.total) * 100}%`,
-                    background: 'linear-gradient(90deg,#F56C35,#FBB34A)',
-                  }}
-                />
-              </div>
-              <span className="text-[11px] font-mono flex-shrink-0" style={{ color: C.text3 }}>
-                {Math.round((progressoMassa.atual / progressoMassa.total) * 100)}%
-              </span>
-            </div>
-          </div>
+        {modalCategorias && (
+          <CategoriasModal
+            onClose={() => setModalCategorias(false)}
+            apiFetch={apiFetch}
+            notificar={notificar}
+            podeEditar={podeCriarItem}
+            souAdministrador={sessao.usuario.papel === 'administrador'}
+            C={C}
+            inputCls={inputCls}
+            inputStyle={inputStyle}
+          />
         )}
 
-        <main className="max-w-7xl mx-auto px-6 py-7 space-y-5">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard icon={Boxes} value={itens.length} label="Itens no catálogo" color="#F56C35" />
-            <StatCard icon={Layers} value={categorias.length} label="Categorias" color="#FBB34A" />
-            <StatCard icon={CheckCircle2} value={totalDisponiveis} label="Disponíveis" color={C.good} />
-            <StatCard icon={Pause} value={totalPausados} label="Pausados" color={C.neutral} />
-          </div>
+        {modalGruposOpcao && (
+          <GruposOpcaoModal
+            onClose={() => setModalGruposOpcao(false)}
+            apiFetch={apiFetch}
+            notificar={notificar}
+            podeEditar={podeCriarItem}
+            souAdministrador={sessao.usuario.papel === 'administrador'}
+            C={C}
+            inputCls={inputCls}
+            inputStyle={inputStyle}
+          />
+        )}
 
-          <div className="grid lg:grid-cols-2 gap-5 items-start">
-            <GraficoTendenciaAtividade auditoria={auditoria} C={C} />
-            <GraficoItensReincidentes auditoria={auditoria} C={C} />
-          </div>
+        {modalCombo && (
+          <ComboModal
+            onClose={() => setModalCombo(false)}
+            onCriado={() => {
+              carregar()
+              carregarAuditoria()
+            }}
+            apiFetch={apiFetch}
+            notificar={notificar}
+            categorias={categorias}
+            C={C}
+            inputCls={inputCls}
+            inputStyle={inputStyle}
+          />
+        )}
 
-          <div className="grid lg:grid-cols-[300px_1fr] gap-5 items-start">
-            <div className="flex flex-col gap-5">
-              <div className="rounded-2xl border p-5" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#F56C35' }}>
-                  Novo material
+        {modalHorario && (
+          <HorarioFuncionamentoModal
+            onClose={() => setModalHorario(false)}
+            apiFetch={apiFetch}
+            notificar={notificar}
+            podeEditar={podeCriarItem}
+            C={C}
+            inputStyle={inputStyle}
+          />
+        )}
+
+        {modalInterrupcoes && (
+          <InterrupcoesModal
+            onClose={() => setModalInterrupcoes(false)}
+            apiFetch={apiFetch}
+            notificar={notificar}
+            podeEditar={podeCriarItem}
+            C={C}
+            inputCls={inputCls}
+            inputStyle={inputStyle}
+          />
+        )}
+
+        <div className="flex min-h-screen">
+          <Sidebar
+            view={view}
+            onMudarView={setView}
+            totalPausados={totalPausados}
+            userNome={sessao.usuario.nome}
+            userIniciais={iniciaisDe(sessao.usuario.nome)}
+            userPapel={sessao.usuario.papel}
+            podeGerenciarUsuarios={sessao.usuario.papel === 'administrador'}
+            podeGerenciarCatalogoAvancado={podeCriarItem}
+            onAbrirUsuarios={abrirModalUsuarios}
+            onAbrirLojas={() => setModalLojas(true)}
+            onAbrirCategorias={() => setModalCategorias(true)}
+            onAbrirGruposOpcao={() => setModalGruposOpcao(true)}
+            onAbrirHorario={() => setModalHorario(true)}
+            onAbrirInterrupcoes={() => setModalInterrupcoes(true)}
+            onMinhaSenha={() => setModalMinhaSenha(true)}
+            onSair={onSair}
+          />
+
+          <div className="flex-1 min-w-0 flex flex-col">
+            <header
+              className="sticky top-0 z-20 flex items-center gap-4 px-6 py-4 flex-wrap"
+              style={{ background: C.headerBg, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${C.cardBorder}` }}
+            >
+              <div>
+                <h1 className="text-base font-extrabold" style={{ color: C.text1 }}>
+                  {TITULOS_VIEW[view].t}
+                </h1>
+                <p className="text-[11.5px] mt-0.5" style={{ color: C.text3 }}>
+                  {TITULOS_VIEW[view].sub}
                 </p>
-                <h2 className="text-base font-bold mb-4" style={{ color: C.text1 }}>
-                  Adicionar item ao catálogo
-                </h2>
-
-                {!podeCriarItem ? (
-                  <div
-                    className="rounded-xl p-4 flex flex-col items-center gap-2.5 text-center"
-                    style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-                  >
-                    <Lock size={18} style={{ color: C.text3 }} />
-                    <p className="text-xs leading-relaxed" style={{ color: C.text2 }}>
-                      Criar itens é restrito a administradores e gerentes. Sua conta ({sessao.usuario.papel}) não
-                      tem esse acesso — peça pra um administrador criar o item ou trocar seu papel em "Usuários".
-                    </p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                        Nome do material
-                      </label>
-                      <input
-                        className={inputCls}
-                        style={inputStyle}
-                        type="text"
-                        value={form.nome}
-                        onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                        placeholder="Ex: Coca-Cola 350ml"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                        Categoria
-                      </label>
-                      <select
-                        className={inputCls}
-                        style={inputStyle}
-                        value={form.categoria}
-                        onChange={(e) => setForm({ ...form, categoria: e.target.value })}
-                      >
-                        <option value="">Selecione...</option>
-                        <option value="__NOVA__">+ Criar nova categoria</option>
-                        {categorias.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {form.categoria === '__NOVA__' && (
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                          Nome da nova categoria
-                        </label>
-                        <input
-                          className={inputCls}
-                          style={inputStyle}
-                          type="text"
-                          value={form.novaCategoria}
-                          onChange={(e) => setForm({ ...form, novaCategoria: e.target.value })}
-                          placeholder="Ex: Sobremesas"
-                        />
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-3 min-w-0">
-                      <div className="min-w-0">
-                        <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                          Código PDV
-                        </label>
-                        <input
-                          className={inputCls}
-                          style={inputStyle}
-                          type="text"
-                          value={form.codigo_pdv}
-                          onChange={(e) => setForm({ ...form, codigo_pdv: e.target.value })}
-                          placeholder="10452"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                          Preço (R$)
-                        </label>
-                        <input
-                          className={inputCls}
-                          style={inputStyle}
-                          type="text"
-                          inputMode="decimal"
-                          value={form.preco}
-                          onChange={(e) => setForm({ ...form, preco: e.target.value })}
-                          placeholder="12,90"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl p-3.5 flex flex-col gap-2" style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}` }}>
-                      {requisitos.map((r) => (
-                        <div key={r.chave} className="flex items-center gap-2.5 text-xs" style={{ color: r.ok ? C.text1 : C.text3 }}>
-                          <span
-                            className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={r.ok ? { background: '#F56C35' } : { border: `1.5px solid ${C.cardBorder}` }}
-                          >
-                            {r.ok && <Check size={11} color="#fff" strokeWidth={3} />}
-                          </span>
-                          {r.label}
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={!formValido || salvando}
-                      className={`flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40 transition-all ${formValido ? 'botao-primario' : ''}`}
-                      style={formValido ? {} : { background: C.inputBg, color: C.text2, border: `1px solid ${C.cardBorder}` }}
-                    >
-                      {salvando && <Loader2 size={14} className="animate-spin" />}
-                      {salvando ? 'Criando...' : 'Criar item'}
-                    </button>
-
-                    {erroForm && (
-                      <p
-                        className="text-xs rounded-lg px-3 py-2"
-                        style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
-                      >
-                        {erroForm}
-                      </p>
-                    )}
-                    {sucessoForm && (
-                      <p
-                        className="text-xs rounded-lg px-3 py-2"
-                        style={{ color: C.good, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}
-                      >
-                        {sucessoForm}
-                      </p>
-                    )}
-                  </form>
-                )}
               </div>
-
-              <div className="rounded-2xl border p-5" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-                <div className="flex items-center gap-2 mb-3.5">
-                  <History size={14} color="#F56C35" />
-                  <h2 className="text-sm font-bold" style={{ color: C.text1 }}>
-                    Atividade recente
-                  </h2>
-                </div>
-                <div className="flex flex-col gap-2.5 max-h-80 overflow-y-auto">
-                  {auditoria.length === 0 && (
-                    <p className="text-xs" style={{ color: C.text3 }}>
-                      Nenhuma ação registrada ainda.
-                    </p>
-                  )}
-                  {auditoria.slice(0, 20).map((a, idx) => (
-                    <div key={idx} className="text-xs pb-2.5 border-b last:border-0" style={{ borderColor: C.rowBorder }}>
-                      <p style={{ color: C.text1 }}>
-                        <span className="font-semibold">{a.operador || 'desconhecido'}</span>{' '}
-                        <span style={{ color: C.text2 }}>{ACAO_LABEL[a.acao] || a.acao}</span>{' '}
-                        {(a.nome || a.detalhe) && <span className="font-semibold">{a.nome || a.detalhe}</span>}
-                      </p>
-                      <p style={{ color: C.text3 }}>{formatarTimestamp(a.timestamp)}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border overflow-hidden min-w-0" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-              <div className="px-6 py-4 flex items-center justify-between border-b flex-wrap gap-3" style={{ borderColor: C.cardBorder }}>
-                <div className="flex items-center gap-2">
-                  <Tag size={15} color="#F56C35" />
-                  <h2 className="text-sm font-bold" style={{ color: C.text1 }}>
-                    Itens cadastrados
-                  </h2>
-                </div>
-                <span
-                  className="text-[11px] px-2.5 py-1 rounded-full"
-                  style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-                >
-                  {filtrados.length} de {itens.length} itens
-                </span>
-              </div>
-
-              <div className="px-6 py-3.5 border-b flex flex-col md:flex-row gap-2 md:items-center" style={{ borderColor: C.cardBorder }}>
-                <div className="relative w-full md:max-w-xs">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
-                  <input
-                    value={busca}
-                    onChange={(e) => setBusca(e.target.value)}
-                    placeholder="Buscar por nome ou código PDV"
-                    className="w-full pl-9 pr-3 py-2 rounded-lg text-xs"
-                    style={inputStyle}
-                  />
-                </div>
-
-                <select
-                  value={filtroCategoria}
-                  onChange={(e) => setFiltroCategoria(e.target.value)}
-                  className="px-3 py-2 rounded-lg text-xs"
-                  style={inputStyle}
-                >
-                  {categoriasFiltro.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="flex rounded-lg p-0.5 gap-0.5" style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}` }}>
-                  {[
-                    { valor: 'TODOS', label: 'Todos' },
-                    { valor: 'AVAILABLE', label: 'Disponível' },
-                    { valor: 'UNAVAILABLE', label: 'Pausado' },
-                  ].map((op) => (
-                    <button
-                      key={op.valor}
-                      type="button"
-                      onClick={() => setFiltroStatus(op.valor)}
-                      className="text-xs px-3 py-1.5 rounded-md font-semibold"
-                      style={
-                        filtroStatus === op.valor
-                          ? { background: tema === 'escuro' ? '#2a2a3a' : '#e2e8f0', color: C.text1 }
-                          : { color: C.text2, background: 'transparent' }
-                      }
-                    >
-                      {op.label}
-                    </button>
-                  ))}
-                </div>
-
+              <div className="ml-auto flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={carregar}
-                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold md:ml-auto"
-                  style={{ color: C.text2, background: 'transparent', border: `1px solid ${C.cardBorder}` }}
+                  onClick={() => setModalLojas(true)}
+                  className="botao-icone-fantasma flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
+                  style={{ color: C.text2, border: `1px solid ${C.cardBorder}` }}
+                  title="Trocar de loja"
                 >
-                  <RefreshCw size={12} />
-                  Recarregar
+                  <Store size={13} />
+                  {lojaAtual?.nome || 'Selecionar loja'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
+                  className="botao-icone-fantasma w-9 h-9 inline-flex items-center justify-center rounded-lg"
+                  style={{ color: C.text2, border: `1px solid ${C.cardBorder}` }}
+                  title={tema === 'escuro' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+                >
+                  {tema === 'escuro' ? <Sun size={15} /> : <Moon size={15} />}
                 </button>
               </div>
+            </header>
 
-              {selecionados.size > 0 && (
-                <div
-                  className="px-6 py-3 border-b flex items-center gap-3 flex-wrap"
-                  style={{ borderColor: C.cardBorder, background: 'rgba(245,108,53,0.06)' }}
-                >
-                  <span className="text-xs font-semibold" style={{ color: C.text1 }}>
-                    {selecionados.size} {selecionados.size === 1 ? 'item selecionado' : 'itens selecionados'}
+            {progressoMassa && (
+              <div
+                className="px-6 py-2.5"
+                style={{ background: C.headerBg, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${C.cardBorder}` }}
+              >
+                <div className="flex items-center gap-3">
+                  <Loader2 size={14} className="animate-spin flex-shrink-0" style={{ color: '#F56C35' }} />
+                  <span className="text-xs font-semibold flex-shrink-0" style={{ color: C.text1 }}>
+                    {progressoMassa.status === 'UNAVAILABLE' ? 'Pausando' : 'Despausando'} itens: {progressoMassa.atual}/
+                    {progressoMassa.total}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setModalAcoesMassa(true)}
-                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                    style={{ color: '#F56C35', background: 'rgba(245,108,53,0.12)', border: '1px solid rgba(245,108,53,0.3)' }}
-                  >
-                    <ListChecks size={13} />
-                    Ações em massa
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelecionados(new Set())}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg ml-auto"
-                    style={{ color: C.text2, background: 'transparent' }}
-                  >
-                    Limpar seleção
-                  </button>
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: C.inputBg }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-200 ease-out"
+                      style={{
+                        width: `${(progressoMassa.atual / progressoMassa.total) * 100}%`,
+                        background: 'linear-gradient(90deg,#F56C35,#FBB34A)',
+                      }}
+                    />
+                  </div>
+                  <span className="text-[11px] font-mono flex-shrink-0" style={{ color: C.text3 }}>
+                    {Math.round((progressoMassa.atual / progressoMassa.total) * 100)}%
+                  </span>
                 </div>
+              </div>
+            )}
+
+            <main className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
+              {view === 'dashboard' && (
+                <DashboardView
+                  itens={itens}
+                  categorias={categorias}
+                  totalDisponiveis={totalDisponiveis}
+                  totalPausados={totalPausados}
+                  auditoria={auditoria}
+                  C={C}
+                  onIrAuditoria={() => setView('auditoria')}
+                  onIrCatalogoPausados={() => {
+                    setFiltroStatus('UNAVAILABLE')
+                    setView('catalogo')
+                  }}
+                  onDespausarRapido={(item) => executarAlternarStatus(item, 'AVAILABLE')}
+                  alterandoStatus={alterandoStatus}
+                />
               )}
 
-              {erroCarregamento && (
-                <p className="px-6 py-8 text-center text-xs" style={{ color: '#ef4444' }}>
-                  {erroCarregamento}
-                </p>
+              {view === 'catalogo' && (
+                <CatalogoView
+                  itens={itens}
+                  categorias={categorias}
+                  categoriasFiltro={categoriasFiltro}
+                  busca={busca}
+                  onBusca={setBusca}
+                  filtroCategoria={filtroCategoria}
+                  onFiltroCategoria={setFiltroCategoria}
+                  filtroStatus={filtroStatus}
+                  onFiltroStatus={setFiltroStatus}
+                  filtrados={filtrados}
+                  idsVisiveis={idsVisiveis}
+                  todosVisiveisSelecionados={todosVisiveisSelecionados}
+                  selecionados={selecionados}
+                  onAlternarSelecao={alternarSelecao}
+                  onAlternarSelecaoTodos={alternarSelecaoTodos}
+                  onLimparSelecao={() => setSelecionados(new Set())}
+                  carregando={carregando}
+                  erroCarregamento={erroCarregamento}
+                  onRecarregar={carregar}
+                  alterandoStatus={alterandoStatus}
+                  onAlternarStatus={prepararAlternarStatus}
+                  onAbrirEdicaoModal={abrirEdicao}
+                  onExcluirItem={pedirConfirmacaoExcluirItem}
+                  itemExcluindo={itemExcluindo}
+                  onAbrirCombo={() => setModalCombo(true)}
+                  totalDisponiveis={totalDisponiveis}
+                  totalPausados={totalPausados}
+                  podeCriarItem={podeCriarItem}
+                  modalNovoItem={modalNovoItem}
+                  onAbrirNovoItem={() => setModalNovoItem(true)}
+                  onFecharNovoItem={() => {
+                    setModalNovoItem(false)
+                    setErroForm('')
+                  }}
+                  form={form}
+                  setForm={setForm}
+                  onCriarItem={handleSubmit}
+                  requisitos={requisitos}
+                  formValido={formValido}
+                  salvando={salvando}
+                  erroForm={erroForm}
+                  edicaoInline={edicaoInline}
+                  onAbrirEdicaoInline={abrirEdicaoInline}
+                  onEdicaoInlineInput={onEdicaoInlineInput}
+                  onSalvarEdicaoInline={salvarEdicaoInline}
+                  onCancelarEdicaoInline={() => setEdicaoInline(null)}
+                  linhaSalvando={linhaSalvando}
+                  linhaSalva={linhaSalva}
+                  onAbrirAcoesMassa={() => setModalAcoesMassa(true)}
+                  C={C}
+                  inputCls={inputCls}
+                  inputStyle={inputStyle}
+                />
               )}
 
-              {!erroCarregamento && (
-                <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '64vh' }}>
-                  <table className="w-full text-sm table-fixed">
-                    <colgroup>
-                      <col className="w-[4%]" />
-                      <col className="w-[13%]" />
-                      <col className="w-[25%]" />
-                      <col className="w-[13%]" />
-                      <col className="w-[13%]" />
-                      <col className="w-[12%]" />
-                      <col className="w-[20%]" />
-                    </colgroup>
-                    <thead>
-                      <tr
-                        className="text-[10px] uppercase tracking-wider border-b sticky top-0"
-                        style={{ color: C.text3, borderColor: C.cardBorder, background: C.cardBg }}
-                      >
-                        <th className="px-3 py-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={todosVisiveisSelecionados}
-                            onChange={() => alternarSelecaoTodos(idsVisiveis)}
-                            aria-label="Selecionar todos os itens visíveis"
-                          />
-                        </th>
-                        <th className="px-3 py-3 text-left">Categoria</th>
-                        <th className="px-3 py-3 text-left">Item</th>
-                        <th className="px-3 py-3 text-left">Código PDV</th>
-                        <th className="px-3 py-3 text-right">Preço</th>
-                        <th className="px-3 py-3 text-center">Status</th>
-                        <th className="px-3 py-3 text-center">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {carregando && (
-                        <tr>
-                          <td colSpan={7} className="px-3 py-10 text-center text-xs" style={{ color: C.text2 }}>
-                            <div className="flex items-center justify-center gap-2">
-                              <Loader2 size={14} className="animate-spin" />
-                              Carregando catálogo...
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-
-                      {!carregando && filtrados.length === 0 && (
-                        <tr>
-                          <td colSpan={7} className="px-3 py-12 text-center text-xs" style={{ color: C.text2 }}>
-                            Nenhum item encontrado com esses filtros.
-                          </td>
-                        </tr>
-                      )}
-
-                      {!carregando &&
-                        filtrados.map((item) => (
-                          <tr key={item.itemId} className="border-t" style={{ borderColor: C.rowBorder }}>
-                            <td className="px-3 py-3 text-center">
-                              <input
-                                type="checkbox"
-                                checked={selecionados.has(item.itemId)}
-                                onChange={() => alternarSelecao(item.itemId)}
-                                aria-label={`Selecionar ${item.nome}`}
-                              />
-                            </td>
-                            <td className="px-3 py-3 text-xs truncate" style={{ color: C.text2 }} title={item.categoria}>
-                              {item.categoria}
-                            </td>
-                            <td className="px-3 py-3 font-semibold truncate" style={{ color: C.text1 }} title={item.nome}>
-                              {item.nome}
-                            </td>
-                            <td className="px-3 py-3">
-                              <span
-                                className="font-mono text-xs px-2 py-1 rounded-md inline-block truncate max-w-full"
-                                style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-                                title={item.codigo_pdv}
-                              >
-                                {item.codigo_pdv}
-                              </span>
-                            </td>
-                            <td className="px-3 py-3 text-right font-mono whitespace-nowrap" style={{ color: C.text1 }}>
-                              R$ {Number(item.preco).toFixed(2)}
-                            </td>
-                            <td className="px-3 py-3 text-center">
-                              <Pill color={item.status === 'AVAILABLE' ? C.good : C.neutral}>
-                                {item.status === 'AVAILABLE' ? 'Disponível' : 'Pausado'}
-                              </Pill>
-                            </td>
-                            <td className="px-3 py-3">
-                              <div className="flex items-center justify-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => abrirEdicao(item)}
-                                  title="Editar preço e código PDV"
-                                  className="botao-icone-fantasma inline-flex items-center justify-center w-7 h-7 rounded-lg"
-                                  style={{ color: C.text2 }}
-                                >
-                                  <Pencil size={12} />
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={alterandoStatus === item.itemId}
-                                  onClick={() => prepararAlternarStatus(item)}
-                                  title={item.status === 'AVAILABLE' ? 'Pausar item (some do cardápio no iFood)' : 'Despausar item (volta a aparecer no cardápio)'}
-                                  className="botao-icone-fantasma inline-flex items-center justify-center w-7 h-7 rounded-lg disabled:opacity-40"
-                                  style={{ color: item.status === 'AVAILABLE' ? '#ef4444' : C.good }}
-                                >
-                                  {item.status === 'AVAILABLE' ? <Pause size={13} /> : <Play size={13} />}
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
+              {view === 'auditoria' && (
+                <AuditoriaView
+                  auditoria={auditoria}
+                  totalUsuarios={usuarios.length}
+                  mostrarTotalUsuarios={sessao.usuario.papel === 'administrador'}
+                  C={C}
+                />
               )}
-            </div>
+
+              <p className="text-xs text-center pt-6" style={{ color: tema === 'escuro' ? '#334155' : '#94a3b8' }}>
+                Cajupar · Automação iFood · {itens.length} itens sincronizados
+              </p>
+            </main>
           </div>
-
-          <p className="text-xs text-center pt-2" style={{ color: tema === 'escuro' ? '#334155' : '#94a3b8' }}>
-            Cajupar · Automação iFood · {itens.length} itens sincronizados
-          </p>
-        </main>
+        </div>
       </div>
     </CoresContext.Provider>
   )
 }
 
-function TelaCarregando() {
+function TelaCarregando({ C }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3">
       <Loader2 size={22} className="animate-spin" style={{ color: '#F56C35' }} />
-      <p className="text-xs" style={{ color: '#64748b' }}>
+      <p className="text-xs" style={{ color: C.text2 }}>
         Carregando...
       </p>
     </div>
@@ -2026,6 +1775,13 @@ export default function App() {
     if (!erro) return ''
     return MENSAGEM_ERRO_LINK[erro.codigo] || erro.descricao?.replaceAll('+', ' ') || 'Esse link não é mais válido.'
   })
+  const [tema, setTema] = useState(() => localStorage.getItem('tema') || 'escuro')
+  const C = PALETAS[tema]
+
+  useEffect(() => {
+    document.body.classList.toggle('tema-claro', tema === 'claro')
+    localStorage.setItem('tema', tema)
+  }, [tema])
 
   useEffect(() => {
     if (avisoLink) limparHashDaUrl()
@@ -2078,16 +1834,17 @@ export default function App() {
     setSessao(null)
   }
 
-  if (verificando) return <TelaCarregando />
+  if (verificando) return <TelaCarregando C={C} />
   if (convite)
     return (
       <TelaDefinirSenha
         accessToken={convite.accessToken}
         eyebrow={convite.tipo === 'invite' ? 'Bem-vindo(a)' : 'Recuperar acesso'}
         onDefinida={aoDefinirSenha}
+        C={C}
       />
     )
-  if (!sessao) return <TelaLogin onLogar={aoLogar} avisoInicial={avisoLink} />
+  if (!sessao) return <TelaLogin onLogar={aoLogar} avisoInicial={avisoLink} C={C} />
   if (sessao.usuario.senha_temporaria)
     return (
       <TelaDefinirSenha
@@ -2096,7 +1853,8 @@ export default function App() {
         aviso="Você entrou com uma senha temporária, definida por um administrador. Por segurança, escolha agora uma senha só sua antes de continuar."
         onDefinida={aoTrocarSenhaObrigatoria}
         onSair={sair}
+        C={C}
       />
     )
-  return <Painel sessao={sessao} onSair={sair} />
+  return <Painel sessao={sessao} onSair={sair} tema={tema} setTema={setTema} />
 }

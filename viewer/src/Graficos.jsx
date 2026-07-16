@@ -5,7 +5,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   LabelList,
   ResponsiveContainer,
   Tooltip,
@@ -18,6 +17,9 @@ const ALTURA_LINHA = 34
 const ALTURA_MINIMA = 140
 const DIAS_TENDENCIA = 14
 const MAX_ITENS_REINCIDENTES = 8
+// Mostra só ~7 datas no eixo X (uma a cada 2 dias) — com as 14 espremidas, a label
+// vira ilegível e crua nenhuma serve pra leitura direta (o tooltip já dá o dia exato).
+const INTERVALO_EIXO_DIAS = Math.max(0, Math.ceil(DIAS_TENDENCIA / 7) - 1)
 
 const ACOES_PAUSAR = new Set(['pausar', 'pausar_em_massa'])
 const ACOES_DESPAUSAR = new Set(['despausar', 'despausar_em_massa'])
@@ -142,7 +144,13 @@ export function GraficoTendenciaAtividade({ auditoria, C }) {
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={dados} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} stroke={C.rowBorder} />
-          <XAxis dataKey="dia" tick={{ fill: C.text3, fontSize: 11 }} axisLine={{ stroke: C.cardBorder }} tickLine={false} />
+          <XAxis
+            dataKey="dia"
+            interval={INTERVALO_EIXO_DIAS}
+            tick={{ fill: C.text3, fontSize: 11 }}
+            axisLine={{ stroke: C.cardBorder }}
+            tickLine={false}
+          />
           <YAxis
             allowDecimals={false}
             width={28}
@@ -151,10 +159,6 @@ export function GraficoTendenciaAtividade({ auditoria, C }) {
             tickLine={false}
           />
           <Tooltip content={<TooltipCartao C={C} />} cursor={{ stroke: C.cardBorder }} />
-          <Legend
-            wrapperStyle={{ fontSize: 11, color: C.text2, paddingTop: 6 }}
-            formatter={(valor) => <span style={{ color: C.text2 }}>{valor}</span>}
-          />
           <Area
             type="monotone"
             dataKey="pausas"
@@ -163,8 +167,8 @@ export function GraficoTendenciaAtividade({ auditoria, C }) {
             fill={C.neutral}
             fillOpacity={0.1}
             strokeWidth={2}
-            dot={{ r: 4, fill: C.neutral, stroke: C.cardBg, strokeWidth: 2 }}
-            activeDot={{ r: 5, fill: C.neutral, stroke: C.cardBg, strokeWidth: 2 }}
+            dot={false}
+            activeDot={{ r: 4, fill: C.neutral, stroke: C.cardBg, strokeWidth: 2 }}
           />
           <Area
             type="monotone"
@@ -174,8 +178,8 @@ export function GraficoTendenciaAtividade({ auditoria, C }) {
             fill={C.good}
             fillOpacity={0.1}
             strokeWidth={2}
-            dot={{ r: 4, fill: C.good, stroke: C.cardBg, strokeWidth: 2 }}
-            activeDot={{ r: 5, fill: C.good, stroke: C.cardBg, strokeWidth: 2 }}
+            dot={false}
+            activeDot={{ r: 4, fill: C.good, stroke: C.cardBg, strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>

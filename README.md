@@ -20,7 +20,10 @@ viewer/ (React + Vite)  --fetch-->  server/app.py (Flask, :5000)  --requests--> 
 - **`src/ifood_automacao/`** — biblioteca Python fina sobre a Merchant/Catalog API do iFood
   (autenticação OAuth2, criar/listar categorias e itens, pausar/despausar, alterar preço).
 - **`scripts/`** — utilitários de linha de comando que usam a biblioteca diretamente (sem passar
-  pelo Flask): carga em massa a partir de planilha, exportar catálogo, listar lojas, etc.
+  pelo Flask): carga em massa a partir de planilha, exportar catálogo, listar lojas, etc. Usam
+  `pandas`/`openpyxl` (planilhas), por isso têm um `requirements.txt` próprio — ver seção
+  "Scripts" abaixo. O `requirements.txt` da raiz só tem o que `server/app.py` de fato importa,
+  pra manter o deploy do backend (Vercel) leve.
 - **`data/`** — planilhas de origem, logs de carga e o log técnico de aplicação (`app.log`). Não
   vai pro controle de versão (está no `.gitignore`). A auditoria (quem fez o quê) não fica mais
   aqui — vai pra uma tabela no Supabase, ver seção própria abaixo.
@@ -185,6 +188,39 @@ da pessoa de verdade clicar (`otp_expired`). Duas mitigações:
 | `exportar_catalogo.py` | Exporta o catálogo atual do iFood pra uma planilha. |
 | `carga_massa.py` | Cria/atualiza em massa os itens ativos de `data/material.xlsx` no catálogo (preço fica com um valor provisório — a planilha de origem não traz preço real). |
 | `testar_sandbox.py` | Sobe 3 itens de teste pra validar a integração ponta a ponta no sandbox. |
+
+`exportar_catalogo.py` e `carga_massa.py` usam `pandas`/`openpyxl`, que não estão no
+`requirements.txt` da raiz (só o resto do venv). Antes de rodar qualquer script de planilha:
+```bash
+pip install -r scripts/requirements.txt
+```
+
+## Deploy no Vercel
+
+Dois projetos Vercel a partir deste mesmo repositório (não dá pra misturar num só sem
+complicar o `vercel.json`):
+
+- **Backend** — Root Directory = raiz do repositório (não `server/`: o Flask importa
+  `src/ifood_automacao`, pasta irmã de `server/`, então o deploy precisa incluir as duas).
+  O Vercel encontra o Flask app sozinho via `pyproject.toml` (`[tool.vercel] entrypoint =
+  "server.app:app"`). `vercel.json` limita a função a 30s (`maxDuration`) — no plano Hobby o
+  Vercel ainda trava em 10s reais; se aparecer timeout em uso pesado, considere o plano Pro.
+  Variáveis de ambiente a configurar no dashboard (mesmos valores do `.env` local):
+  `IFOOD_CLIENT_ID`, `IFOOD_CLIENT_SECRET`, `IFOOD_MERCHANT_ID`, `SUPABASE_URL`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `VIEWER_ORIGIN` (inclua aqui o domínio de
+  produção do frontend, ex: `https://seu-projeto.vercel.app`, senão o CORS bloqueia em produção).
+- **Frontend** — Root Directory = `viewer/`, preset Vite (detecta sozinho). Variáveis:
+  `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (iguais ao `viewer/.env.local`) e `VITE_API_URL`
+  apontando pra URL do backend já publicado (ex: `https://seu-backend.vercel.app/api`) — por
+  isso publique o backend primeiro.
+
+Depois de publicar os dois: no Supabase, em Authentication → URL Configuration, adicione o
+domínio de produção do frontend em Redirect URLs (senão o link de "esqueci minha senha" não
+funciona fora do localhost). Não precisa mexer no app do iFood Developer — a autenticação com o
+iFood usa Client Credentials, sem redirect de usuário envolvido.
+
+Verificação rápida pós-deploy: `curl https://seu-backend.vercel.app/api/saude` deve responder
+`{"status": "ok"}`.
 
 ## Sandbox vs. Produção
 

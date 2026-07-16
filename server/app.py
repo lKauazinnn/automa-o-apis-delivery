@@ -26,26 +26,46 @@ from werkzeug.exceptions import HTTPException  # noqa: E402
 
 from ifood_automacao.client import (  # noqa: E402
     create_category,
+    create_combo,
+    create_interruption,
+    create_option,
+    create_option_group,
+    delete_category,
+    delete_interruption,
+    delete_item,
+    delete_option,
+    delete_option_group,
+    edit_category,
+    get_category,
+    get_opening_hours,
     list_catalogs,
     list_categories,
+    list_interruptions,
+    list_option_groups,
     patch_item_external_code,
+    set_opening_hours,
     update_item_price,
+    update_item_shifts,
     update_item_status,
     upsert_item,
 )
 from ifood_automacao.rate_limit import com_retry  # noqa: E402
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-DATA_DIR.mkdir(exist_ok=True)
-LOG_PATH = DATA_DIR / "app.log"
+# No Vercel o filesystem da função é efêmero (nada escrito em disco sobrevive entre
+# invocações), então lá logamos só em stdout — o próprio Vercel já mostra isso no
+# dashboard da função. Local, mantém o arquivo em data/app.log pra inspeção offline.
+RODANDO_NO_VERCEL = bool(os.environ.get("VERCEL"))
+handlers = [logging.StreamHandler()]
+if not RODANDO_NO_VERCEL:
+    DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+    DATA_DIR.mkdir(exist_ok=True)
+    LOG_PATH = DATA_DIR / "app.log"
+    handlers.append(RotatingFileHandler(LOG_PATH, maxBytes=2_000_000, backupCount=3, encoding="utf-8"))
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        RotatingFileHandler(LOG_PATH, maxBytes=2_000_000, backupCount=3, encoding="utf-8"),
-        logging.StreamHandler(),
-    ],
+    handlers=handlers,
 )
 logger = logging.getLogger("ifood_app")
 
@@ -236,7 +256,8 @@ def tratar_erro(exc):
         return jsonify({"erro": str(exc)}), 400
 
     logger.exception("Erro inesperado")
-    return jsonify({"erro": "Erro interno inesperado. Veja data/app.log para detalhes."}), 500
+    detalhe_log = "os logs da função no dashboard do Vercel" if RODANDO_NO_VERCEL else "data/app.log"
+    return jsonify({"erro": f"Erro interno inesperado. Veja {detalhe_log} para detalhes."}), 500
 
 
 @app.get("/api/saude")
@@ -316,6 +337,7 @@ def get_catalogo():
             itens.append(
                 {
                     "itemId": item["id"],
+                    "productId": item.get("productId"),
                     "categoria": cat["name"],
                     "categoryId": cat["id"],
                     "nome": item.get("name"),
@@ -326,6 +348,127 @@ def get_catalogo():
             )
     nomes_categorias = sorted({c["name"] for c in categorias})
     return jsonify({"itens": itens, "categorias": nomes_categorias})
+
+
+@app.get("/api/horario-funcionamento")
+@requer_login
+def get_horario_funcionamento():
+    merchant_id = _merchant_id()
+    return jsonify(com_retry(get_opening_hours, merchant_id))
+
+
+@app.put("/api/horario-funcionamento")
+@requer_papel("administrador", "gerente")
+def definir_horario_funcionamento():
+    """Substitui a semana inteira de horário de funcionamento da loja de uma vez."""
+    dados = request.get_json(silent=True) or {}
+    turnos = dados.get("turnos") or []
+    dias_validos = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
+
+    if not isinstance(turnos, list) or not turnos:
+        raise ValueError("Informe ao menos um turno")
+    for turno in turnos:
+        if turno.get("dayOfWeek") not in dias_validos:
+            raise ValueError("dayOfWeek deve ser um dia da semana em inglês maiúsculo (ex: MONDAY)")
+        if not turno.get("start"):
+            raise ValueError("Cada turno precisa de start (HH:MM:SS)")
+        if not isinstance(turno.get("duration"), int) or turno["duration"] <= 0:
+            raise ValueError("Cada turno precisa de duration em minutos (inteiro positivo)")
+
+    merchant_id = _merchant_id()
+    resultado = com_retry(set_opening_hours, merchant_id, turnos)
+    registrar_auditoria(g.usuario["nome"], "definir_horario_funcionamento", detalhe=f"{len(turnos)} turno(s)")
+    return jsonify(resultado)
+
+
+@app.post("/api/interrupcoes")
+@requer_papel("administrador", "gerente")
+def criar_interrupcao():
+    """Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada)."""
+    dados = request.get_json(silent=True) or {}
+    descricao = str(dados.get("descricao", "")).strip()
+    inicio = str(dados.get("inicio", "")).strip()
+    fim = str(dados.get("fim", "")).strip()
+    if not descricao or not inicio or not fim:
+        raise ValueError("descricao, inicio e fim são obrigatórios (inicio/fim em ISO 8601)")
+
+    merchant_id = _merchant_id()
+    resultado = com_retry(create_interruption, merchant_id, descricao, inicio, fim)
+    registrar_auditoria(g.usuario["nome"], "criar_interrupcao", detalhe=f"{descricao} ({inicio} - {fim})")
+    return jsonify(resultado), 201
+
+
+@app.delete("/api/interrupcoes/<interrupcao_id>")
+@requer_papel("administrador", "gerente")
+def excluir_interrupcao(interrupcao_id):
+    merchant_id = _merchant_id()
+    com_retry(delete_interruption, merchant_id, interrupcao_id)
+    registrar_auditoria(g.usuario["nome"], "excluir_interrupcao", item_id=interrupcao_id)
+    return jsonify({"ok": True})
+
+
+@app.get("/api/interrupcoes")
+@requer_login
+def get_interrupcoes():
+    merchant_id = _merchant_id()
+    return jsonify(com_retry(list_interruptions, merchant_id))
+
+
+@app.get("/api/grupos-opcao")
+@requer_login
+def get_grupos_opcao():
+    merchant_id = _merchant_id()
+    return jsonify(com_retry(list_option_groups, merchant_id))
+
+
+@app.post("/api/grupos-opcao")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def criar_grupo_opcao():
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    if not nome:
+        raise ValueError("nome é obrigatório")
+    merchant_id = _merchant_id()
+    resultado = com_retry(create_option_group, merchant_id, nome)
+    registrar_auditoria(g.usuario["nome"], "criar_grupo_opcao", item_id=resultado.get("id", ""), nome=nome)
+    return jsonify(resultado), 201
+
+
+@app.delete("/api/grupos-opcao/<grupo_id>")
+@requer_papel("administrador")
+def excluir_grupo_opcao(grupo_id):
+    merchant_id = _merchant_id()
+    com_retry(delete_option_group, merchant_id, grupo_id)
+    registrar_auditoria(g.usuario["nome"], "excluir_grupo_opcao", item_id=grupo_id)
+    return jsonify({"ok": True})
+
+
+@app.post("/api/grupos-opcao/<grupo_id>/opcoes")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def criar_opcao(grupo_id):
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    if not nome:
+        raise ValueError("nome é obrigatório")
+    try:
+        preco = float(str(dados.get("preco", "0")).replace(",", "."))
+    except ValueError:
+        return jsonify({"erro": "Preço inválido"}), 400
+    codigo_pdv = str(dados.get("codigo_pdv", "")).strip()
+
+    merchant_id = _merchant_id()
+    resultado = com_retry(create_option, merchant_id, grupo_id, nome, preco, codigo_pdv)
+    registrar_auditoria(g.usuario["nome"], "criar_opcao", item_id=resultado.get("productId", ""), nome=nome, detalhe=f"grupo {grupo_id}")
+    return jsonify(resultado), 201
+
+
+@app.delete("/api/grupos-opcao/<grupo_id>/opcoes/<option_product_id>")
+@requer_papel("administrador")
+def excluir_opcao(grupo_id, option_product_id):
+    merchant_id = _merchant_id()
+    com_retry(delete_option, merchant_id, grupo_id, option_product_id)
+    registrar_auditoria(g.usuario["nome"], "excluir_opcao", item_id=option_product_id, detalhe=f"grupo {grupo_id}")
+    return jsonify({"ok": True})
 
 
 @app.post("/api/itens")
@@ -368,6 +511,127 @@ def criar_item():
         available=True,
     )
     registrar_auditoria(operador, "criar_item", item_id=item_id, codigo_pdv=codigo_pdv, nome=nome, detalhe=f"preço R$ {preco:.2f}")
+    return jsonify(resultado), 201
+
+
+@app.get("/api/categorias")
+@requer_login
+def get_categorias():
+    merchant_id = _merchant_id()
+    catalog_id = _catalog_id(merchant_id)
+    categorias = com_retry(list_categories, merchant_id, catalog_id)
+    return jsonify(
+        [{"id": c["id"], "nome": c["name"], "status": c.get("status"), "sequencia": c.get("sequence", 0)} for c in categorias]
+    )
+
+
+@app.get("/api/categorias/<categoria_id>")
+@requer_login
+def get_categoria(categoria_id):
+    merchant_id = _merchant_id()
+    catalog_id = _catalog_id(merchant_id)
+    return jsonify(com_retry(get_category, merchant_id, catalog_id, categoria_id))
+
+
+@app.post("/api/categorias")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def criar_categoria_dedicada():
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    if not nome:
+        raise ValueError("nome é obrigatório")
+
+    merchant_id = _merchant_id()
+    catalog_id = _catalog_id(merchant_id)
+    resultado = com_retry(create_category, merchant_id, catalog_id, name=nome)
+    registrar_auditoria(g.usuario["nome"], "criar_categoria", item_id=resultado.get("categoryId") or resultado.get("id", ""), nome=nome)
+    return jsonify(resultado), 201
+
+
+@app.patch("/api/categorias/<categoria_id>")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def editar_categoria(categoria_id):
+    """Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,
+    o que pausa em cascata todos os itens dela no iFood)."""
+    dados = request.get_json(silent=True) or {}
+    operador = g.usuario["nome"]
+
+    campos = {}
+    if "nome" in dados and str(dados["nome"]).strip():
+        campos["name"] = str(dados["nome"]).strip()
+    if "status" in dados:
+        if dados["status"] not in ("AVAILABLE", "PAUSED"):
+            raise ValueError("status da categoria deve ser AVAILABLE ou PAUSED")
+        campos["status"] = dados["status"]
+    if "sequencia" in dados:
+        campos["sequence"] = int(dados["sequencia"])
+    if not campos:
+        raise ValueError("Informe ao menos um campo pra editar (nome, status ou sequencia)")
+
+    merchant_id = _merchant_id()
+    catalog_id = _catalog_id(merchant_id)
+    resultado = com_retry(edit_category, merchant_id, catalog_id, categoria_id, **campos)
+    registrar_auditoria(operador, "editar_categoria", item_id=categoria_id, detalhe=str(campos))
+    return jsonify(resultado)
+
+
+@app.delete("/api/categorias/<categoria_id>")
+@requer_papel("administrador")
+def excluir_categoria(categoria_id):
+    merchant_id = _merchant_id()
+    com_retry(delete_category, merchant_id, categoria_id)
+    registrar_auditoria(g.usuario["nome"], "excluir_categoria", item_id=categoria_id)
+    return jsonify({"ok": True})
+
+
+@app.post("/api/itens/combo")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def criar_combo():
+    """Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálogo
+    (descubra os ids em GET /api/grupos-opcao). Formato do payload de combo inferido a
+    partir de doc pública do iFood, não confirmado 1:1 contra o Request body oficial —
+    testar contra o sandbox antes de confiar em produção."""
+    dados = request.get_json(silent=True) or {}
+    operador = g.usuario["nome"]
+
+    faltando = [c for c in ("nome", "categoria", "preco", "codigo_pdv", "grupos_opcao") if not dados.get(c)]
+    if faltando:
+        return jsonify({"erro": "Campos obrigatórios não preenchidos", "campos": faltando}), 400
+
+    grupos = dados["grupos_opcao"]
+    if not isinstance(grupos, list) or not grupos:
+        raise ValueError("Informe ao menos um grupo em grupos_opcao")
+    if sum(1 for grupo in grupos if grupo.get("principal")) != 1:
+        raise ValueError("Exatamente um item de grupos_opcao precisa ter principal=true")
+
+    try:
+        preco = float(str(dados["preco"]).replace(",", "."))
+    except ValueError:
+        return jsonify({"erro": "Preço inválido"}), 400
+    if preco <= 0:
+        return jsonify({"erro": "Preço deve ser maior que zero"}), 400
+
+    merchant_id = _merchant_id()
+    catalog_id = _catalog_id(merchant_id)
+    categorias_existentes = com_retry(list_categories, merchant_id, catalog_id)
+    category_id = _categoria_id(dados["categoria"], categorias_existentes, merchant_id, catalog_id)
+
+    item_id = str(uuid.uuid4())
+    nome = dados["nome"].strip()
+    codigo_pdv = str(dados["codigo_pdv"]).strip()
+
+    resultado = com_retry(
+        create_combo,
+        merchant_id=merchant_id,
+        item_id=item_id,
+        product_id=str(uuid.uuid4()),
+        category_id=category_id,
+        name=nome,
+        price=preco,
+        external_code=codigo_pdv,
+        grupos_opcao=grupos,
+    )
+    registrar_auditoria(operador, "criar_combo", item_id=item_id, codigo_pdv=codigo_pdv, nome=nome, detalhe=f"preço R$ {preco:.2f}")
     return jsonify(resultado), 201
 
 
@@ -438,6 +702,47 @@ def alterar_codigo_pdv(item_id):
         valor_para=codigo_pdv,
     )
     return jsonify({"itemId": item_id, "codigo_pdv": codigo_pdv})
+
+
+@app.patch("/api/itens/<item_id>/turnos")
+@requer_login
+def alterar_turnos(item_id):
+    """Define em quais dias/horários um item fica disponível (ex: um prato que só vende
+    no almoço). Pausado (`status=UNAVAILABLE`) sempre tem prioridade sobre o turno."""
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    turnos = dados.get("turnos") or []
+    operador = g.usuario["nome"]
+
+    if not isinstance(turnos, list) or not turnos:
+        raise ValueError("Informe ao menos um turno")
+    dias = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+    for turno in turnos:
+        if not turno.get("startTime") or not turno.get("endTime"):
+            raise ValueError("Cada turno precisa de startTime e endTime (formato HH:MM)")
+        if not any(turno.get(dia) for dia in dias):
+            raise ValueError("Cada turno precisa marcar ao menos um dia da semana")
+
+    merchant_id = _merchant_id()
+    com_retry(update_item_shifts, merchant_id, item_id, turnos)
+    registrar_auditoria(operador, "definir_turnos_item", item_id=item_id, nome=nome, detalhe=f"{len(turnos)} turno(s)")
+    return jsonify({"itemId": item_id, "turnos": turnos})
+
+
+@app.delete("/api/itens/<item_id>")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def excluir_item(item_id):
+    dados = request.get_json(silent=True) or {}
+    category_id = str(dados.get("categoryId", "")).strip()
+    product_id = str(dados.get("productId", "")).strip()
+    nome = str(dados.get("nome", "")).strip()
+    if not category_id or not product_id:
+        raise ValueError("categoryId e productId são obrigatórios pra excluir um item")
+
+    merchant_id = _merchant_id()
+    com_retry(delete_item, merchant_id, category_id, product_id)
+    registrar_auditoria(g.usuario["nome"], "excluir_item", item_id=item_id, nome=nome)
+    return jsonify({"ok": True})
 
 
 @app.post("/api/itens/pausar-em-massa")

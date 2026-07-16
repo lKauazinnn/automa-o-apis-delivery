@@ -181,6 +181,20 @@ tr {
   }
 }
 
+@keyframes pulso-vivo {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.pulso-vivo {
+  animation: pulso-vivo 1.8s ease-in-out infinite;
+}
+
 @keyframes salvo-flash {
   0% {
     opacity: 0;
