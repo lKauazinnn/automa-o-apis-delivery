@@ -31,7 +31,7 @@ where npm >nul 2>&1
 if errorlevel 1 (
 	echo.
 	echo  ERRO: npm nao encontrado no PATH.
-	echo  Instale o Node.js e tente novamente.
+	echo  Instale o Node.js e tente novamente divo .
 	pause
 	exit /b 1
 )
@@ -44,7 +44,7 @@ if errorlevel 1 (
 	"%~dp0.venv\Scripts\python.exe" -m pip install -r "%~dp0requirements.txt"
 	if errorlevel 1 (
 		echo.
-		echo  ERRO ao instalar dependencias do backend.
+		echo  ERRO ao instalar dependencias do backend rsrssrs.
 		pause
 		exit /b 1
 	)

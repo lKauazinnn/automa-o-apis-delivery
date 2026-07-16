@@ -118,7 +118,7 @@ export function TelaLogin({ onLogar, avisoInicial, C }) {
     setCarregando(true)
     try {
       const sessao = await login(email.trim(), senha)
-      onLogar(sessao)
+      await onLogar(sessao)
     } catch (e) {
       setErro(e.message)
     } finally {

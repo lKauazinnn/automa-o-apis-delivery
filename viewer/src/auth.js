@@ -105,7 +105,12 @@ export async function logoutSupabase(accessToken) {
 }
 
 export async function buscarEu(accessToken) {
-  const resp = await fetch(`${API}/eu`, { headers: { Authorization: `Bearer ${accessToken}` } })
+  let resp
+  try {
+    resp = await fetch(`${API}/eu`, { headers: { Authorization: `Bearer ${accessToken}` } })
+  } catch {
+    throw new Error('Não consegui falar com o servidor. Verifique se o backend está rodando.')
+  }
   if (!resp.ok) throw new Error('sessão inválida')
   return resp.json()
 }
