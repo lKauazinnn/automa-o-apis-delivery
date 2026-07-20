@@ -4,23 +4,23 @@
 
 ## Key Concepts
 
-- [pausar_em_massa()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L750) (7 connections)
-- [Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L422) (1 connections)
-- [Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L751) (1 connections)
+- [Cria uma categoria de teste e alguns itens de exemplo da planilha no catálogo sa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/testar_sandbox.py#L1) (2 connections)
+- [testar_sandbox.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/testar_sandbox.py#L1) (1 connections)
+- [testar_sandbox.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/testar_sandbox.py#L1) (1 connections)
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 17]] (2 shared connections)
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\scripts\testar_sandbox.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/testar_sandbox.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\scripts\testar_sandbox.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/testar_sandbox.py)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (89%)
-- INFERRED: 1 (11%)
+- EXTRACTED: 4 (100%)
+- INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
 ---

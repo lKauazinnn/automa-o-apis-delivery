@@ -1,42 +1,35 @@
 # Community 10
 
-> 8 nodes · cohesion 0.25
+> 10 nodes · cohesion 0.33
 
 ## Key Concepts
 
-- [ErroAutenticacao](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L105) (7 connections)
-- [tratar_erro()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L233) (5 connections)
-- **Exception** (2 connections)
-- [.__init__()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L108) (1 connections)
-- [Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L106) (1 connections)
-- [Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L210) (1 connections)
-- [Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L234) (1 connections)
-- [Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L85) (1 connections)
-
-## Class Diagram
-
-```mermaid
-classDiagram
-    class ErroAutenticacao {
-        +app.py()
-        +.__init__()
-        +app.py()
-    }
-```
+- [main()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L51) (8 connections)
+- [carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/carga_massa.py#L1) (4 connections)
+- [carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L1) (4 connections)
+- [carregar_ja_processados()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L32) (3 connections)
+- [registrar()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L39) (3 connections)
+- [carregar_itens()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py#L18) (3 connections)
+- [planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/planilha.py#L1) (2 connections)
+- [planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py#L1) (2 connections)
+- [Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L1) (2 connections)
+- [Leitura da planilha de itens/PDV.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py#L1) (2 connections)
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 9]] (4 shared connections)
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\scripts\carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/carga_massa.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\src\ifood_automacao\planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/planilha.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\scripts\carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py)
 
 ## Audit Trail
 
-- EXTRACTED: 19 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 28 (85%)
+- INFERRED: 5 (15%)
 - AMBIGUOUS: 0 (0%)
 
 ---

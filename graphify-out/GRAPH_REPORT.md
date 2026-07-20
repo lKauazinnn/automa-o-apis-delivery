@@ -1,11 +1,11 @@
-# Graph Report - C:\Users\Gustavo\Desktop\automação ifood  (2026-07-16)
+# Graph Report - C:\Users\Gustavo\Desktop\automação ifood  (2026-07-20)
 
 ## Corpus Check
-- 48 files · ~45,629 words
+- 49 files · ~87,568 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 278 nodes · 458 edges · 39 communities detected
+- 284 nodes · 463 edges · 40 communities detected
 - Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 55 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -49,6 +49,7 @@
 - [[_COMMUNITY_Community 36|Community 36]]
 - [[_COMMUNITY_Community 37|Community 37]]
 - [[_COMMUNITY_Community 38|Community 38]]
+- [[_COMMUNITY_Community 39|Community 39]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `com_retry()` - 29 edges
@@ -69,9 +70,9 @@
   C:\Users\Gustavo\Desktop\automação ifood\scripts\carga_massa.py → C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\client.py
 - `main()` --calls--> `com_retry()`  [INFERRED]
   C:\Users\Gustavo\Desktop\automação ifood\scripts\carga_massa.py → C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\rate_limit.py
-- `_categoria_id()` --calls--> `com_retry()`  [INFERRED]
+- `_catalog_id()` --calls--> `com_retry()`  [INFERRED]
   C:\Users\Gustavo\Desktop\automação ifood\server\app.py → C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\rate_limit.py
-- `criar_item()` --calls--> `com_retry()`  [INFERRED]
+- `_categoria_id()` --calls--> `com_retry()`  [INFERRED]
   C:\Users\Gustavo\Desktop\automação ifood\server\app.py → C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\rate_limit.py
 
 ## Communities
@@ -83,8 +84,8 @@ Nodes (45): auth_headers(), get_access_token(), Autenticação OAuth2 (client_cr
 
 ### Community 1 - "Community 1"
 
-Cohesion: 0.13
-Nodes (33): alterar_codigo_pdv(), alterar_preco(), alterar_status(), alterar_turnos(), _catalog_id(), criar_categoria_dedicada(), criar_grupo_opcao(), criar_interrupcao() (+25 more)
+Cohesion: 0.16
+Nodes (26): alterar_codigo_pdv(), alterar_preco(), alterar_status(), alterar_turnos(), criar_grupo_opcao(), criar_interrupcao(), criar_opcao(), definir_horario_funcionamento() (+18 more)
 
 ### Community 2 - "Community 2"
 
@@ -93,8 +94,8 @@ Nodes (17): ACAO_LABEL, App(), campoPreenchido(), CHAVE_SESSAO, contadorToast, C
 
 ### Community 3 - "Community 3"
 
-Cohesion: 0.23
-Nodes (16): alterar_papel_usuario(), criar_loja(), get_auditoria(), get_lojas(), listar_usuarios(), API local que serve de ponte entre a interface React e a Merchant/Catalog API do, Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut, Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do (+8 more)
+Cohesion: 0.18
+Nodes (15): alterar_papel_usuario(), criar_loja(), get_auditoria(), get_lojas(), listar_usuarios(), API local que serve de ponte entre a interface React e a Merchant/Catalog API do, Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut, Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do (+7 more)
 
 ### Community 4 - "Community 4"
 _Manages user authentication, session handling, password setup, login/logout, URL-based invite handling, and error processing via Supabase._
@@ -113,83 +114,83 @@ Nodes (13): AvisoErro(), BORDER, CARD_BG, Casca(), estiloInput(), INPUT_BG, inpu
 
 ### Community 7 - "Community 7"
 
-Cohesion: 0.2
-Nodes (11): convidar_usuario(), _gerar_senha_aleatoria(), _marcar_senha_temporaria(), Convida alguém por e-mail (Supabase manda o link de convite). O perfil (nome + p, Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela, Liga/desliga a flag que força troca de senha no próximo login. Chamado com True, Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida, Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela (+3 more)
+Cohesion: 0.16
+Nodes (10): ErroAutenticacao, eu(), Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40, Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res, Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res, Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo, Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo, Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40 (+2 more)
 
 ### Community 8 - "Community 8"
 
 Cohesion: 0.2
-Nodes (6): ACAO_LABEL, Avatar(), CORES_AVATAR, CoresContext, iniciaisDe(), PALETAS
+Nodes (11): convidar_usuario(), _gerar_senha_aleatoria(), _marcar_senha_temporaria(), Convida alguém por e-mail (Supabase manda o link de convite). O perfil (nome + p, Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela, Liga/desliga a flag que força troca de senha no próximo login. Chamado com True, Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida, Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela (+3 more)
 
 ### Community 9 - "Community 9"
+
+Cohesion: 0.2
+Nodes (6): ACAO_LABEL, Avatar(), CORES_AVATAR, CoresContext, iniciaisDe(), PALETAS
+
+### Community 10 - "Community 10"
 
 Cohesion: 0.33
 Nodes (6): carregar_ja_processados(), main(), Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo, registrar(), carregar_itens(), Leitura da planilha de itens/PDV.
 
-### Community 10 - "Community 10"
-
-Cohesion: 0.25
-Nodes (7): ErroAutenticacao, Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40, Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res, Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res, Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40, tratar_erro(), Exception
-
 ### Community 11 - "Community 11"
+
+Cohesion: 0.36
+Nodes (8): _catalog_id(), criar_categoria_dedicada(), editar_categoria(), get_catalogo(), get_categoria(), get_categorias(), Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,, requer_login()
+
+### Community 12 - "Community 12"
 
 Cohesion: 0.33
 Nodes (6): _categoria_id(), criar_combo(), criar_item(), Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver, Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver, Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog
 
-### Community 12 - "Community 12"
+### Community 13 - "Community 13"
+
+Cohesion: 0.33
+Nodes (4): ARESTAS_BASE, ARESTAS_SINAL, CORES, NOS
+
+### Community 14 - "Community 14"
 
 Cohesion: 0.4
 Nodes (1): ErroFatal
 
-### Community 13 - "Community 13"
+### Community 15 - "Community 15"
 
 Cohesion: 0.4
 Nodes (1): DIAS
 
-### Community 14 - "Community 14"
+### Community 16 - "Community 16"
 
 Cohesion: 0.5
 Nodes (1): VIEWS
 
-### Community 15 - "Community 15"
+### Community 17 - "Community 17"
 
 Cohesion: 0.67
 Nodes (1): Lista as lojas (merchants) vinculadas às credenciais do .env.
 
-### Community 16 - "Community 16"
+### Community 18 - "Community 18"
 
 Cohesion: 0.67
 Nodes (1): Puxa o catálogo atual (categorias + itens) direto da API do iFood e exporta pra
 
-### Community 17 - "Community 17"
+### Community 19 - "Community 19"
 
 Cohesion: 0.67
 Nodes (1): Cria uma categoria de teste e alguns itens de exemplo da planilha no catálogo sa
 
-### Community 18 - "Community 18"
+### Community 20 - "Community 20"
 
 Cohesion: 0.67
 Nodes (1): Lista catálogos e categorias da loja configurada no .env, para inspeção manual.
 
-### Community 19 - "Community 19"
+### Community 21 - "Community 21"
 
 Cohesion: 0.67
 Nodes (3): pausar_em_massa(), Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem, Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem
 
-### Community 20 - "Community 20"
-
-Cohesion: 0.67
-Nodes (3): eu(), Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo, Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo
-
-### Community 21 - "Community 21"
-
-Cohesion: 0.67
-Nodes (1): Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)
-
 ### Community 22 - "Community 22"
 _Unable to determine domain due to missing code entities._
 Cohesion: 0.67
-Nodes (0): 
+Nodes (1): Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)
 
 ### Community 23 - "Community 23"
 _Unable to determine domain due to missing code entities._
@@ -198,7 +199,7 @@ Nodes (0):
 
 ### Community 24 - "Community 24"
 _Unable to determine domain due to missing code entities._
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 25 - "Community 25"
@@ -271,36 +272,41 @@ _Unable to determine domain due to missing code entities._
 Cohesion: 1.0
 Nodes (0): 
 
+### Community 39 - "Community 39"
+_Unable to determine domain due to missing code entities._
+Cohesion: 1.0
+Nodes (0): 
+
 ## Knowledge Gaps
-- **69 isolated node(s):** `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`, `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`, `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`, `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`, `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res` (+64 more)
+- **73 isolated node(s):** `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`, `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`, `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`, `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`, `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res` (+68 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 24`** (2 nodes): `CategoriasModal.jsx`, `CategoriasModal()`
+- **Thin community `Community 25`** (2 nodes): `CategoriasModal.jsx`, `CategoriasModal()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 25`** (2 nodes): `ComboModal.jsx`, `ComboModal()`
+- **Thin community `Community 26`** (2 nodes): `ComboModal.jsx`, `ComboModal()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 26`** (2 nodes): `InterrupcoesModal.jsx`, `InterrupcoesModal()`
+- **Thin community `Community 27`** (2 nodes): `InterrupcoesModal.jsx`, `InterrupcoesModal()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 27`** (2 nodes): `AuditoriaView()`, `AuditoriaView.jsx`
+- **Thin community `Community 28`** (2 nodes): `AuditoriaView()`, `AuditoriaView.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 28`** (2 nodes): `DashboardView.jsx`, `DashboardView()`
+- **Thin community `Community 29`** (2 nodes): `DashboardView.jsx`, `DashboardView()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 29`** (1 nodes): `__init__.py`
+- **Thin community `Community 30`** (1 nodes): `__init__.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 30`** (1 nodes): `postcss.config.js`
+- **Thin community `Community 31`** (1 nodes): `postcss.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 31`** (1 nodes): `tailwind.config.js`
+- **Thin community `Community 32`** (1 nodes): `tailwind.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 32`** (1 nodes): `vite.config.js`
+- **Thin community `Community 33`** (1 nodes): `vite.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (1 nodes): `main.jsx`
+- **Thin community `Community 34`** (1 nodes): `main.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 34`** (1 nodes): `__init__.py`
+- **Thin community `Community 35`** (1 nodes): `__init__.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (1 nodes): `postcss.config.js`
+- **Thin community `Community 36`** (1 nodes): `postcss.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 36`** (1 nodes): `tailwind.config.js`
+- **Thin community `Community 37`** (1 nodes): `tailwind.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 37`** (1 nodes): `vite.config.js`
+- **Thin community `Community 38`** (1 nodes): `vite.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 38`** (1 nodes): `main.jsx`
+- **Thin community `Community 39`** (1 nodes): `main.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.

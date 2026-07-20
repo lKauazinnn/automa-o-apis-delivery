@@ -19,7 +19,7 @@
 - [renovarSessao()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L86) (2 connections)
 - [SUPABASE_ANON_KEY](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L5) (2 connections)
 - [SUPABASE_URL](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L4) (2 connections)
-- [marcarSenhaTrocada()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L115) (1 connections)
+- [marcarSenhaTrocada()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L120) (1 connections)
 
 ## Relationships
 

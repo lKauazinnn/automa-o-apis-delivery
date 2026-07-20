@@ -1,12 +1,14 @@
 # Community 15
 
-> 3 nodes · cohesion 0.67
+> 5 nodes · cohesion 0.40
 
 ## Key Concepts
 
-- [Lista as lojas (merchants) vinculadas às credenciais do .env.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py#L1) (2 connections)
-- [descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/descobrir_lojas.py#L1) (1 connections)
-- [descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py#L1) (1 connections)
+- [HorarioFuncionamentoModal.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L1) (4 connections)
+- [DIAS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L5) (1 connections)
+- [horaParaMinutos()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L21) (1 connections)
+- [HorarioFuncionamentoModal()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L26) (1 connections)
+- [minutosParaHora()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L15) (1 connections)
 
 ## Relationships
 
@@ -14,12 +16,11 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\scripts\descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/descobrir_lojas.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\scripts\descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\modals\HorarioFuncionamentoModal.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx)
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 8 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

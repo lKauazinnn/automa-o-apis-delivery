@@ -4,23 +4,23 @@
 
 ## Key Concepts
 
-- [rate_limit.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/rate_limit.py#L1) (2 connections)
-- [rate_limit.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/rate_limit.py#L1) (2 connections)
-- [Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/rate_limit.py#L1) (2 connections)
+- [pausar_em_massa()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L750) (7 connections)
+- [Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L422) (1 connections)
+- [Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L751) (1 connections)
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 19]] (2 shared connections)
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\src\ifood_automacao\rate_limit.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/rate_limit.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\rate_limit.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/rate_limit.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 
 ## Audit Trail
 
-- EXTRACTED: 6 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 8 (89%)
+- INFERRED: 1 (11%)
 - AMBIGUOUS: 0 (0%)
 
 ---

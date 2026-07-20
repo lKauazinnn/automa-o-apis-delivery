@@ -1,39 +1,29 @@
 # Community 12
 
-> 5 nodes · cohesion 0.40
+> 6 nodes · cohesion 0.33
 
 ## Key Concepts
 
-- [ErroFatal](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L6) (4 connections)
-- [ErroFatal.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L1) (1 connections)
-- [.constructor()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L7) (1 connections)
-- [.getDerivedStateFromError()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L12) (1 connections)
-- [.render()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L16) (1 connections)
-
-## Class Diagram
-
-```mermaid
-classDiagram
-    class ErroFatal {
-        +ErroFatal.jsx()
-        +.constructor()
-        +.getDerivedStateFromError()
-        +.render()
-    }
-```
+- [criar_item()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L476) (9 connections)
+- [criar_combo()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L589) (7 connections)
+- [_categoria_id()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L190) (5 connections)
+- [Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L328) (1 connections)
+- [Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L477) (1 connections)
+- [Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L590) (1 connections)
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 11]] (3 shared connections)
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\ErroFatal.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx)
+- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 21 (88%)
+- INFERRED: 3 (12%)
 - AMBIGUOUS: 0 (0%)
 
 ---

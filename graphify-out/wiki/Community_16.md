@@ -1,12 +1,13 @@
 # Community 16
 
-> 3 nodes · cohesion 0.67
+> 4 nodes · cohesion 0.50
 
 ## Key Concepts
 
-- [Puxa o catálogo atual (categorias + itens) direto da API do iFood e exporta pra](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/exportar_catalogo.py#L1) (2 connections)
-- [exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/exportar_catalogo.py#L1) (1 connections)
-- [exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/exportar_catalogo.py#L1) (1 connections)
+- [Sidebar.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L1) (3 connections)
+- [ItemNav()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L11) (1 connections)
+- [Sidebar()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L38) (1 connections)
+- [VIEWS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L5) (1 connections)
 
 ## Relationships
 
@@ -14,12 +15,11 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\scripts\exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/exportar_catalogo.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\scripts\exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/exportar_catalogo.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\Sidebar.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx)
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 6 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

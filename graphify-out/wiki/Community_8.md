@@ -4,30 +4,31 @@
 
 ## Key Concepts
 
-- [ui.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L1) (10 connections)
-- [iniciaisDe()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L116) (3 connections)
-- [Avatar()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L133) (2 connections)
-- [ACAO_LABEL](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L78) (1 connections)
-- [CORES_AVATAR](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L126) (1 connections)
-- [CoresContext](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L6) (1 connections)
-- [formatarTimestamp()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L108) (1 connections)
-- [Modal()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L182) (1 connections)
-- [PALETAS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L11) (1 connections)
-- [Pill()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L166) (1 connections)
-- [StatCard()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx#L144) (1 connections)
+- [convidar_usuario()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L857) (8 connections)
+- [resetar_senha_usuario()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L899) (8 connections)
+- [_marcar_senha_temporaria()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L841) (6 connections)
+- [_gerar_senha_aleatoria()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L836) (3 connections)
+- [senha_trocada()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L925) (3 connections)
+- [Convida alguém por e-mail (Supabase manda o link de convite). O perfil (nome + p](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L508) (1 connections)
+- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L534) (1 connections)
+- [Liga/desliga a flag que força troca de senha no próximo login. Chamado com True](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L842) (1 connections)
+- [Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L858) (1 connections)
+- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L900) (1 connections)
+- [Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L926) (1 connections)
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 7]] (6 shared connections)
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\ui.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ui.jsx)
+- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 
 ## Audit Trail
 
-- EXTRACTED: 22 (96%)
-- INFERRED: 1 (4%)
+- EXTRACTED: 34 (100%)
+- INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
 ---

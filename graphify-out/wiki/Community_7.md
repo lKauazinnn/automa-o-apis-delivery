@@ -1,24 +1,36 @@
 # Community 7
 
-> 11 nodes · cohesion 0.20
+> 11 nodes · cohesion 0.16
 
 ## Key Concepts
 
-- [convidar_usuario()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L857) (8 connections)
-- [resetar_senha_usuario()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L899) (8 connections)
-- [_marcar_senha_temporaria()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L841) (6 connections)
-- [_gerar_senha_aleatoria()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L836) (3 connections)
-- [senha_trocada()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L925) (3 connections)
-- [Convida alguém por e-mail (Supabase manda o link de convite). O perfil (nome + p](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L508) (1 connections)
-- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L534) (1 connections)
-- [Liga/desliga a flag que força troca de senha no próximo login. Chamado com True](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L842) (1 connections)
-- [Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L858) (1 connections)
-- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L900) (1 connections)
-- [Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L926) (1 connections)
+- [ErroAutenticacao](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L105) (7 connections)
+- [tratar_erro()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L233) (5 connections)
+- [eu()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L270) (4 connections)
+- **Exception** (2 connections)
+- [.__init__()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L108) (1 connections)
+- [Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L106) (1 connections)
+- [Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L210) (1 connections)
+- [Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L234) (1 connections)
+- [Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L246) (1 connections)
+- [Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L271) (1 connections)
+- [Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L85) (1 connections)
+
+## Class Diagram
+
+```mermaid
+classDiagram
+    class ErroAutenticacao {
+        +app.py()
+        +.__init__()
+        +app.py()
+    }
+```
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 10]] (4 shared connections)
+- [[Community 20]] (2 shared connections)
 
 ## Source Files
 
@@ -27,7 +39,7 @@
 
 ## Audit Trail
 
-- EXTRACTED: 34 (100%)
+- EXTRACTED: 25 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

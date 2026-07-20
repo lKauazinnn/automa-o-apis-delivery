@@ -1,29 +1,32 @@
 # Community 11
 
-> 6 nodes · cohesion 0.33
+> 9 nodes · cohesion 0.36
 
 ## Key Concepts
 
-- [criar_item()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L476) (9 connections)
-- [criar_combo()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L589) (7 connections)
-- [_categoria_id()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L190) (5 connections)
-- [Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L328) (1 connections)
-- [Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L477) (1 connections)
-- [Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L590) (1 connections)
+- [app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1) (48 connections)
+- [_catalog_id()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L183) (10 connections)
+- [editar_categoria()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L553) (6 connections)
+- [criar_categoria_dedicada()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L538) (5 connections)
+- [get_catalogo()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L330) (5 connections)
+- [get_categoria()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L530) (4 connections)
+- [get_categorias()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L519) (4 connections)
+- [requer_login()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L155) (2 connections)
+- [Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L554) (1 connections)
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 1]] (1 shared connections)
+- [[Community 3]] (1 shared connections)
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 
 ## Audit Trail
 
-- EXTRACTED: 21 (88%)
-- INFERRED: 3 (12%)
+- EXTRACTED: 79 (93%)
+- INFERRED: 6 (7%)
 - AMBIGUOUS: 0 (0%)
 
 ---

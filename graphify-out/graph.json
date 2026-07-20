@@ -16,7 +16,7 @@
       "heat": 0.019,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_carga_massa_py",
-      "community": 9,
+      "community": 10,
       "norm_label": "carga_massa.py"
     },
     {
@@ -32,7 +32,7 @@
       "heat": 0.017,
       "owner": "unowned",
       "id": "carga_massa_carregar_ja_processados",
-      "community": 9,
+      "community": 10,
       "norm_label": "carregar_ja_processados()"
     },
     {
@@ -48,7 +48,7 @@
       "heat": 0.016,
       "owner": "unowned",
       "id": "carga_massa_registrar",
-      "community": 9,
+      "community": 10,
       "norm_label": "registrar()"
     },
     {
@@ -64,7 +64,7 @@
       "heat": 0.053,
       "owner": "unowned",
       "id": "carga_massa_main",
-      "community": 9,
+      "community": 10,
       "norm_label": "main()"
     },
     {
@@ -76,9 +76,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "carga_massa_rationale_1",
-      "community": 9,
-      "norm_label": "carga em massa: cria/atualiza todos os itens ativos da planilha no catalogo ifoo"
+      "community": 10,
+      "norm_label": "carga em massa: cria/atualiza todos os itens ativos da planilha no catalogo ifoo",
+      "id": "carga_massa_rationale_1"
     },
     {
       "label": "descobrir_lojas.py",
@@ -93,7 +93,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_descobrir_lojas_py",
-      "community": 15,
+      "community": 17,
       "norm_label": "descobrir_lojas.py"
     },
     {
@@ -105,9 +105,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "descobrir_lojas_rationale_1",
-      "community": 15,
-      "norm_label": "lista as lojas (merchants) vinculadas as credenciais do .env."
+      "community": 17,
+      "norm_label": "lista as lojas (merchants) vinculadas as credenciais do .env.",
+      "id": "descobrir_lojas_rationale_1"
     },
     {
       "label": "exportar_catalogo.py",
@@ -122,7 +122,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_exportar_catalogo_py",
-      "community": 16,
+      "community": 18,
       "norm_label": "exportar_catalogo.py"
     },
     {
@@ -134,9 +134,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "exportar_catalogo_rationale_1",
-      "community": 16,
-      "norm_label": "puxa o catalogo atual (categorias + itens) direto da api do ifood e exporta pra"
+      "community": 18,
+      "norm_label": "puxa o catalogo atual (categorias + itens) direto da api do ifood e exporta pra",
+      "id": "exportar_catalogo_rationale_1"
     },
     {
       "label": "testar_sandbox.py",
@@ -151,7 +151,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_testar_sandbox_py",
-      "community": 17,
+      "community": 19,
       "norm_label": "testar_sandbox.py"
     },
     {
@@ -163,9 +163,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "testar_sandbox_rationale_1",
-      "community": 17,
-      "norm_label": "cria uma categoria de teste e alguns itens de exemplo da planilha no catalogo sa"
+      "community": 19,
+      "norm_label": "cria uma categoria de teste e alguns itens de exemplo da planilha no catalogo sa",
+      "id": "testar_sandbox_rationale_1"
     },
     {
       "label": "ver_catalogo.py",
@@ -180,7 +180,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_ver_catalogo_py",
-      "community": 18,
+      "community": 20,
       "norm_label": "ver_catalogo.py"
     },
     {
@@ -192,9 +192,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "ver_catalogo_rationale_1",
-      "community": 18,
-      "norm_label": "lista catalogos e categorias da loja configurada no .env, para inspecao manual."
+      "community": 20,
+      "norm_label": "lista catalogos e categorias da loja configurada no .env, para inspecao manual.",
+      "id": "ver_catalogo_rationale_1"
     },
     {
       "label": "app.py",
@@ -241,7 +241,7 @@
       "heat": 0.032,
       "owner": "unowned",
       "id": "app_erroautenticacao",
-      "community": 10,
+      "community": 7,
       "norm_label": "erroautenticacao"
     },
     {
@@ -254,7 +254,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "exception",
-      "community": 10,
+      "community": 7,
       "norm_label": "exception"
     },
     {
@@ -270,7 +270,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "app_erroautenticacao_init",
-      "community": 10,
+      "community": 7,
       "norm_label": ".__init__()"
     },
     {
@@ -297,12 +297,12 @@
       "source_location": "L155",
       "complexity": 1,
       "loc": 7,
-      "level": 2,
+      "level": 1,
       "granularity": "low",
       "heat": 0.011,
       "owner": "unowned",
       "id": "app_requer_login",
-      "community": 3,
+      "community": 11,
       "norm_label": "requer_login()"
     },
     {
@@ -313,7 +313,7 @@
       "source_location": "L164",
       "complexity": 2,
       "loc": 12,
-      "level": 2,
+      "level": 1,
       "granularity": "low",
       "heat": 0.013,
       "owner": "unowned",
@@ -350,7 +350,7 @@
       "heat": 0.046,
       "owner": "unowned",
       "id": "app_catalog_id",
-      "community": 1,
+      "community": 11,
       "norm_label": "_catalog_id()"
     },
     {
@@ -366,7 +366,7 @@
       "heat": 0.027,
       "owner": "unowned",
       "id": "app_categoria_id",
-      "community": 11,
+      "community": 12,
       "norm_label": "_categoria_id()"
     },
     {
@@ -398,7 +398,7 @@
       "heat": 0.043,
       "owner": "unowned",
       "id": "app_tratar_erro",
-      "community": 10,
+      "community": 7,
       "norm_label": "tratar_erro()"
     },
     {
@@ -409,7 +409,7 @@
       "source_location": "L264",
       "complexity": 1,
       "loc": 2,
-      "level": 2,
+      "level": 1,
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
@@ -430,7 +430,7 @@
       "heat": 0.019,
       "owner": "unowned",
       "id": "app_eu",
-      "community": 20,
+      "community": 7,
       "norm_label": "eu()"
     },
     {
@@ -494,7 +494,7 @@
       "heat": 0.029,
       "owner": "unowned",
       "id": "app_get_catalogo",
-      "community": 1,
+      "community": 11,
       "norm_label": "get_catalogo()"
     },
     {
@@ -510,7 +510,7 @@
       "heat": 0.05,
       "owner": "unowned",
       "id": "app_criar_item",
-      "community": 11,
+      "community": 12,
       "norm_label": "criar_item()"
     },
     {
@@ -574,7 +574,7 @@
       "heat": 0.048,
       "owner": "unowned",
       "id": "app_pausar_em_massa",
-      "community": 19,
+      "community": 21,
       "norm_label": "pausar_em_massa()"
     },
     {
@@ -585,7 +585,7 @@
       "source_location": "L789",
       "complexity": 3,
       "loc": 32,
-      "level": 2,
+      "level": 1,
       "granularity": "low",
       "heat": 0.022,
       "owner": "unowned",
@@ -601,7 +601,7 @@
       "source_location": "L825",
       "complexity": 1,
       "loc": 9,
-      "level": 2,
+      "level": 1,
       "granularity": "low",
       "heat": 0.015,
       "owner": "unowned",
@@ -622,7 +622,7 @@
       "heat": 0.045,
       "owner": "unowned",
       "id": "app_convidar_usuario",
-      "community": 7,
+      "community": 8,
       "norm_label": "convidar_usuario()"
     },
     {
@@ -638,7 +638,7 @@
       "heat": 0.04,
       "owner": "unowned",
       "id": "app_resetar_senha_usuario",
-      "community": 7,
+      "community": 8,
       "norm_label": "resetar_senha_usuario()"
     },
     {
@@ -666,9 +666,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "app_rationale_1",
       "community": 3,
-      "norm_label": "api local que serve de ponte entre a interface react e a merchant/catalog api do"
+      "norm_label": "api local que serve de ponte entre a interface react e a merchant/catalog api do",
+      "id": "app_rationale_1"
     },
     {
       "label": "Falha de login/permiss\u00e3o \u2014 sess\u00e3o ausente/expirada (401) ou papel sem acesso (40",
@@ -679,9 +679,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_85",
-      "community": 10,
-      "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40"
+      "community": 7,
+      "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40",
+      "id": "app_rationale_85"
     },
     {
       "label": "Valida a sess\u00e3o (header Authorization: Bearer <token>, emitido pelo Supabase Aut",
@@ -693,9 +693,9 @@
       "heat": 0.006,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "app_rationale_93",
       "community": 3,
-      "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut"
+      "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut",
+      "id": "app_rationale_93"
     },
     {
       "label": "Loja alvo da requisi\u00e7\u00e3o: vem de ?loja=<id> na query string, ou a padr\u00e3o do .env.",
@@ -706,9 +706,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_158",
       "community": 1,
-      "norm_label": "loja alvo da requisicao: vem de ?loja=<id> na query string, ou a padrao do .env."
+      "norm_label": "loja alvo da requisicao: vem de ?loja=<id> na query string, ou a padrao do .env.",
+      "id": "app_rationale_158"
     },
     {
       "label": "Grava uma linha na tabela `auditoria` do Supabase para toda a\u00e7\u00e3o que altera o ca",
@@ -719,9 +719,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_178",
       "community": 1,
-      "norm_label": "grava uma linha na tabela `auditoria` do supabase para toda acao que altera o ca"
+      "norm_label": "grava uma linha na tabela `auditoria` do supabase para toda acao que altera o ca",
+      "id": "app_rationale_178"
     },
     {
       "label": "Converte qualquer falha (login, rede, API do iFood/Supabase, valida\u00e7\u00e3o) numa res",
@@ -732,9 +732,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_210",
-      "community": 10,
-      "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res"
+      "community": 7,
+      "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res",
+      "id": "app_rationale_210"
     },
     {
       "label": "Devolve quem \u00e9 o usu\u00e1rio logado (id, email, nome, papel) \u2014 o front usa isso depo",
@@ -745,9 +745,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_246",
-      "community": 20,
-      "norm_label": "devolve quem e o usuario logado (id, email, nome, papel) \u2014 o front usa isso depo"
+      "community": 7,
+      "norm_label": "devolve quem e o usuario logado (id, email, nome, papel) \u2014 o front usa isso depo",
+      "id": "app_rationale_246"
     },
     {
       "label": "Lojas cadastradas em `public.lojas` no Supabase (n\u00e3o \u00e9 mais list_merchants() do",
@@ -758,9 +758,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_254",
       "community": 3,
-      "norm_label": "lojas cadastradas em `public.lojas` no supabase (nao e mais list_merchants() do"
+      "norm_label": "lojas cadastradas em `public.lojas` no supabase (nao e mais list_merchants() do",
+      "id": "app_rationale_254"
     },
     {
       "label": "Cria um item novo. S\u00f3 administrador/gerente pode \u2014 e agora isso \u00e9 checado de ver",
@@ -772,9 +772,9 @@
       "heat": 0.006,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "app_rationale_328",
-      "community": 11,
-      "norm_label": "cria um item novo. so administrador/gerente pode \u2014 e agora isso e checado de ver"
+      "community": 12,
+      "norm_label": "cria um item novo. so administrador/gerente pode \u2014 e agora isso e checado de ver",
+      "id": "app_rationale_328"
     },
     {
       "label": "Pausa ou despausa v\u00e1rios itens de uma vez, item por item (a API do iFood n\u00e3o tem",
@@ -785,9 +785,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_422",
-      "community": 19,
-      "norm_label": "pausa ou despausa varios itens de uma vez, item por item (a api do ifood nao tem"
+      "community": 21,
+      "norm_label": "pausa ou despausa varios itens de uma vez, item por item (a api do ifood nao tem",
+      "id": "app_rationale_422"
     },
     {
       "label": "Convida algu\u00e9m por e-mail (Supabase manda o link de convite). O perfil (nome + p",
@@ -798,9 +798,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_508",
-      "community": 7,
-      "norm_label": "convida alguem por e-mail (supabase manda o link de convite). o perfil (nome + p"
+      "community": 8,
+      "norm_label": "convida alguem por e-mail (supabase manda o link de convite). o perfil (nome + p",
+      "id": "app_rationale_508"
     },
     {
       "label": "Define uma senha nova pra algu\u00e9m direto pela Admin API do Supabase e devolve ela",
@@ -812,9 +812,9 @@
       "heat": 0.006,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "app_rationale_534",
-      "community": 7,
-      "norm_label": "define uma senha nova pra alguem direto pela admin api do supabase e devolve ela"
+      "community": 8,
+      "norm_label": "define uma senha nova pra alguem direto pela admin api do supabase e devolve ela",
+      "id": "app_rationale_534"
     },
     {
       "label": "auth.py",
@@ -877,9 +877,9 @@
       "heat": 0.01,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "auth_rationale_1",
       "community": 0,
-      "norm_label": "autenticacao oauth2 (client_credentials) com a merchant api do ifood."
+      "norm_label": "autenticacao oauth2 (client_credentials) com a merchant api do ifood.",
+      "id": "auth_rationale_1"
     },
     {
       "label": "Retorna um access token v\u00e1lido, reaproveitando o cache em mem\u00f3ria enquanto n\u00e3o e",
@@ -891,9 +891,9 @@
       "heat": 0.006,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "auth_rationale_17",
       "community": 0,
-      "norm_label": "retorna um access token valido, reaproveitando o cache em memoria enquanto nao e"
+      "norm_label": "retorna um access token valido, reaproveitando o cache em memoria enquanto nao e",
+      "id": "auth_rationale_17"
     },
     {
       "label": "client.py",
@@ -1048,9 +1048,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "client_rationale_1",
       "community": 0,
-      "norm_label": "cliente fino para os endpoints da merchant api / catalog api do ifood usados na"
+      "norm_label": "cliente fino para os endpoints da merchant api / catalog api do ifood usados na",
+      "id": "client_rationale_1"
     },
     {
       "label": "Lista as lojas (merchants) associadas \u00e0s credenciais configuradas.",
@@ -1061,9 +1061,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_11",
       "community": 0,
-      "norm_label": "lista as lojas (merchants) associadas as credenciais configuradas."
+      "norm_label": "lista as lojas (merchants) associadas as credenciais configuradas.",
+      "id": "client_rationale_11"
     },
     {
       "label": "Cria ou substitui por completo um item (PUT \u00e9 idempotente e sempre reenvia a est",
@@ -1074,9 +1074,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_59",
       "community": 0,
-      "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est"
+      "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est",
+      "id": "client_rationale_59"
     },
     {
       "label": "Atualiza globalmente o c\u00f3digo PDV (externalCode) de um item j\u00e1 existente no cat\u00e1",
@@ -1087,9 +1087,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_91",
       "community": 0,
-      "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata"
+      "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata",
+      "id": "client_rationale_91"
     },
     {
       "label": "Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.",
@@ -1100,9 +1100,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_102",
       "community": 0,
-      "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente."
+      "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente.",
+      "id": "client_rationale_102"
     },
     {
       "label": "Atualiza globalmente o pre\u00e7o de um item j\u00e1 existente no cat\u00e1logo.",
@@ -1113,9 +1113,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_113",
       "community": 0,
-      "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo."
+      "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo.",
+      "id": "client_rationale_113"
     },
     {
       "label": "planilha.py",
@@ -1130,7 +1130,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_planilha_py",
-      "community": 9,
+      "community": 10,
       "norm_label": "planilha.py"
     },
     {
@@ -1146,7 +1146,7 @@
       "heat": 0.015,
       "owner": "unowned",
       "id": "planilha_carregar_itens",
-      "community": 9,
+      "community": 10,
       "norm_label": "carregar_itens()"
     },
     {
@@ -1158,9 +1158,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "planilha_rationale_1",
-      "community": 9,
-      "norm_label": "leitura da planilha de itens/pdv."
+      "community": 10,
+      "norm_label": "leitura da planilha de itens/pdv.",
+      "id": "planilha_rationale_1"
     },
     {
       "label": "rate_limit.py",
@@ -1175,7 +1175,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_rate_limit_py",
-      "community": 21,
+      "community": 22,
       "norm_label": "rate_limit.py"
     },
     {
@@ -1203,9 +1203,9 @@
       "granularity": "low",
       "heat": 0.01,
       "owner": "unowned",
-      "id": "rate_limit_rationale_1",
-      "community": 21,
-      "norm_label": "wrapper simples de retry/backoff para chamadas http sujeitas a rate limit (429)"
+      "community": 22,
+      "norm_label": "wrapper simples de retry/backoff para chamadas http sujeitas a rate limit (429)",
+      "id": "rate_limit_rationale_1"
     },
     {
       "label": "__init__.py",
@@ -1220,7 +1220,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_init_py",
-      "community": 29,
+      "community": 30,
       "norm_label": "__init__.py"
     },
     {
@@ -1236,7 +1236,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_postcss_config_js",
-      "community": 30,
+      "community": 31,
       "norm_label": "postcss.config.js"
     },
     {
@@ -1252,7 +1252,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_tailwind_config_js",
-      "community": 31,
+      "community": 32,
       "norm_label": "tailwind.config.js"
     },
     {
@@ -1268,7 +1268,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_vite_config_js",
-      "community": 32,
+      "community": 33,
       "norm_label": "vite.config.js"
     },
     {
@@ -1817,11 +1817,11 @@
       "type": "FUNCTION",
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\auth.js",
       "source_location": "L107",
-      "complexity": 2,
-      "loc": 5,
+      "complexity": 4,
+      "loc": 10,
       "level": 2,
       "granularity": "low",
-      "heat": 0.013,
+      "heat": 0.017,
       "owner": "unowned",
       "sensitivity": "HIGH",
       "id": "auth_buscareu",
@@ -1841,7 +1841,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_src_main_jsx",
-      "community": 33,
+      "community": 34,
       "norm_label": "main.jsx"
     },
     {
@@ -2078,7 +2078,7 @@
       "heat": 0.019,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_scripts_carga_massa_py",
-      "community": 9,
+      "community": 10,
       "norm_label": "carga_massa.py"
     },
     {
@@ -2094,7 +2094,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_scripts_descobrir_lojas_py",
-      "community": 15,
+      "community": 17,
       "norm_label": "descobrir_lojas.py"
     },
     {
@@ -2110,7 +2110,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_scripts_exportar_catalogo_py",
-      "community": 16,
+      "community": 18,
       "norm_label": "exportar_catalogo.py"
     },
     {
@@ -2126,7 +2126,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_scripts_testar_sandbox_py",
-      "community": 17,
+      "community": 19,
       "norm_label": "testar_sandbox.py"
     },
     {
@@ -2142,7 +2142,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_scripts_ver_catalogo_py",
-      "community": 18,
+      "community": 20,
       "norm_label": "ver_catalogo.py"
     },
     {
@@ -2158,7 +2158,7 @@
       "heat": 0.202,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_server_app_py",
-      "community": 3,
+      "community": 11,
       "norm_label": "app.py"
     },
     {
@@ -2334,7 +2334,7 @@
       "heat": 0.019,
       "owner": "unowned",
       "id": "app_get_categorias",
-      "community": 1,
+      "community": 11,
       "norm_label": "get_categorias()"
     },
     {
@@ -2350,7 +2350,7 @@
       "heat": 0.019,
       "owner": "unowned",
       "id": "app_get_categoria",
-      "community": 1,
+      "community": 11,
       "norm_label": "get_categoria()"
     },
     {
@@ -2366,7 +2366,7 @@
       "heat": 0.026,
       "owner": "unowned",
       "id": "app_criar_categoria_dedicada",
-      "community": 1,
+      "community": 11,
       "norm_label": "criar_categoria_dedicada()"
     },
     {
@@ -2382,7 +2382,7 @@
       "heat": 0.039,
       "owner": "unowned",
       "id": "app_editar_categoria",
-      "community": 1,
+      "community": 11,
       "norm_label": "editar_categoria()"
     },
     {
@@ -2414,7 +2414,7 @@
       "heat": 0.046,
       "owner": "unowned",
       "id": "app_criar_combo",
-      "community": 11,
+      "community": 12,
       "norm_label": "criar_combo()"
     },
     {
@@ -2462,7 +2462,7 @@
       "heat": 0.015,
       "owner": "unowned",
       "id": "app_gerar_senha_aleatoria",
-      "community": 7,
+      "community": 8,
       "norm_label": "_gerar_senha_aleatoria()"
     },
     {
@@ -2478,7 +2478,7 @@
       "heat": 0.028,
       "owner": "unowned",
       "id": "app_marcar_senha_temporaria",
-      "community": 7,
+      "community": 8,
       "norm_label": "_marcar_senha_temporaria()"
     },
     {
@@ -2494,7 +2494,7 @@
       "heat": 0.015,
       "owner": "unowned",
       "id": "app_senha_trocada",
-      "community": 7,
+      "community": 8,
       "norm_label": "senha_trocada()"
     },
     {
@@ -2506,9 +2506,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_106",
-      "community": 10,
-      "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40"
+      "community": 7,
+      "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40",
+      "id": "app_rationale_106"
     },
     {
       "label": "Valida a sess\u00e3o (header Authorization: Bearer <token>, emitido pelo Supabase Aut",
@@ -2520,9 +2520,9 @@
       "heat": 0.006,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "app_rationale_114",
       "community": 3,
-      "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut"
+      "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut",
+      "id": "app_rationale_114"
     },
     {
       "label": "Loja alvo da requisi\u00e7\u00e3o: vem de ?loja=<id> na query string, ou a padr\u00e3o do .env.",
@@ -2533,9 +2533,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_179",
       "community": 1,
-      "norm_label": "loja alvo da requisicao: vem de ?loja=<id> na query string, ou a padrao do .env."
+      "norm_label": "loja alvo da requisicao: vem de ?loja=<id> na query string, ou a padrao do .env.",
+      "id": "app_rationale_179"
     },
     {
       "label": "Grava uma linha na tabela `auditoria` do Supabase para toda a\u00e7\u00e3o que altera o ca",
@@ -2546,9 +2546,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_199",
       "community": 1,
-      "norm_label": "grava uma linha na tabela `auditoria` do supabase para toda acao que altera o ca"
+      "norm_label": "grava uma linha na tabela `auditoria` do supabase para toda acao que altera o ca",
+      "id": "app_rationale_199"
     },
     {
       "label": "Converte qualquer falha (login, rede, API do iFood/Supabase, valida\u00e7\u00e3o) numa res",
@@ -2559,9 +2559,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_234",
-      "community": 10,
-      "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res"
+      "community": 7,
+      "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res",
+      "id": "app_rationale_234"
     },
     {
       "label": "Devolve quem \u00e9 o usu\u00e1rio logado (id, email, nome, papel) \u2014 o front usa isso depo",
@@ -2572,9 +2572,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_271",
-      "community": 20,
-      "norm_label": "devolve quem e o usuario logado (id, email, nome, papel) \u2014 o front usa isso depo"
+      "community": 7,
+      "norm_label": "devolve quem e o usuario logado (id, email, nome, papel) \u2014 o front usa isso depo",
+      "id": "app_rationale_271"
     },
     {
       "label": "Lojas cadastradas em `public.lojas` no Supabase (n\u00e3o \u00e9 mais list_merchants() do",
@@ -2585,9 +2585,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_279",
       "community": 3,
-      "norm_label": "lojas cadastradas em `public.lojas` no supabase (nao e mais list_merchants() do"
+      "norm_label": "lojas cadastradas em `public.lojas` no supabase (nao e mais list_merchants() do",
+      "id": "app_rationale_279"
     },
     {
       "label": "Substitui a semana inteira de hor\u00e1rio de funcionamento da loja de uma vez.",
@@ -2598,9 +2598,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_363",
       "community": 1,
-      "norm_label": "substitui a semana inteira de horario de funcionamento da loja de uma vez."
+      "norm_label": "substitui a semana inteira de horario de funcionamento da loja de uma vez.",
+      "id": "app_rationale_363"
     },
     {
       "label": "Fecha a loja temporariamente (ex: sem entregador dispon\u00edvel, cozinha travada).",
@@ -2611,9 +2611,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_387",
       "community": 1,
-      "norm_label": "fecha a loja temporariamente (ex: sem entregador disponivel, cozinha travada)."
+      "norm_label": "fecha a loja temporariamente (ex: sem entregador disponivel, cozinha travada).",
+      "id": "app_rationale_387"
     },
     {
       "label": "Cria um item novo. S\u00f3 administrador/gerente pode \u2014 e agora isso \u00e9 checado de ver",
@@ -2625,9 +2625,9 @@
       "heat": 0.006,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "app_rationale_477",
-      "community": 11,
-      "norm_label": "cria um item novo. so administrador/gerente pode \u2014 e agora isso e checado de ver"
+      "community": 12,
+      "norm_label": "cria um item novo. so administrador/gerente pode \u2014 e agora isso e checado de ver",
+      "id": "app_rationale_477"
     },
     {
       "label": "Edita nome/status/sequ\u00eancia de uma categoria (ex: pausar a categoria inteira,",
@@ -2638,9 +2638,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_554",
-      "community": 1,
-      "norm_label": "edita nome/status/sequencia de uma categoria (ex: pausar a categoria inteira,"
+      "community": 11,
+      "norm_label": "edita nome/status/sequencia de uma categoria (ex: pausar a categoria inteira,",
+      "id": "app_rationale_554"
     },
     {
       "label": "Cria um item do tipo COMBO_V2 compondo grupos de op\u00e7\u00e3o que j\u00e1 existem no cat\u00e1log",
@@ -2651,9 +2651,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_590",
-      "community": 11,
-      "norm_label": "cria um item do tipo combo_v2 compondo grupos de opcao que ja existem no catalog"
+      "community": 12,
+      "norm_label": "cria um item do tipo combo_v2 compondo grupos de opcao que ja existem no catalog",
+      "id": "app_rationale_590"
     },
     {
       "label": "Define em quais dias/hor\u00e1rios um item fica dispon\u00edvel (ex: um prato que s\u00f3 vende",
@@ -2664,9 +2664,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_710",
       "community": 1,
-      "norm_label": "define em quais dias/horarios um item fica disponivel (ex: um prato que so vende"
+      "norm_label": "define em quais dias/horarios um item fica disponivel (ex: um prato que so vende",
+      "id": "app_rationale_710"
     },
     {
       "label": "Pausa ou despausa v\u00e1rios itens de uma vez, item por item (a API do iFood n\u00e3o tem",
@@ -2677,9 +2677,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_751",
-      "community": 19,
-      "norm_label": "pausa ou despausa varios itens de uma vez, item por item (a api do ifood nao tem"
+      "community": 21,
+      "norm_label": "pausa ou despausa varios itens de uma vez, item por item (a api do ifood nao tem",
+      "id": "app_rationale_751"
     },
     {
       "label": "Liga/desliga a flag que for\u00e7a troca de senha no pr\u00f3ximo login. Chamado com True",
@@ -2690,9 +2690,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_842",
-      "community": 7,
-      "norm_label": "liga/desliga a flag que forca troca de senha no proximo login. chamado com true"
+      "community": 8,
+      "norm_label": "liga/desliga a flag que forca troca de senha no proximo login. chamado com true",
+      "id": "app_rationale_842"
     },
     {
       "label": "Cria a conta do usu\u00e1rio direto pela Admin API do Supabase, j\u00e1 com senha definida",
@@ -2704,9 +2704,9 @@
       "heat": 0.006,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "app_rationale_858",
-      "community": 7,
-      "norm_label": "cria a conta do usuario direto pela admin api do supabase, ja com senha definida"
+      "community": 8,
+      "norm_label": "cria a conta do usuario direto pela admin api do supabase, ja com senha definida",
+      "id": "app_rationale_858"
     },
     {
       "label": "Define uma senha nova pra algu\u00e9m direto pela Admin API do Supabase e devolve ela",
@@ -2718,9 +2718,9 @@
       "heat": 0.006,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "app_rationale_900",
-      "community": 7,
-      "norm_label": "define uma senha nova pra alguem direto pela admin api do supabase e devolve ela"
+      "community": 8,
+      "norm_label": "define uma senha nova pra alguem direto pela admin api do supabase e devolve ela",
+      "id": "app_rationale_900"
     },
     {
       "label": "Chamado pelo front logo depois que o pr\u00f3prio usu\u00e1rio troca a senha (direto no Su",
@@ -2731,9 +2731,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "app_rationale_926",
-      "community": 7,
-      "norm_label": "chamado pelo front logo depois que o proprio usuario troca a senha (direto no su"
+      "community": 8,
+      "norm_label": "chamado pelo front logo depois que o proprio usuario troca a senha (direto no su",
+      "id": "app_rationale_926"
     },
     {
       "label": "auth.py",
@@ -3033,9 +3033,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_60",
       "community": 0,
-      "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est"
+      "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est",
+      "id": "client_rationale_60"
     },
     {
       "label": "Cria um item do tipo COMBO_V2 (ex: \"Combo hamb\u00farguer e refrigerante\").      `g",
@@ -3046,9 +3046,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_120",
       "community": 0,
-      "norm_label": "cria um item do tipo combo_v2 (ex: \"combo hamburguer e refrigerante\").      `g"
+      "norm_label": "cria um item do tipo combo_v2 (ex: \"combo hamburguer e refrigerante\").      `g",
+      "id": "client_rationale_120"
     },
     {
       "label": "Atualiza globalmente o c\u00f3digo PDV (externalCode) de um item j\u00e1 existente no cat\u00e1",
@@ -3059,9 +3059,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_175",
       "community": 0,
-      "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata"
+      "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata",
+      "id": "client_rationale_175"
     },
     {
       "label": "Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.",
@@ -3072,9 +3072,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_186",
       "community": 0,
-      "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente."
+      "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente.",
+      "id": "client_rationale_186"
     },
     {
       "label": "Atualiza globalmente o pre\u00e7o de um item j\u00e1 existente no cat\u00e1logo.",
@@ -3085,9 +3085,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_197",
       "community": 0,
-      "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo."
+      "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo.",
+      "id": "client_rationale_197"
     },
     {
       "label": "Edita nome/status/sequ\u00eancia de uma categoria. Ex: edit_category(m, c, cid, statu",
@@ -3098,9 +3098,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_222",
       "community": 0,
-      "norm_label": "edita nome/status/sequencia de uma categoria. ex: edit_category(m, c, cid, statu"
+      "norm_label": "edita nome/status/sequencia de uma categoria. ex: edit_category(m, c, cid, statu",
+      "id": "client_rationale_222"
     },
     {
       "label": "Define os turnos de disponibilidade de um item (ex: item que s\u00f3 vende no almo\u00e7o)",
@@ -3111,9 +3111,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_252",
       "community": 0,
-      "norm_label": "define os turnos de disponibilidade de um item (ex: item que so vende no almoco)"
+      "norm_label": "define os turnos de disponibilidade de um item (ex: item que so vende no almoco)",
+      "id": "client_rationale_252"
     },
     {
       "label": "Fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).",
@@ -3124,9 +3124,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_306",
       "community": 0,
-      "norm_label": "fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada)."
+      "norm_label": "fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).",
+      "id": "client_rationale_306"
     },
     {
       "label": "Cria um grupo de complemento vazio (ex: \"Escolha sua bebida\"). Depois associe",
@@ -3137,9 +3137,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_341",
       "community": 0,
-      "norm_label": "cria um grupo de complemento vazio (ex: \"escolha sua bebida\"). depois associe"
+      "norm_label": "cria um grupo de complemento vazio (ex: \"escolha sua bebida\"). depois associe",
+      "id": "client_rationale_341"
     },
     {
       "label": "Cria uma op\u00e7\u00e3o nova (ex: \"Coca-Cola\") dentro de um grupo de complemento j\u00e1 exist",
@@ -3150,9 +3150,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_367",
       "community": 0,
-      "norm_label": "cria uma opcao nova (ex: \"coca-cola\") dentro de um grupo de complemento ja exist"
+      "norm_label": "cria uma opcao nova (ex: \"coca-cola\") dentro de um grupo de complemento ja exist",
+      "id": "client_rationale_367"
     },
     {
       "label": "`option_product_id` \u00e9 o `productId` devolvido por `create_option` (n\u00e3o o `id` da",
@@ -3163,9 +3163,9 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "id": "client_rationale_384",
       "community": 0,
-      "norm_label": "`option_product_id` e o `productid` devolvido por `create_option` (nao o `id` da"
+      "norm_label": "`option_product_id` e o `productid` devolvido por `create_option` (nao o `id` da",
+      "id": "client_rationale_384"
     },
     {
       "label": "planilha.py",
@@ -3180,7 +3180,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_planilha_py",
-      "community": 9,
+      "community": 10,
       "norm_label": "planilha.py"
     },
     {
@@ -3196,7 +3196,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_rate_limit_py",
-      "community": 21,
+      "community": 22,
       "norm_label": "rate_limit.py"
     },
     {
@@ -3212,7 +3212,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_init_py",
-      "community": 34,
+      "community": 35,
       "norm_label": "__init__.py"
     },
     {
@@ -3228,7 +3228,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_postcss_config_js",
-      "community": 35,
+      "community": 36,
       "norm_label": "postcss.config.js"
     },
     {
@@ -3244,7 +3244,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_tailwind_config_js",
-      "community": 36,
+      "community": 37,
       "norm_label": "tailwind.config.js"
     },
     {
@@ -3260,7 +3260,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_vite_config_js",
-      "community": 37,
+      "community": 38,
       "norm_label": "vite.config.js"
     },
     {
@@ -3350,7 +3350,7 @@
       "file_type": "code",
       "type": "FUNCTION",
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\auth.js",
-      "source_location": "L115",
+      "source_location": "L120",
       "complexity": 1,
       "loc": 6,
       "level": 3,
@@ -3375,7 +3375,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_errofatal_jsx",
-      "community": 12,
+      "community": 14,
       "norm_label": "errofatal.jsx"
     },
     {
@@ -3391,7 +3391,7 @@
       "heat": 0.024,
       "owner": "unowned",
       "id": "errofatal_errofatal",
-      "community": 12,
+      "community": 14,
       "norm_label": "errofatal"
     },
     {
@@ -3407,7 +3407,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "errofatal_errofatal_constructor",
-      "community": 12,
+      "community": 14,
       "norm_label": ".constructor()"
     },
     {
@@ -3423,7 +3423,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "errofatal_errofatal_getderivedstatefromerror",
-      "community": 12,
+      "community": 14,
       "norm_label": ".getderivedstatefromerror()"
     },
     {
@@ -3439,7 +3439,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "errofatal_errofatal_render",
-      "community": 12,
+      "community": 14,
       "norm_label": ".render()"
     },
     {
@@ -3711,7 +3711,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_main_jsx",
-      "community": 38,
+      "community": 39,
       "norm_label": "main.jsx"
     },
     {
@@ -3727,7 +3727,7 @@
       "heat": 0.014,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_sidebar_jsx",
-      "community": 14,
+      "community": 16,
       "norm_label": "sidebar.jsx"
     },
     {
@@ -3743,7 +3743,7 @@
       "heat": 0.007,
       "owner": "unowned",
       "id": "sidebar_views",
-      "community": 14,
+      "community": 16,
       "norm_label": "views"
     },
     {
@@ -3759,7 +3759,7 @@
       "heat": 0.011,
       "owner": "unowned",
       "id": "sidebar_itemnav",
-      "community": 14,
+      "community": 16,
       "norm_label": "itemnav()"
     },
     {
@@ -3775,7 +3775,7 @@
       "heat": 0.027,
       "owner": "unowned",
       "id": "sidebar_sidebar",
-      "community": 14,
+      "community": 16,
       "norm_label": "sidebar()"
     },
     {
@@ -3825,7 +3825,7 @@
       "heat": 0.044,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_ui_jsx",
-      "community": 8,
+      "community": 9,
       "norm_label": "ui.jsx"
     },
     {
@@ -3841,7 +3841,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "ui_corescontext",
-      "community": 8,
+      "community": 9,
       "norm_label": "corescontext"
     },
     {
@@ -3857,7 +3857,7 @@
       "heat": 0.014,
       "owner": "unowned",
       "id": "ui_paletas",
-      "community": 8,
+      "community": 9,
       "norm_label": "paletas"
     },
     {
@@ -3873,7 +3873,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "ui_acao_label",
-      "community": 8,
+      "community": 9,
       "norm_label": "acao_label"
     },
     {
@@ -3889,7 +3889,7 @@
       "heat": 0.011,
       "owner": "unowned",
       "id": "ui_formatartimestamp",
-      "community": 8,
+      "community": 9,
       "norm_label": "formatartimestamp()"
     },
     {
@@ -3905,7 +3905,7 @@
       "heat": 0.017,
       "owner": "unowned",
       "id": "ui_iniciaisde",
-      "community": 8,
+      "community": 9,
       "norm_label": "iniciaisde()"
     },
     {
@@ -3921,7 +3921,7 @@
       "heat": 0.007,
       "owner": "unowned",
       "id": "ui_cores_avatar",
-      "community": 8,
+      "community": 9,
       "norm_label": "cores_avatar"
     },
     {
@@ -3937,7 +3937,7 @@
       "heat": 0.013,
       "owner": "unowned",
       "id": "ui_avatar",
-      "community": 8,
+      "community": 9,
       "norm_label": "avatar()"
     },
     {
@@ -3953,7 +3953,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "ui_statcard",
-      "community": 8,
+      "community": 9,
       "norm_label": "statcard()"
     },
     {
@@ -3969,7 +3969,7 @@
       "heat": 0.012,
       "owner": "unowned",
       "id": "ui_pill",
-      "community": 8,
+      "community": 9,
       "norm_label": "pill()"
     },
     {
@@ -3985,8 +3985,104 @@
       "heat": 0.013,
       "owner": "unowned",
       "id": "ui_modal",
-      "community": 8,
+      "community": 9,
       "norm_label": "modal()"
+    },
+    {
+      "label": "CerebroGraphify.jsx",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L1",
+      "complexity": 1,
+      "loc": 1,
+      "level": 1,
+      "granularity": "low",
+      "heat": 0.023,
+      "owner": "unowned",
+      "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "community": 13,
+      "norm_label": "cerebrographify.jsx"
+    },
+    {
+      "label": "NOS",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L5",
+      "complexity": 1,
+      "loc": 18,
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.008,
+      "owner": "unowned",
+      "id": "cerebrographify_nos",
+      "community": 13,
+      "norm_label": "nos"
+    },
+    {
+      "label": "ARESTAS_BASE",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L24",
+      "complexity": 1,
+      "loc": 5,
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.007,
+      "owner": "unowned",
+      "id": "cerebrographify_arestas_base",
+      "community": 13,
+      "norm_label": "arestas_base"
+    },
+    {
+      "label": "ARESTAS_SINAL",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L30",
+      "complexity": 1,
+      "loc": 7,
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.007,
+      "owner": "unowned",
+      "id": "cerebrographify_arestas_sinal",
+      "community": 13,
+      "norm_label": "arestas_sinal"
+    },
+    {
+      "label": "CORES",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L38",
+      "complexity": 1,
+      "loc": 4,
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.006,
+      "owner": "unowned",
+      "id": "cerebrographify_cores",
+      "community": 13,
+      "norm_label": "cores"
+    },
+    {
+      "label": "CerebroGraphify()",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L43",
+      "complexity": 7,
+      "loc": 48,
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.023,
+      "owner": "unowned",
+      "id": "cerebrographify_cerebrographify",
+      "community": 13,
+      "norm_label": "cerebrographify()"
     },
     {
       "label": "CategoriasModal.jsx",
@@ -4001,7 +4097,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_categoriasmodal_jsx",
-      "community": 24,
+      "community": 25,
       "norm_label": "categoriasmodal.jsx"
     },
     {
@@ -4017,7 +4113,7 @@
       "heat": 0.09,
       "owner": "unowned",
       "id": "categoriasmodal_categoriasmodal",
-      "community": 24,
+      "community": 25,
       "norm_label": "categoriasmodal()"
     },
     {
@@ -4033,7 +4129,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_combomodal_jsx",
-      "community": 25,
+      "community": 26,
       "norm_label": "combomodal.jsx"
     },
     {
@@ -4049,7 +4145,7 @@
       "heat": 0.064,
       "owner": "unowned",
       "id": "combomodal_combomodal",
-      "community": 25,
+      "community": 26,
       "norm_label": "combomodal()"
     },
     {
@@ -4065,7 +4161,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_gruposopcaomodal_jsx",
-      "community": 22,
+      "community": 23,
       "norm_label": "gruposopcaomodal.jsx"
     },
     {
@@ -4081,7 +4177,7 @@
       "heat": 0.017,
       "owner": "unowned",
       "id": "gruposopcaomodal_linhaopcao",
-      "community": 22,
+      "community": 23,
       "norm_label": "linhaopcao()"
     },
     {
@@ -4097,7 +4193,7 @@
       "heat": 0.092,
       "owner": "unowned",
       "id": "gruposopcaomodal_gruposopcaomodal",
-      "community": 22,
+      "community": 23,
       "norm_label": "gruposopcaomodal()"
     },
     {
@@ -4113,7 +4209,7 @@
       "heat": 0.019,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_horariofuncionamentomodal_jsx",
-      "community": 13,
+      "community": 15,
       "norm_label": "horariofuncionamentomodal.jsx"
     },
     {
@@ -4129,7 +4225,7 @@
       "heat": 0.007,
       "owner": "unowned",
       "id": "horariofuncionamentomodal_dias",
-      "community": 13,
+      "community": 15,
       "norm_label": "dias"
     },
     {
@@ -4145,7 +4241,7 @@
       "heat": 0.012,
       "owner": "unowned",
       "id": "horariofuncionamentomodal_minutosparahora",
-      "community": 13,
+      "community": 15,
       "norm_label": "minutosparahora()"
     },
     {
@@ -4161,7 +4257,7 @@
       "heat": 0.012,
       "owner": "unowned",
       "id": "horariofuncionamentomodal_horaparaminutos",
-      "community": 13,
+      "community": 15,
       "norm_label": "horaparaminutos()"
     },
     {
@@ -4177,7 +4273,7 @@
       "heat": 0.046,
       "owner": "unowned",
       "id": "horariofuncionamentomodal_horariofuncionamentomodal",
-      "community": 13,
+      "community": 15,
       "norm_label": "horariofuncionamentomodal()"
     },
     {
@@ -4193,7 +4289,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_interrupcoesmodal_jsx",
-      "community": 26,
+      "community": 27,
       "norm_label": "interrupcoesmodal.jsx"
     },
     {
@@ -4209,7 +4305,7 @@
       "heat": 0.058,
       "owner": "unowned",
       "id": "interrupcoesmodal_interrupcoesmodal",
-      "community": 26,
+      "community": 27,
       "norm_label": "interrupcoesmodal()"
     },
     {
@@ -4225,7 +4321,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_views_auditoriaview_jsx",
-      "community": 27,
+      "community": 28,
       "norm_label": "auditoriaview.jsx"
     },
     {
@@ -4241,7 +4337,7 @@
       "heat": 0.041,
       "owner": "unowned",
       "id": "auditoriaview_auditoriaview",
-      "community": 27,
+      "community": 28,
       "norm_label": "auditoriaview()"
     },
     {
@@ -4257,7 +4353,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_views_catalogoview_jsx",
-      "community": 23,
+      "community": 24,
       "norm_label": "catalogoview.jsx"
     },
     {
@@ -4273,7 +4369,7 @@
       "heat": 0.033,
       "owner": "unowned",
       "id": "catalogoview_celulaeditavel",
-      "community": 23,
+      "community": 24,
       "norm_label": "celulaeditavel()"
     },
     {
@@ -4289,7 +4385,7 @@
       "heat": 0.137,
       "owner": "unowned",
       "id": "catalogoview_catalogoview",
-      "community": 23,
+      "community": 24,
       "norm_label": "catalogoview()"
     },
     {
@@ -4305,7 +4401,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_views_dashboardview_jsx",
-      "community": 28,
+      "community": 29,
       "norm_label": "dashboardview.jsx"
     },
     {
@@ -4321,7 +4417,7 @@
       "heat": 0.057,
       "owner": "unowned",
       "id": "dashboardview_dashboardview",
-      "community": 28,
+      "community": 29,
       "norm_label": "dashboardview()"
     }
   ],
@@ -6601,8 +6697,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\automa-o-apis-delivery\\src\\ifood_automacao\\client.py",
       "source_location": "L12",
       "weight": 1.0,
-      "_src": "client_list_merchants",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_list_merchants",
       "source": "auth_auth_headers",
       "target": "client_list_merchants"
     },
@@ -6613,8 +6709,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\automa-o-apis-delivery\\src\\ifood_automacao\\client.py",
       "source_location": "L20",
       "weight": 1.0,
-      "_src": "client_list_catalogs",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_list_catalogs",
       "source": "auth_auth_headers",
       "target": "client_list_catalogs"
     },
@@ -6625,8 +6721,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\automa-o-apis-delivery\\src\\ifood_automacao\\client.py",
       "source_location": "L30",
       "weight": 1.0,
-      "_src": "client_list_categories",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_list_categories",
       "source": "auth_auth_headers",
       "target": "client_list_categories"
     },
@@ -6637,8 +6733,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\automa-o-apis-delivery\\src\\ifood_automacao\\client.py",
       "source_location": "L41",
       "weight": 1.0,
-      "_src": "client_create_category",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_create_category",
       "source": "auth_auth_headers",
       "target": "client_create_category"
     },
@@ -6649,8 +6745,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\automa-o-apis-delivery\\src\\ifood_automacao\\client.py",
       "source_location": "L82",
       "weight": 1.0,
-      "_src": "client_upsert_item",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_upsert_item",
       "source": "auth_auth_headers",
       "target": "client_upsert_item"
     },
@@ -6661,8 +6757,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\automa-o-apis-delivery\\src\\ifood_automacao\\client.py",
       "source_location": "L94",
       "weight": 1.0,
-      "_src": "client_patch_item_external_code",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_patch_item_external_code",
       "source": "auth_auth_headers",
       "target": "client_patch_item_external_code"
     },
@@ -6673,8 +6769,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\automa-o-apis-delivery\\src\\ifood_automacao\\client.py",
       "source_location": "L105",
       "weight": 1.0,
-      "_src": "client_update_item_status",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_update_item_status",
       "source": "auth_auth_headers",
       "target": "client_update_item_status"
     },
@@ -6685,8 +6781,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\automa-o-apis-delivery\\src\\ifood_automacao\\client.py",
       "source_location": "L116",
       "weight": 1.0,
-      "_src": "client_update_item_price",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_update_item_price",
       "source": "auth_auth_headers",
       "target": "client_update_item_price"
     },
@@ -6697,8 +6793,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L166",
       "weight": 1.0,
-      "_src": "client_create_combo",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_create_combo",
       "source": "auth_auth_headers",
       "target": "client_create_combo"
     },
@@ -6709,8 +6805,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L210",
       "weight": 1.0,
-      "_src": "client_get_category",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_get_category",
       "source": "auth_auth_headers",
       "target": "client_get_category"
     },
@@ -6721,8 +6817,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L225",
       "weight": 1.0,
-      "_src": "client_edit_category",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_edit_category",
       "source": "auth_auth_headers",
       "target": "client_edit_category"
     },
@@ -6733,8 +6829,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L236",
       "weight": 1.0,
-      "_src": "client_delete_category",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_delete_category",
       "source": "auth_auth_headers",
       "target": "client_delete_category"
     },
@@ -6745,8 +6841,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L245",
       "weight": 1.0,
-      "_src": "client_delete_item",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_delete_item",
       "source": "auth_auth_headers",
       "target": "client_delete_item"
     },
@@ -6757,8 +6853,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L260",
       "weight": 1.0,
-      "_src": "client_update_item_shifts",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_update_item_shifts",
       "source": "auth_auth_headers",
       "target": "client_update_item_shifts"
     },
@@ -6769,8 +6865,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L270",
       "weight": 1.0,
-      "_src": "client_get_opening_hours",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_get_opening_hours",
       "source": "auth_auth_headers",
       "target": "client_get_opening_hours"
     },
@@ -6781,8 +6877,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L284",
       "weight": 1.0,
-      "_src": "client_set_opening_hours",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_set_opening_hours",
       "source": "auth_auth_headers",
       "target": "client_set_opening_hours"
     },
@@ -6793,8 +6889,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L295",
       "weight": 1.0,
-      "_src": "client_list_interruptions",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_list_interruptions",
       "source": "auth_auth_headers",
       "target": "client_list_interruptions"
     },
@@ -6805,8 +6901,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L310",
       "weight": 1.0,
-      "_src": "client_create_interruption",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_create_interruption",
       "source": "auth_auth_headers",
       "target": "client_create_interruption"
     },
@@ -6817,8 +6913,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L321",
       "weight": 1.0,
-      "_src": "client_delete_interruption",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_delete_interruption",
       "source": "auth_auth_headers",
       "target": "client_delete_interruption"
     },
@@ -6829,8 +6925,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L330",
       "weight": 1.0,
-      "_src": "client_list_option_groups",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_list_option_groups",
       "source": "auth_auth_headers",
       "target": "client_list_option_groups"
     },
@@ -6841,8 +6937,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L346",
       "weight": 1.0,
-      "_src": "client_create_option_group",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_create_option_group",
       "source": "auth_auth_headers",
       "target": "client_create_option_group"
     },
@@ -6853,8 +6949,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L357",
       "weight": 1.0,
-      "_src": "client_delete_option_group",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_delete_option_group",
       "source": "auth_auth_headers",
       "target": "client_delete_option_group"
     },
@@ -6865,8 +6961,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L370",
       "weight": 1.0,
-      "_src": "client_create_option",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_create_option",
       "source": "auth_auth_headers",
       "target": "client_create_option"
     },
@@ -6877,8 +6973,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\src\\ifood_automacao\\client.py",
       "source_location": "L387",
       "weight": 1.0,
-      "_src": "client_delete_option",
-      "_tgt": "auth_auth_headers",
+      "_src": "auth_auth_headers",
+      "_tgt": "client_delete_option",
       "source": "auth_auth_headers",
       "target": "client_delete_option"
     },
@@ -7309,8 +7405,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L357",
       "weight": 1.0,
-      "_src": "app_get_horario_funcionamento",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_get_horario_funcionamento",
       "source": "rate_limit_com_retry",
       "target": "app_get_horario_funcionamento"
     },
@@ -7321,8 +7417,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L379",
       "weight": 1.0,
-      "_src": "app_definir_horario_funcionamento",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_definir_horario_funcionamento",
       "source": "rate_limit_com_retry",
       "target": "app_definir_horario_funcionamento"
     },
@@ -7333,8 +7429,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L396",
       "weight": 1.0,
-      "_src": "app_criar_interrupcao",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_criar_interrupcao",
       "source": "rate_limit_com_retry",
       "target": "app_criar_interrupcao"
     },
@@ -7345,8 +7441,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L405",
       "weight": 1.0,
-      "_src": "app_excluir_interrupcao",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_excluir_interrupcao",
       "source": "rate_limit_com_retry",
       "target": "app_excluir_interrupcao"
     },
@@ -7357,8 +7453,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L414",
       "weight": 1.0,
-      "_src": "app_get_interrupcoes",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_get_interrupcoes",
       "source": "rate_limit_com_retry",
       "target": "app_get_interrupcoes"
     },
@@ -7369,8 +7465,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L421",
       "weight": 1.0,
-      "_src": "app_get_grupos_opcao",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_get_grupos_opcao",
       "source": "rate_limit_com_retry",
       "target": "app_get_grupos_opcao"
     },
@@ -7381,8 +7477,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L432",
       "weight": 1.0,
-      "_src": "app_criar_grupo_opcao",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_criar_grupo_opcao",
       "source": "rate_limit_com_retry",
       "target": "app_criar_grupo_opcao"
     },
@@ -7393,8 +7489,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L441",
       "weight": 1.0,
-      "_src": "app_excluir_grupo_opcao",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_excluir_grupo_opcao",
       "source": "rate_limit_com_retry",
       "target": "app_excluir_grupo_opcao"
     },
@@ -7405,8 +7501,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L460",
       "weight": 1.0,
-      "_src": "app_criar_opcao",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_criar_opcao",
       "source": "rate_limit_com_retry",
       "target": "app_criar_opcao"
     },
@@ -7417,8 +7513,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L469",
       "weight": 1.0,
-      "_src": "app_excluir_opcao",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_excluir_opcao",
       "source": "rate_limit_com_retry",
       "target": "app_excluir_opcao"
     },
@@ -7429,8 +7525,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L522",
       "weight": 1.0,
-      "_src": "app_get_categorias",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_get_categorias",
       "source": "rate_limit_com_retry",
       "target": "app_get_categorias"
     },
@@ -7441,8 +7537,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L533",
       "weight": 1.0,
-      "_src": "app_get_categoria",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_get_categoria",
       "source": "rate_limit_com_retry",
       "target": "app_get_categoria"
     },
@@ -7453,8 +7549,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L546",
       "weight": 1.0,
-      "_src": "app_criar_categoria_dedicada",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_criar_categoria_dedicada",
       "source": "rate_limit_com_retry",
       "target": "app_criar_categoria_dedicada"
     },
@@ -7465,8 +7561,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L573",
       "weight": 1.0,
-      "_src": "app_editar_categoria",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_editar_categoria",
       "source": "rate_limit_com_retry",
       "target": "app_editar_categoria"
     },
@@ -7477,8 +7573,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L582",
       "weight": 1.0,
-      "_src": "app_excluir_categoria",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_excluir_categoria",
       "source": "rate_limit_com_retry",
       "target": "app_excluir_categoria"
     },
@@ -7489,8 +7585,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L616",
       "weight": 1.0,
-      "_src": "app_criar_combo",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_criar_combo",
       "source": "rate_limit_com_retry",
       "target": "app_criar_combo"
     },
@@ -7501,8 +7597,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L727",
       "weight": 1.0,
-      "_src": "app_alterar_turnos",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_alterar_turnos",
       "source": "rate_limit_com_retry",
       "target": "app_alterar_turnos"
     },
@@ -7513,8 +7609,8 @@
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\app.py",
       "source_location": "L743",
       "weight": 1.0,
-      "_src": "app_excluir_item",
-      "_tgt": "rate_limit_com_retry",
+      "_src": "rate_limit_com_retry",
+      "_tgt": "app_excluir_item",
       "source": "rate_limit_com_retry",
       "target": "app_excluir_item"
     },
@@ -9250,7 +9346,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\auth.js",
-      "source_location": "L115",
+      "source_location": "L120",
       "weight": 1.0,
       "_src": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_auth_js",
       "_tgt": "auth_marcarsenhatrocada",
@@ -9664,6 +9760,66 @@
       "_tgt": "ui_iniciaisde",
       "source": "ui_iniciaisde",
       "target": "ui_avatar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_src": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "_tgt": "cerebrographify_nos",
+      "source": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "target": "cerebrographify_nos",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_src": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "_tgt": "cerebrographify_arestas_base",
+      "source": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "target": "cerebrographify_arestas_base",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_src": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "_tgt": "cerebrographify_arestas_sinal",
+      "source": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "target": "cerebrographify_arestas_sinal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_src": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "_tgt": "cerebrographify_cores",
+      "source": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "target": "cerebrographify_cores",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\viewer\\src\\components\\CerebroGraphify.jsx",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_src": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "_tgt": "cerebrographify_cerebrographify",
+      "source": "c_users_gustavo_desktop_automa_o_ifood_viewer_src_components_cerebrographify_jsx",
+      "target": "cerebrographify_cerebrographify",
       "confidence_score": 1.0
     },
     {

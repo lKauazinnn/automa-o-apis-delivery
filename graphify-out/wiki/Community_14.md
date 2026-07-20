@@ -1,13 +1,26 @@
 # Community 14
 
-> 4 nodes · cohesion 0.50
+> 5 nodes · cohesion 0.40
 
 ## Key Concepts
 
-- [Sidebar.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L1) (3 connections)
-- [ItemNav()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L11) (1 connections)
-- [Sidebar()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L38) (1 connections)
-- [VIEWS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L5) (1 connections)
+- [ErroFatal](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L6) (4 connections)
+- [ErroFatal.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L1) (1 connections)
+- [.constructor()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L7) (1 connections)
+- [.getDerivedStateFromError()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L12) (1 connections)
+- [.render()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx#L16) (1 connections)
+
+## Class Diagram
+
+```mermaid
+classDiagram
+    class ErroFatal {
+        +ErroFatal.jsx()
+        +.constructor()
+        +.getDerivedStateFromError()
+        +.render()
+    }
+```
 
 ## Relationships
 
@@ -15,11 +28,11 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\Sidebar.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx)
+- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\ErroFatal.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/ErroFatal.jsx)
 
 ## Audit Trail
 
-- EXTRACTED: 6 (100%)
+- EXTRACTED: 8 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

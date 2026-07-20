@@ -1,14 +1,15 @@
 # Community 13
 
-> 5 nodes · cohesion 0.40
+> 6 nodes · cohesion 0.33
 
 ## Key Concepts
 
-- [HorarioFuncionamentoModal.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L1) (4 connections)
-- [DIAS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L5) (1 connections)
-- [horaParaMinutos()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L21) (1 connections)
-- [HorarioFuncionamentoModal()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L26) (1 connections)
-- [minutosParaHora()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx#L15) (1 connections)
+- [CerebroGraphify.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L1) (5 connections)
+- [ARESTAS_BASE](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L24) (1 connections)
+- [ARESTAS_SINAL](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L30) (1 connections)
+- [CerebroGraphify()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L43) (1 connections)
+- [CORES](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L38) (1 connections)
+- [NOS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L5) (1 connections)
 
 ## Relationships
 
@@ -16,11 +17,11 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\modals\HorarioFuncionamentoModal.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/modals/HorarioFuncionamentoModal.jsx)
+- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\components\CerebroGraphify.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (100%)
+- EXTRACTED: 10 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
