@@ -1,0 +1,538 @@
+{
+  "communities": {
+    "0": [
+      "auth_auth_headers",
+      "auth_get_access_token",
+      "auth_rationale_1",
+      "auth_rationale_17",
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_auth_py",
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_client_py",
+      "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_auth_py",
+      "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_client_py",
+      "client_create_category",
+      "client_create_combo",
+      "client_create_interruption",
+      "client_create_option",
+      "client_create_option_group",
+      "client_delete_category",
+      "client_delete_interruption",
+      "client_delete_item",
+      "client_delete_option",
+      "client_delete_option_group",
+      "client_edit_category",
+      "client_get_category",
+      "client_get_opening_hours",
+      "client_list_catalogs",
+      "client_list_categories",
+      "client_list_interruptions",
+      "client_list_merchants",
+      "client_list_option_groups",
+      "client_patch_item_external_code",
+      "client_rationale_1",
+      "client_rationale_102",
+      "client_rationale_11",
+      "client_rationale_113",
+      "client_rationale_120",
+      "client_rationale_175",
+      "client_rationale_186",
+      "client_rationale_197",
+      "client_rationale_222",
+      "client_rationale_252",
+      "client_rationale_306",
+      "client_rationale_341",
+      "client_rationale_367",
+      "client_rationale_384",
+      "client_rationale_59",
+      "client_rationale_60",
+      "client_rationale_91",
+      "client_set_opening_hours",
+      "client_update_item_price",
+      "client_update_item_shifts",
+      "client_update_item_status",
+      "client_upsert_item"
+    ],
+    "1": [
+      "app_alterar_codigo_pdv",
+      "app_alterar_papel_usuario",
+      "app_alterar_preco",
+      "app_alterar_status",
+      "app_alterar_turnos",
+      "app_catalog_id",
+      "app_categoria_id",
+      "app_criar_categoria_dedicada",
+      "app_criar_combo",
+      "app_criar_grupo_opcao",
+      "app_criar_interrupcao",
+      "app_criar_item",
+      "app_criar_loja",
+      "app_criar_opcao",
+      "app_definir_horario_funcionamento",
+      "app_editar_categoria",
+      "app_excluir_categoria",
+      "app_excluir_grupo_opcao",
+      "app_excluir_interrupcao",
+      "app_excluir_item",
+      "app_excluir_opcao",
+      "app_get_auditoria",
+      "app_get_catalogo",
+      "app_get_categoria",
+      "app_get_categorias",
+      "app_get_grupos_opcao",
+      "app_get_horario_funcionamento",
+      "app_get_interrupcoes",
+      "app_get_lojas",
+      "app_listar_usuarios",
+      "app_merchant_id",
+      "app_pausar_em_massa",
+      "app_rationale_1",
+      "app_rationale_158",
+      "app_rationale_178",
+      "app_rationale_179",
+      "app_rationale_199",
+      "app_rationale_254",
+      "app_rationale_279",
+      "app_rationale_328",
+      "app_rationale_363",
+      "app_rationale_387",
+      "app_rationale_422",
+      "app_rationale_477",
+      "app_rationale_554",
+      "app_rationale_590",
+      "app_rationale_710",
+      "app_rationale_751",
+      "app_registrar_auditoria",
+      "app_remover_loja",
+      "app_requer_login",
+      "app_requer_papel",
+      "app_saude",
+      "app_supabase_headers",
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_server_app_py",
+      "c_users_gustavo_desktop_automa_o_ifood_server_app_py",
+      "rate_limit_com_retry"
+    ],
+    "2": [
+      "app_acao_label",
+      "app_app",
+      "app_campopreenchido",
+      "app_chave_sessao",
+      "app_contadortoast",
+      "app_corescontext",
+      "app_encontrarrelacionados",
+      "app_formatartimestamp",
+      "app_formdefinirsenha",
+      "app_mensagem_erro_link",
+      "app_modal",
+      "app_painel",
+      "app_palavras_ignoradas",
+      "app_palavraschave",
+      "app_paletas",
+      "app_papeis",
+      "app_papeis_que_podem_criar",
+      "app_pill",
+      "app_removeracentos",
+      "app_statcard",
+      "app_telacarregando",
+      "app_titulos_view",
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_src_app_jsx",
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_app_jsx"
+    ],
+    "4": [
+      "auth_api",
+      "auth_buscareu",
+      "auth_definirsenha",
+      "auth_headerssupabase",
+      "auth_lerconvitedaurl",
+      "auth_lererrodaurl",
+      "auth_limparhashdaurl",
+      "auth_login",
+      "auth_logoutsupabase",
+      "auth_marcarsenhatrocada",
+      "auth_recuperarsenha",
+      "auth_renovarsessao",
+      "auth_supabase_anon_key",
+      "auth_supabase_url",
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_src_auth_js",
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_auth_js"
+    ],
+    "5": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_graficos_jsx",
+      "graficos_acoes_despausar",
+      "graficos_acoes_pausar",
+      "graficos_altura_linha",
+      "graficos_altura_minima",
+      "graficos_cartaografico",
+      "graficos_chavedia",
+      "graficos_dias_tendencia",
+      "graficos_graficoitensreincidentes",
+      "graficos_graficotendenciaatividade",
+      "graficos_intervalo_eixo_dias",
+      "graficos_max_itens_reincidentes",
+      "graficos_selo",
+      "graficos_tooltipcartao",
+      "graficos_truncar",
+      "graficos_ultimosdias"
+    ],
+    "6": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_src_telasauth_jsx",
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_telasauth_jsx",
+      "telasauth_avisoerro",
+      "telasauth_border",
+      "telasauth_card_bg",
+      "telasauth_casca",
+      "telasauth_estiloinput",
+      "telasauth_input_bg",
+      "telasauth_inputcls",
+      "telasauth_inputstyle",
+      "telasauth_painelesquecisenha",
+      "telasauth_teladefinirsenha",
+      "telasauth_telalogin",
+      "telasauth_text_1",
+      "telasauth_text_2"
+    ],
+    "7": [
+      "app_convidar_usuario",
+      "app_gerar_senha_aleatoria",
+      "app_marcar_senha_temporaria",
+      "app_rationale_508",
+      "app_rationale_534",
+      "app_rationale_842",
+      "app_rationale_858",
+      "app_rationale_900",
+      "app_rationale_926",
+      "app_resetar_senha_usuario",
+      "app_senha_trocada"
+    ],
+    "8": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_ui_jsx",
+      "ui_acao_label",
+      "ui_avatar",
+      "ui_cores_avatar",
+      "ui_corescontext",
+      "ui_formatartimestamp",
+      "ui_iniciaisde",
+      "ui_modal",
+      "ui_paletas",
+      "ui_pill",
+      "ui_statcard"
+    ],
+    "9": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_carga_massa_py",
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_planilha_py",
+      "c_users_gustavo_desktop_automa_o_ifood_scripts_carga_massa_py",
+      "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_planilha_py",
+      "carga_massa_carregar_ja_processados",
+      "carga_massa_main",
+      "carga_massa_rationale_1",
+      "carga_massa_registrar",
+      "planilha_carregar_itens",
+      "planilha_rationale_1"
+    ],
+    "10": [
+      "app_erroautenticacao",
+      "app_erroautenticacao_init",
+      "app_rationale_106",
+      "app_rationale_114",
+      "app_rationale_210",
+      "app_rationale_234",
+      "app_rationale_85",
+      "app_rationale_93",
+      "app_tratar_erro",
+      "app_usuario_atual",
+      "exception"
+    ],
+    "12": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_errofatal_jsx",
+      "errofatal_errofatal",
+      "errofatal_errofatal_constructor",
+      "errofatal_errofatal_getderivedstatefromerror",
+      "errofatal_errofatal_render"
+    ],
+    "13": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_horariofuncionamentomodal_jsx",
+      "horariofuncionamentomodal_dias",
+      "horariofuncionamentomodal_horaparaminutos",
+      "horariofuncionamentomodal_horariofuncionamentomodal",
+      "horariofuncionamentomodal_minutosparahora"
+    ],
+    "14": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_sidebar_jsx",
+      "sidebar_itemnav",
+      "sidebar_sidebar",
+      "sidebar_views"
+    ],
+    "15": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_descobrir_lojas_py",
+      "c_users_gustavo_desktop_automa_o_ifood_scripts_descobrir_lojas_py",
+      "descobrir_lojas_rationale_1"
+    ],
+    "16": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_exportar_catalogo_py",
+      "c_users_gustavo_desktop_automa_o_ifood_scripts_exportar_catalogo_py",
+      "exportar_catalogo_rationale_1"
+    ],
+    "17": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_testar_sandbox_py",
+      "c_users_gustavo_desktop_automa_o_ifood_scripts_testar_sandbox_py",
+      "testar_sandbox_rationale_1"
+    ],
+    "18": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_ver_catalogo_py",
+      "c_users_gustavo_desktop_automa_o_ifood_scripts_ver_catalogo_py",
+      "ver_catalogo_rationale_1"
+    ],
+    "20": [
+      "app_eu",
+      "app_rationale_246",
+      "app_rationale_271"
+    ],
+    "21": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_rate_limit_py",
+      "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_rate_limit_py",
+      "rate_limit_rationale_1"
+    ],
+    "22": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_gruposopcaomodal_jsx",
+      "gruposopcaomodal_gruposopcaomodal",
+      "gruposopcaomodal_linhaopcao"
+    ],
+    "23": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_views_catalogoview_jsx",
+      "catalogoview_catalogoview",
+      "catalogoview_celulaeditavel"
+    ],
+    "24": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_categoriasmodal_jsx",
+      "categoriasmodal_categoriasmodal"
+    ],
+    "25": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_combomodal_jsx",
+      "combomodal_combomodal"
+    ],
+    "26": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_modals_interrupcoesmodal_jsx",
+      "interrupcoesmodal_interrupcoesmodal"
+    ],
+    "27": [
+      "auditoriaview_auditoriaview",
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_views_auditoriaview_jsx"
+    ],
+    "28": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_views_dashboardview_jsx",
+      "dashboardview_dashboardview"
+    ],
+    "29": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_init_py"
+    ],
+    "30": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_postcss_config_js"
+    ],
+    "31": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_tailwind_config_js"
+    ],
+    "32": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_vite_config_js"
+    ],
+    "33": [
+      "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_src_main_jsx"
+    ],
+    "34": [
+      "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_init_py"
+    ],
+    "35": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_postcss_config_js"
+    ],
+    "36": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_tailwind_config_js"
+    ],
+    "37": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_vite_config_js"
+    ],
+    "38": [
+      "c_users_gustavo_desktop_automa_o_ifood_viewer_src_main_jsx"
+    ]
+  },
+  "cohesion": {
+    "0": 0.07142857142857142,
+    "1": 0.10150375939849623,
+    "2": 0.13768115942028986,
+    "4": 0.25833333333333336,
+    "5": 0.125,
+    "6": 0.20952380952380953,
+    "7": 0.2,
+    "8": 0.2,
+    "9": 0.3333333333333333,
+    "10": 0.18181818181818182,
+    "12": 0.4,
+    "13": 0.4,
+    "14": 0.5,
+    "15": 0.6666666666666666,
+    "16": 0.6666666666666666,
+    "17": 0.6666666666666666,
+    "18": 0.6666666666666666,
+    "20": 0.6666666666666666,
+    "21": 0.6666666666666666,
+    "22": 0.6666666666666666,
+    "23": 0.6666666666666666,
+    "24": 1.0,
+    "25": 1.0,
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0,
+    "29": 1.0,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0
+  },
+  "gods": [
+    {
+      "id": "rate_limit_com_retry",
+      "label": "com_retry()",
+      "degree": 29
+    },
+    {
+      "id": "app_merchant_id",
+      "label": "_merchant_id()",
+      "degree": 28
+    },
+    {
+      "id": "app_registrar_auditoria",
+      "label": "registrar_auditoria()",
+      "degree": 28
+    },
+    {
+      "id": "auth_auth_headers",
+      "label": "auth_headers()",
+      "degree": 27
+    },
+    {
+      "id": "app_supabase_headers",
+      "label": "_supabase_headers()",
+      "degree": 13
+    },
+    {
+      "id": "app_catalog_id",
+      "label": "_catalog_id()",
+      "degree": 10
+    },
+    {
+      "id": "app_criar_item",
+      "label": "criar_item()",
+      "degree": 9
+    },
+    {
+      "id": "carga_massa_main",
+      "label": "main()",
+      "degree": 8
+    },
+    {
+      "id": "app_convidar_usuario",
+      "label": "convidar_usuario()",
+      "degree": 8
+    },
+    {
+      "id": "app_resetar_senha_usuario",
+      "label": "resetar_senha_usuario()",
+      "degree": 8
+    }
+  ],
+  "surprises": [
+    {
+      "source": "main()",
+      "target": "list_catalogs()",
+      "source_files": [
+        "C:/Users/Gustavo/Desktop/automação ifood/scripts/carga_massa.py",
+        "C:/Users/Gustavo/Desktop/automação ifood/src/ifood_automacao/client.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "main()",
+      "target": "list_categories()",
+      "source_files": [
+        "C:/Users/Gustavo/Desktop/automação ifood/scripts/carga_massa.py",
+        "C:/Users/Gustavo/Desktop/automação ifood/src/ifood_automacao/client.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "main()",
+      "target": "com_retry()",
+      "source_files": [
+        "C:/Users/Gustavo/Desktop/automação ifood/scripts/carga_massa.py",
+        "C:/Users/Gustavo/Desktop/automação ifood/src/ifood_automacao/rate_limit.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "auth_headers()",
+      "target": "delete_category()",
+      "source_files": [
+        "C:/Users/Gustavo/Desktop/automação ifood/src/ifood_automacao/auth.py",
+        "C:/Users/Gustavo/Desktop/automação ifood/src/ifood_automacao/client.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; peripheral node `delete_category()` unexpectedly reaches hub `auth_headers()`"
+    },
+    {
+      "source": "auth_headers()",
+      "target": "delete_interruption()",
+      "source_files": [
+        "C:/Users/Gustavo/Desktop/automação ifood/src/ifood_automacao/auth.py",
+        "C:/Users/Gustavo/Desktop/automação ifood/src/ifood_automacao/client.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; peripheral node `delete_interruption()` unexpectedly reaches hub `auth_headers()`"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `main()` connect `Community 9` to `Community 0`, `Community 1`?",
+      "why": "High betweenness centrality (0.141) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `com_retry()` connect `Community 1` to `Community 9`, `Community 21`?",
+      "why": "High betweenness centrality (0.140) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 27 inferred relationships involving `com_retry()` (e.g. with `alterar_codigo_pdv()` and `alterar_preco()`) actually correct?",
+      "why": "`com_retry()` has 27 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 24 inferred relationships involving `auth_headers()` (e.g. with `create_category()` and `create_combo()`) actually correct?",
+      "why": "`auth_headers()` has 24 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `PALETAS`, `CoresContext`, `ACAO_LABEL` to the rest of the system?",
+      "why": "23 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.10150375939849623 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
