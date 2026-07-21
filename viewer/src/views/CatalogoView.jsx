@@ -1,5 +1,5 @@
 import { Check, Layers, Loader2, Pause, Pencil, Play, Plus, RefreshCw, Search, Tag, Trash2, X } from 'lucide-react'
-import { Modal, Pill } from '../ui'
+import { Modal, Pill, Toggle } from '../ui'
 
 function CelulaEditavel({ valor, texto, editando, salvando, salvo, tipo, onAbrir, onInput, onSalvar, onCancelar, C, inputCls, inputStyle, alinhamento = 'left' }) {
   if (editando) {
@@ -81,6 +81,7 @@ export function CatalogoView({
   form,
   setForm,
   onCriarItem,
+  onSelecionarFoto,
   requisitos,
   formValido,
   salvando,
@@ -328,20 +329,12 @@ export function CatalogoView({
                           >
                             <Pencil size={12} />
                           </button>
-                          <button
-                            type="button"
+                          <Toggle
+                            ligado={item.status === 'AVAILABLE'}
                             disabled={alterandoStatus === item.itemId}
-                            onClick={() => onAlternarStatus(item)}
-                            title={item.status === 'AVAILABLE' ? 'Pausar item (some do cardápio no iFood)' : 'Despausar item (volta a aparecer no cardápio)'}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg disabled:opacity-40"
-                            style={
-                              item.status === 'AVAILABLE'
-                                ? { background: C.neutralBg, border: `1px solid ${C.neutralBd}`, color: C.neutral }
-                                : { background: C.goodBg, border: `1px solid ${C.goodBd}`, color: C.good }
-                            }
-                          >
-                            {item.status === 'AVAILABLE' ? <Pause size={13} /> : <Play size={13} />}
-                          </button>
+                            onChange={() => onAlternarStatus(item)}
+                            titulo={item.status === 'AVAILABLE' ? 'Pausar item (some do cardápio no iFood)' : 'Despausar item (volta a aparecer no cardápio)'}
+                          />
                           {podeCriarItem && (
                             <button
                               type="button"
@@ -497,6 +490,32 @@ export function CatalogoView({
                   value={form.preco}
                   onChange={(e) => setForm({ ...form, preco: e.target.value })}
                   placeholder="12,90"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
+                Foto (opcional)
+              </label>
+              <div className="flex items-center gap-3">
+                {form.foto && (
+                  <img
+                    src={form.foto}
+                    alt=""
+                    className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                    style={{ border: `1px solid ${C.cardBorder}` }}
+                  />
+                )}
+                <input
+                  className={`${inputCls} py-1.5`}
+                  style={inputStyle}
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  onChange={(e) => {
+                    const arquivo = e.target.files?.[0]
+                    if (arquivo) onSelecionarFoto(arquivo)
+                  }}
                 />
               </div>
             </div>

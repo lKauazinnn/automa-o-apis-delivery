@@ -20,10 +20,22 @@ load_dotenv()
 
 import requests  # noqa: E402
 import uuid  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+
 from flask import Flask, g, jsonify, request  # noqa: E402
 from flask_cors import CORS  # noqa: E402
 from werkzeug.exceptions import HTTPException  # noqa: E402
 
+from ifood_automacao.pedidos import (  # noqa: E402
+    CODIGO_EVENTO_LABEL,
+    TIPO_IFOOD_PARA_INTERNO,
+    acknowledge_events,
+    cancel_order,
+    confirm_order,
+    dispatch_order,
+    get_order_details,
+    poll_events,
+)
 from ifood_automacao.client import (  # noqa: E402
     create_category,
     create_combo,
@@ -36,7 +48,10 @@ from ifood_automacao.client import (  # noqa: E402
     delete_option,
     delete_option_group,
     edit_category,
+    edit_option,
     get_category,
+    get_merchant_details,
+    get_merchant_status,
     get_opening_hours,
     list_catalogs,
     list_categories,
@@ -47,6 +62,9 @@ from ifood_automacao.client import (  # noqa: E402
     update_item_price,
     update_item_shifts,
     update_item_status,
+    update_option_price,
+    update_option_status,
+    upload_image,
     upsert_item,
 )
 from ifood_automacao.rate_limit import com_retry  # noqa: E402
@@ -325,6 +343,39 @@ def remover_loja(loja_id):
     return jsonify({"ok": True})
 
 
+@app.get("/api/loja/detalhes")
+@requer_login
+def get_loja_detalhes():
+    """Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status e
+    canais de venda configurados."""
+    merchant_id = _merchant_id()
+    return jsonify(com_retry(get_merchant_details, merchant_id))
+
+
+@app.get("/api/loja/disponibilidade")
+@requer_login
+def get_loja_disponibilidade():
+    """Se a loja está apta a receber pedido agora (por operação/canal de venda), e se não,
+    por quê — vem direto do endpoint de status do iFood."""
+    merchant_id = _merchant_id()
+    return jsonify(com_retry(get_merchant_status, merchant_id))
+
+
+@app.post("/api/imagens")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def enviar_imagem():
+    """Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, para
+    usar ao criar/editar um item ou uma opção de complemento."""
+    dados = request.get_json(silent=True) or {}
+    imagem = str(dados.get("imagem", "")).strip()
+    if not imagem.startswith("data:image/"):
+        raise ValueError("Envie a imagem como data URL (ex: data:image/png;base64,....)")
+
+    merchant_id = _merchant_id()
+    caminho = com_retry(upload_image, merchant_id, imagem)
+    return jsonify({"imagem_path": caminho}), 201
+
+
 @app.get("/api/catalogo")
 @requer_login
 def get_catalogo():
@@ -344,6 +395,7 @@ def get_catalogo():
                     "codigo_pdv": item.get("externalCode"),
                     "preco": item.get("price", {}).get("value"),
                     "status": item.get("status"),
+                    "foto": item.get("imagePath"),
                 }
             )
     nomes_categorias = sorted({c["name"] for c in categorias})
@@ -455,11 +507,77 @@ def criar_opcao(grupo_id):
     except ValueError:
         return jsonify({"erro": "Preço inválido"}), 400
     codigo_pdv = str(dados.get("codigo_pdv", "")).strip()
+    imagem_path = str(dados.get("imagem_path", "")).strip() or None
 
     merchant_id = _merchant_id()
-    resultado = com_retry(create_option, merchant_id, grupo_id, nome, preco, codigo_pdv)
+    resultado = com_retry(create_option, merchant_id, grupo_id, nome, preco, codigo_pdv, image_path=imagem_path)
     registrar_auditoria(g.usuario["nome"], "criar_opcao", item_id=resultado.get("productId", ""), nome=nome, detalhe=f"grupo {grupo_id}")
     return jsonify(resultado), 201
+
+
+@app.patch("/api/grupos-opcao/<grupo_id>/opcoes/<option_id>/status")
+@requer_login
+def alterar_status_opcao(grupo_id, option_id):
+    """Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id` da
+    opção devolvido por `criar_opcao` — não o `productId` (esse é usado só pra excluir)."""
+    dados = request.get_json(silent=True) or {}
+    status = dados.get("status")
+    nome = str(dados.get("nome", "")).strip()
+    if status not in ("AVAILABLE", "UNAVAILABLE"):
+        raise ValueError("status deve ser AVAILABLE ou UNAVAILABLE")
+
+    merchant_id = _merchant_id()
+    com_retry(update_option_status, merchant_id, option_id, status)
+    registrar_auditoria(
+        g.usuario["nome"],
+        "pausar_opcao" if status == "UNAVAILABLE" else "despausar_opcao",
+        item_id=option_id,
+        nome=nome,
+        detalhe=f"grupo {grupo_id}",
+    )
+    return jsonify({"optionId": option_id, "status": status})
+
+
+@app.patch("/api/grupos-opcao/opcoes/<product_id>")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def editar_opcao(product_id):
+    """Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id` é o
+    `productId` devolvido por `criar_opcao` (mesmo id usado pra excluir). Diferente de item,
+    aqui são dois endpoints do iFood por baixo (`edit_option` pra nome/foto, `update_option_price`
+    pro preço) — chamamos os dois quando os dois campos vêm juntos, igual o front sempre manda."""
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    imagem_path = str(dados.get("imagem_path", "")).strip()
+    nome_anterior = str(dados.get("nome_anterior", "")).strip()
+    operador = g.usuario["nome"]
+
+    if not nome:
+        raise ValueError("nome é obrigatório")
+    if not imagem_path:
+        raise ValueError("imagem_path é obrigatório — reenvie o path atual da opção se a foto não mudou.")
+
+    merchant_id = _merchant_id()
+    resultado = com_retry(edit_option, merchant_id, product_id, nome, imagem_path)
+
+    preco_bruto = dados.get("preco")
+    if preco_bruto not in (None, ""):
+        try:
+            preco = float(str(preco_bruto).replace(",", "."))
+        except ValueError:
+            raise ValueError("Preço inválido")
+        if preco <= 0:
+            raise ValueError("Preço deve ser maior que zero")
+        com_retry(update_option_price, merchant_id, product_id, preco)
+        resultado["preco"] = preco
+
+    registrar_auditoria(
+        operador,
+        "editar_opcao",
+        item_id=product_id,
+        nome=nome,
+        detalhe=f"antes: {nome_anterior or '—'}",
+    )
+    return jsonify(resultado)
 
 
 @app.delete("/api/grupos-opcao/<grupo_id>/opcoes/<option_product_id>")
@@ -498,6 +616,7 @@ def criar_item():
     item_id = str(uuid.uuid4())
     nome = dados["nome"].strip()
     codigo_pdv = str(dados["codigo_pdv"]).strip()
+    imagem_path = str(dados.get("imagem_path", "")).strip() or None
 
     resultado = com_retry(
         upsert_item,
@@ -509,9 +628,55 @@ def criar_item():
         price=preco,
         external_code=codigo_pdv,
         available=True,
+        image_path=imagem_path,
     )
     registrar_auditoria(operador, "criar_item", item_id=item_id, codigo_pdv=codigo_pdv, nome=nome, detalhe=f"preço R$ {preco:.2f}")
     return jsonify(resultado), 201
+
+
+@app.patch("/api/itens/<item_id>")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def editar_item(item_id):
+    """Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substitui o
+    item inteiro (não é um PATCH de verdade), então o front precisa mandar de volta
+    product_id/category_id/status que já tem na linha da tabela do catálogo — senão a gente
+    recria o item com dados incompletos."""
+    dados = request.get_json(silent=True) or {}
+    operador = g.usuario["nome"]
+
+    obrigatorios = ["product_id", "category_id", "nome", "preco", "codigo_pdv", "status"]
+    faltando = [c for c in obrigatorios if str(dados.get(c, "")).strip() == ""]
+    if faltando:
+        return jsonify({"erro": "Campos obrigatórios não preenchidos", "campos": faltando}), 400
+
+    try:
+        preco = float(str(dados["preco"]).replace(",", "."))
+    except ValueError:
+        return jsonify({"erro": "Preço inválido"}), 400
+    if preco <= 0:
+        return jsonify({"erro": "Preço deve ser maior que zero"}), 400
+    if dados["status"] not in ("AVAILABLE", "UNAVAILABLE"):
+        raise ValueError("status deve ser AVAILABLE ou UNAVAILABLE")
+
+    merchant_id = _merchant_id()
+    nome = str(dados["nome"]).strip()
+    codigo_pdv = str(dados["codigo_pdv"]).strip()
+    imagem_path = str(dados.get("imagem_path", "")).strip() or None
+
+    resultado = com_retry(
+        upsert_item,
+        merchant_id=merchant_id,
+        item_id=item_id,
+        product_id=str(dados["product_id"]),
+        category_id=str(dados["category_id"]),
+        name=nome,
+        price=preco,
+        external_code=codigo_pdv,
+        available=dados["status"] == "AVAILABLE",
+        image_path=imagem_path,
+    )
+    registrar_auditoria(operador, "editar_item", item_id=item_id, codigo_pdv=codigo_pdv, nome=nome, detalhe=f"preço R$ {preco:.2f}")
+    return jsonify(resultado)
 
 
 @app.get("/api/categorias")
@@ -950,6 +1115,272 @@ def alterar_papel_usuario(usuario_id):
         g.usuario["nome"], "alterar_papel_usuario", item_id=usuario_id, nome=nome, detalhe=f"novo papel: {papel}"
     )
     return jsonify({"id": usuario_id, "papel": papel})
+
+
+def _agora_iso():
+    return datetime.now(timezone.utc).isoformat()
+
+
+ACAO_POR_STATUS_PEDIDO = {
+    "CONFIRMADO": confirm_order,
+    "DESPACHADO": dispatch_order,
+}
+STATUS_VALIDOS_PEDIDO = ("NOVO", "CONFIRMADO", "DESPACHADO", "CONCLUIDO", "CANCELADO")
+STATUS_POR_CODIGO_EVENTO = {
+    "CONFIRMED": "CONFIRMADO",
+    "DISPATCHED": "DESPACHADO",
+    "CONCLUDED": "CONCLUIDO",
+    "CANCELLED": "CANCELADO",
+}
+
+
+def _preco_item(item):
+    preco = item.get("unitPrice", item.get("price"))
+    return preco.get("value") if isinstance(preco, dict) else preco
+
+
+def _atualizar_status_pedido(pedido_id, ifood_order_id, novo_status, operador):
+    """Order/Events API: implementado a partir da doc pública, ainda não disparado contra um
+    pedido real do sandbox (mesmo nível de confiança 🟡 documentado em HOMOLOGACAO.md pras
+    demais capacidades novas). CONCLUIDO não chama o iFood: pedidos de entrega são concluídos
+    pelo próprio iFood (chega um evento CONCLUDED); aqui só refletimos o status local."""
+    if novo_status == "CANCELADO":
+        com_retry(cancel_order, ifood_order_id)
+    elif novo_status in ACAO_POR_STATUS_PEDIDO:
+        com_retry(ACAO_POR_STATUS_PEDIDO[novo_status], ifood_order_id)
+
+    resp = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers={**_supabase_headers(), "Prefer": "return=representation"},
+        params={"id": f"eq.{pedido_id}"},
+        json={"status": novo_status, "atualizado_em": _agora_iso()},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    registrar_auditoria(operador, "alterar_status_pedido", item_id=pedido_id, detalhe=f"novo status: {novo_status}")
+    return resp.json()[0]
+
+
+def _criar_pedido_local(merchant_id, order_id) -> bool:
+    """Busca os detalhes completos do pedido na Order API e materializa localmente em
+    `pedidos`/`itens_pedido` — idempotente (não duplica se `ifood_order_id` já existir)."""
+    resp_existente = requests.get(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers=_supabase_headers(),
+        params={"select": "id", "ifood_order_id": f"eq.{order_id}"},
+        timeout=10,
+    )
+    resp_existente.raise_for_status()
+    if resp_existente.json():
+        return False
+
+    detalhes = com_retry(get_order_details, order_id)
+    tipo = TIPO_IFOOD_PARA_INTERNO.get(detalhes.get("orderType"), "ENTREGA")
+    total = ((detalhes.get("total") or {}).get("orderAmount") or {}).get("value")
+    metodos = ((detalhes.get("payments") or {}).get("methods")) or []
+    pagamento = ", ".join(m.get("method", "") for m in metodos if m.get("method")) or None
+
+    resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers={**_supabase_headers(), "Prefer": "return=representation"},
+        json={
+            "ifood_order_id": order_id,
+            "merchant_id": merchant_id,
+            "status": "NOVO",
+            "tipo": tipo,
+            "pagamento": pagamento,
+            "cliente": detalhes.get("customer"),
+            "total": total,
+            "detalhes_brutos": detalhes,
+        },
+        timeout=10,
+    )
+    resp.raise_for_status()
+    pedido_criado = resp.json()[0]
+
+    itens = [
+        {
+            "pedido_id": pedido_criado["id"],
+            "nome": item.get("name"),
+            "quantidade": item.get("quantity", 1),
+            "preco": _preco_item(item),
+            "observacao": item.get("observations"),
+            "complementos": item.get("options"),
+        }
+        for item in detalhes.get("items", [])
+    ]
+    if itens:
+        resp_itens = requests.post(f"{SUPABASE_URL}/rest/v1/itens_pedido", headers=_supabase_headers(), json=itens, timeout=10)
+        resp_itens.raise_for_status()
+    return True
+
+
+def _processar_eventos_da_loja(merchant_id) -> int:
+    """Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido novo
+    (PLACED), atualiza status de pedidos existentes, grava o log em `eventos_ifood` e confirma
+    o recebimento no iFood. Devolve quantos pedidos novos entraram."""
+    eventos = com_retry(poll_events, merchant_id)
+    if not eventos:
+        return 0
+
+    novos_pedidos = 0
+    ids_para_confirmar = []
+    linhas_evento = []
+
+    for evento in eventos:
+        codigo = evento.get("code") or evento.get("fullCode") or "DESCONHECIDO"
+        order_id = evento.get("orderId")
+        ids_para_confirmar.append(evento["id"])
+        linhas_evento.append(
+            {
+                "merchant_id": merchant_id,
+                "pedido_ifood_id": order_id,
+                "tipo": CODIGO_EVENTO_LABEL.get(codigo, codigo),
+                "origem": "Consulta automática",
+                "tratado": True,
+                "ack_enviado": False,
+                "payload": evento,
+            }
+        )
+
+        if codigo == "PLACED" and order_id:
+            if _criar_pedido_local(merchant_id, order_id):
+                novos_pedidos += 1
+        elif order_id and codigo in STATUS_POR_CODIGO_EVENTO:
+            requests.patch(
+                f"{SUPABASE_URL}/rest/v1/pedidos",
+                headers=_supabase_headers(),
+                params={"ifood_order_id": f"eq.{order_id}"},
+                json={"status": STATUS_POR_CODIGO_EVENTO[codigo], "atualizado_em": _agora_iso()},
+                timeout=10,
+            )
+
+    if linhas_evento:
+        resp = requests.post(f"{SUPABASE_URL}/rest/v1/eventos_ifood", headers=_supabase_headers(), json=linhas_evento, timeout=10)
+        resp.raise_for_status()
+
+    com_retry(acknowledge_events, ids_para_confirmar)
+    return novos_pedidos
+
+
+@app.get("/api/pedidos")
+@requer_login
+def get_pedidos():
+    merchant_id = _merchant_id()
+    status = request.args.get("status")
+    busca = (request.args.get("busca") or "").strip()
+    params = {"select": "*", "merchant_id": f"eq.{merchant_id}", "order": "recebido_em.desc", "limit": 200}
+    if status:
+        params["status"] = f"eq.{status}"
+    if busca:
+        params["ifood_order_id"] = f"ilike.*{busca}*"
+
+    resp = requests.get(f"{SUPABASE_URL}/rest/v1/pedidos", headers=_supabase_headers(), params=params, timeout=10)
+    resp.raise_for_status()
+    return jsonify(resp.json())
+
+
+@app.get("/api/pedidos/<pedido_id>")
+@requer_login
+def get_pedido_detalhe(pedido_id):
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers=_supabase_headers(),
+        params={"select": "*", "id": f"eq.{pedido_id}"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    pedidos = resp.json()
+    if not pedidos:
+        return jsonify({"erro": "Pedido não encontrado."}), 404
+    pedido = pedidos[0]
+
+    resp_itens = requests.get(
+        f"{SUPABASE_URL}/rest/v1/itens_pedido",
+        headers=_supabase_headers(),
+        params={"select": "*", "pedido_id": f"eq.{pedido_id}"},
+        timeout=10,
+    )
+    resp_itens.raise_for_status()
+    pedido["itens"] = resp_itens.json()
+
+    resp_eventos = requests.get(
+        f"{SUPABASE_URL}/rest/v1/eventos_ifood",
+        headers=_supabase_headers(),
+        params={"select": "*", "pedido_ifood_id": f"eq.{pedido['ifood_order_id']}", "order": "recebido_em.asc"},
+        timeout=10,
+    )
+    resp_eventos.raise_for_status()
+    pedido["linha_do_tempo"] = resp_eventos.json()
+    return jsonify(pedido)
+
+
+@app.post("/api/pedidos/<pedido_id>/status")
+@requer_login
+def alterar_status_pedido(pedido_id):
+    dados = request.get_json(silent=True) or {}
+    novo_status = str(dados.get("status", "")).strip().upper()
+    if novo_status not in STATUS_VALIDOS_PEDIDO:
+        raise ValueError("status inválido.")
+
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers=_supabase_headers(),
+        params={"select": "id,ifood_order_id", "id": f"eq.{pedido_id}"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    pedidos = resp.json()
+    if not pedidos:
+        return jsonify({"erro": "Pedido não encontrado."}), 404
+
+    atualizado = _atualizar_status_pedido(pedido_id, pedidos[0]["ifood_order_id"], novo_status, g.usuario["nome"])
+    return jsonify(atualizado)
+
+
+@app.post("/api/pedidos/<pedido_id>/ocultar")
+@requer_login
+def ocultar_pedido_kds(pedido_id):
+    """"Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditoria)."""
+    resp = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers={**_supabase_headers(), "Prefer": "return=representation"},
+        params={"id": f"eq.{pedido_id}"},
+        json={"oculto_kds": True, "atualizado_em": _agora_iso()},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    resultado = resp.json()
+    if not resultado:
+        return jsonify({"erro": "Pedido não encontrado."}), 404
+    return jsonify(resultado[0])
+
+
+@app.post("/api/pedidos/buscar")
+@requer_login
+def buscar_pedidos():
+    """Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Chamado
+    manualmente ("Atualizar do iFood") e automaticamente a cada ~15s pelas telas de Pedidos/KDS
+    enquanto abertas. Não existe worker/cron nesse projeto (deploy é uma função serverless da
+    Vercel, sem processo contínuo) — o polling só roda enquanto alguém está com a tela aberta,
+    o que já cobre o uso real (a tela fica ligada na cozinha/balcão)."""
+    merchant_id = _merchant_id()
+    novos_pedidos = _processar_eventos_da_loja(merchant_id)
+    return jsonify({"novosPedidos": novos_pedidos})
+
+
+@app.get("/api/eventos")
+@requer_login
+def get_eventos():
+    merchant_id = _merchant_id()
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/eventos_ifood",
+        headers=_supabase_headers(),
+        params={"select": "*", "merchant_id": f"eq.{merchant_id}", "order": "recebido_em.desc", "limit": 200},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return jsonify(resp.json())
 
 
 if __name__ == "__main__":

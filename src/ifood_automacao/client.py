@@ -14,6 +14,22 @@ def list_merchants() -> list[dict]:
     return resp.json()
 
 
+def get_merchant_details(merchant_id: str) -> dict:
+    """Detalhes completos da loja: nome, razão social, tipo, status e operações/canais
+    de venda configurados."""
+    resp = requests.get(f"{MERCHANT_BASE}/merchants/{merchant_id}", headers=auth_headers(), timeout=30)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def get_merchant_status(merchant_id: str) -> list[dict]:
+    """Disponibilidade da loja por operação/canal de venda: se está apta a receber pedido
+    agora (`available`), e se não, por quê (`validations` com o motivo)."""
+    resp = requests.get(f"{MERCHANT_BASE}/merchants/{merchant_id}/status", headers=auth_headers(), timeout=30)
+    resp.raise_for_status()
+    return resp.json()
+
+
 def list_catalogs(merchant_id: str) -> list[dict]:
     resp = requests.get(
         f"{CATALOG_BASE}/merchants/{merchant_id}/catalogs",
@@ -56,11 +72,14 @@ def upsert_item(
     external_code: str,
     available: bool = True,
     grupos_opcao: list[dict] | None = None,
+    image_path: str | None = None,
 ) -> dict:
     """Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a estrutura toda).
 
     `grupos_opcao` (opcional) associa grupos de complemento JÁ EXISTENTES ao item — mesmo
     formato de `create_combo` sem o `principal`: {"optionGroupId": ..., "min": 1, "max": 1}.
+    `image_path` (opcional) é o retorno de `upload_image` — reenviar sempre que o item já
+    tiver foto, senão o PUT (que substitui tudo) apaga a foto anterior.
     Confirmado ao vivo contra o sandbox.
     """
     option_groups_produto = [
@@ -72,6 +91,14 @@ def upsert_item(
         }
         for indice, grupo in enumerate(grupos_opcao or [])
     ]
+    produto = {
+        "id": product_id,
+        "name": name,
+        "description": name,
+        "optionGroups": option_groups_produto,
+    }
+    if image_path:
+        produto["imagePath"] = image_path
     body = {
         "item": {
             "id": item_id,
@@ -82,14 +109,7 @@ def upsert_item(
             "price": {"value": price},
             "externalCode": external_code,
         },
-        "products": [
-            {
-                "id": product_id,
-                "name": name,
-                "description": name,
-                "optionGroups": option_groups_produto,
-            }
-        ],
+        "products": [produto],
         "optionGroups": [],
         "options": [],
     }
@@ -363,8 +383,19 @@ def delete_option_group(merchant_id: str, option_group_id: str) -> None:
 # Schema confirmado ao vivo contra o sandbox, inclusive os dois erros de validação que o
 # próprio iFood devolveu no caminho (status é obrigatório; e precisa de `product` inline
 # OU `productId` de um produto já existente — aqui sempre cria um produto novo pra opção).
-def create_option(merchant_id: str, option_group_id: str, name: str, price: float, external_code: str) -> dict:
-    """Cria uma opção nova (ex: "Coca-Cola") dentro de um grupo de complemento já existente."""
+def create_option(
+    merchant_id: str,
+    option_group_id: str,
+    name: str,
+    price: float,
+    external_code: str,
+    image_path: str | None = None,
+) -> dict:
+    """Cria uma opção nova (ex: "Coca-Cola") dentro de um grupo de complemento já existente.
+    `image_path` (opcional) é o retorno de `upload_image`."""
+    produto = {"name": name, "description": name}
+    if image_path:
+        produto["imagePath"] = image_path
     resp = requests.post(
         f"{CATALOG_BASE}/merchants/{merchant_id}/optionGroups/{option_group_id}/options",
         headers=auth_headers(),
@@ -372,7 +403,7 @@ def create_option(merchant_id: str, option_group_id: str, name: str, price: floa
             "status": "AVAILABLE",
             "price": {"value": price},
             "externalCode": external_code,
-            "product": {"name": name, "description": name},
+            "product": produto,
         },
         timeout=30,
     )
@@ -388,3 +419,75 @@ def delete_option(merchant_id: str, option_group_id: str, option_product_id: str
         timeout=30,
     )
     resp.raise_for_status()
+
+
+# Endpoints descobertos testando ao vivo contra o sandbox (não estavam na doc de referência
+# consultada, igual create_option_group/create_option): editar nome/foto de uma opção já
+# existente é um PATCH no PRODUTO por trás dela (não tem PUT/PATCH direto em .../options/{id}
+# — isso devolve 404). `image_path` é obrigatório mesmo reenviando o mesmo de antes: sem ele o
+# iFood recusa com "Product image cannot be null".
+def edit_option(merchant_id: str, product_id: str, name: str, image_path: str) -> dict:
+    """Edita nome e foto de uma opção (complemento) já existente. `product_id` é o
+    `productId` devolvido por `create_option` (mesmo id usado em `delete_option`).
+    `image_path` é obrigatório — reenvie o path atual da opção se a foto não mudou."""
+    resp = requests.patch(
+        f"{CATALOG_BASE}/merchants/{merchant_id}/products/{product_id}",
+        headers=auth_headers(),
+        json={"name": name, "description": name, "imagePath": image_path},
+        timeout=30,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def update_option_price(merchant_id: str, product_id: str, price: float) -> dict:
+    """Atualiza o preço de uma opção (complemento) já existente. Endpoint em lote (aceita
+    vários produtos de uma vez, mas usamos com 1); resposta 202 só confirma que o lote foi
+    aceito para processamento — não é síncrono."""
+    resp = requests.patch(
+        f"{CATALOG_BASE}/merchants/{merchant_id}/products/price",
+        headers=auth_headers(),
+        json=[{"productId": product_id, "price": {"value": price, "originalValue": price}, "resources": ["OPTION"]}],
+        timeout=30,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def update_option_status(merchant_id: str, option_id: str, status: str, parent_customization_option_id: str | None = None) -> None:
+    """Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` é o `id` da opção
+    (devolvido por `create_option` como `optionId` ou `id` — não é o `productId`)."""
+    resp = requests.patch(
+        f"{CATALOG_BASE}/merchants/{merchant_id}/options/status",
+        headers=auth_headers(),
+        json={
+            "optionId": option_id,
+            "status": status,
+            "parentCustomizationOptionId": parent_customization_option_id,
+        },
+        timeout=30,
+    )
+    resp.raise_for_status()
+
+
+def upload_image(merchant_id: str, image_data_url: str) -> str:
+    """Envia uma imagem (jpg/jpeg/png, até 5MB) e devolve o `imagePath` a usar em
+    `upsert_item`/`create_option`/`create_combo`. `image_data_url` deve ser uma data URL
+    completa (ex: "data:image/png;base64,...."), formato que `FileReader.readAsDataURL`
+    já produz no navegador.
+
+    Confirmado ao vivo contra o sandbox: `POST .../image/upload` (sem barra final) devolve
+    201 com `{"imagePath": "<merchantId>/<nome-gerado>.png"}`.
+    """
+    resp = requests.post(
+        f"{CATALOG_BASE}/merchants/{merchant_id}/image/upload",
+        headers=auth_headers(),
+        json={"image": image_data_url},
+        timeout=30,
+    )
+    resp.raise_for_status()
+    corpo = resp.json()
+    caminho = corpo.get("imagePath") or corpo.get("path") or corpo.get("id")
+    if not caminho:
+        raise ValueError(f"Resposta do upload de imagem sem campo de path reconhecido: {corpo}")
+    return caminho

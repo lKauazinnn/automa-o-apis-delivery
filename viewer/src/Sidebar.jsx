@@ -1,9 +1,11 @@
 import { useContext } from 'react'
-import { Clock, History, KeyRound, LayoutDashboard, LayoutGrid, Layers, LogOut, PowerOff, Store, Tags, Users } from 'lucide-react'
+import { ClipboardList, Clock, Columns3, History, KeyRound, LayoutDashboard, LayoutGrid, Layers, LogOut, PowerOff, Store, Tags, Users } from 'lucide-react'
 import { CoresContext } from './ui'
 
 const VIEWS = [
   { chave: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { chave: 'pedidos', label: 'Pedidos', Icon: ClipboardList },
+  { chave: 'kds', label: 'KDS', Icon: Columns3 },
   { chave: 'catalogo', label: 'Catálogo', Icon: LayoutGrid },
   { chave: 'auditoria', label: 'Auditoria', Icon: History },
 ]

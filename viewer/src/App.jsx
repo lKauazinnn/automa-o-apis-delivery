@@ -17,13 +17,17 @@ import { HorarioFuncionamentoModal } from './modals/HorarioFuncionamentoModal'
 import { InterrupcoesModal } from './modals/InterrupcoesModal'
 import { Sidebar } from './Sidebar'
 import { TelaDefinirSenha, TelaLogin } from './TelasAuth'
-import { Avatar, CoresContext, iniciaisDe, Modal, PALETAS, Pill } from './ui'
+import { Avatar, CoresContext, iniciaisDe, lerImagemComoDataUrl, Modal, PALETAS, Pill } from './ui'
 import { AuditoriaView } from './views/AuditoriaView'
 import { CatalogoView } from './views/CatalogoView'
 import { DashboardView } from './views/DashboardView'
+import { KDSView } from './views/KDSView'
+import { PedidosView } from './views/PedidosView'
 
 const TITULOS_VIEW = {
   dashboard: { t: 'Dashboard', sub: 'Visão geral da operação na loja ativa' },
+  pedidos: { t: 'Pedidos', sub: 'Pedidos da loja ativa, atualizando sozinho' },
+  kds: { t: 'KDS', sub: 'Quadro de preparo em tempo real' },
   catalogo: { t: 'Catálogo', sub: 'Gestão de itens da loja ativa' },
   auditoria: { t: 'Central de auditoria', sub: 'Tudo que a equipe alterou, em ordem' },
 }
@@ -185,7 +189,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
   const [filtroCategoria, setFiltroCategoria] = useState('TODAS')
   const [filtroStatus, setFiltroStatus] = useState('TODOS')
 
-  const [form, setForm] = useState({ nome: '', categoria: '', novaCategoria: '', codigo_pdv: '', preco: '' })
+  const [form, setForm] = useState({ nome: '', categoria: '', novaCategoria: '', codigo_pdv: '', preco: '', foto: '' })
   const [salvando, setSalvando] = useState(false)
   const [erroForm, setErroForm] = useState('')
   const [alterandoStatus, setAlterandoStatus] = useState(null)
@@ -197,6 +201,10 @@ function Painel({ sessao, onSair, tema, setTema }) {
   const [criandoLoja, setCriandoLoja] = useState(false)
   const [lojaId, setLojaId] = useState('')
   const [modalLojas, setModalLojas] = useState(false)
+  const [modalDetalhesLoja, setModalDetalhesLoja] = useState(false)
+  const [carregandoDetalhesLoja, setCarregandoDetalhesLoja] = useState(false)
+  const [detalhesLoja, setDetalhesLoja] = useState(null)
+  const [disponibilidadeLoja, setDisponibilidadeLoja] = useState(null)
 
   const [modalUsuarios, setModalUsuarios] = useState(false)
   const [usuarios, setUsuarios] = useState([])
@@ -297,6 +305,20 @@ function Painel({ sessao, onSair, tema, setTema }) {
       setLojas(await apiFetch('/lojas'))
     } catch {
       // se a listagem de lojas falhar, segue usando a loja padrão do .env
+    }
+  }
+
+  async function abrirDetalhesLoja() {
+    setModalDetalhesLoja(true)
+    setCarregandoDetalhesLoja(true)
+    try {
+      const [detalhes, disponibilidade] = await Promise.all([apiFetch('/loja/detalhes'), apiFetch('/loja/disponibilidade')])
+      setDetalhesLoja(detalhes)
+      setDisponibilidadeLoja(disponibilidade)
+    } catch (e) {
+      notificar('erro', `Não consegui buscar os dados da loja: ${e.message}`)
+    } finally {
+      setCarregandoDetalhesLoja(false)
     }
   }
 
@@ -472,6 +494,15 @@ function Painel({ sessao, onSair, tema, setTema }) {
     }
     setSalvando(true)
     try {
+      let imagemPath
+      if (form.foto) {
+        const up = await apiFetch('/imagens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagem: form.foto }),
+        })
+        imagemPath = up.imagem_path
+      }
       await apiFetch('/itens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -480,10 +511,11 @@ function Painel({ sessao, onSair, tema, setTema }) {
           categoria: categoriaFinal.trim(),
           codigo_pdv: form.codigo_pdv.trim(),
           preco: form.preco,
+          imagem_path: imagemPath,
         }),
       })
       notificar('sucesso', `Item "${form.nome}" criado.`)
-      setForm({ nome: '', categoria: '', novaCategoria: '', codigo_pdv: '', preco: '' })
+      setForm({ nome: '', categoria: '', novaCategoria: '', codigo_pdv: '', preco: '', foto: '' })
       setModalNovoItem(false)
       carregar()
       carregarAuditoria()
@@ -642,8 +674,11 @@ function Painel({ sessao, onSair, tema, setTema }) {
   function abrirEdicao(item) {
     setModalEdicao({
       item,
+      nome: item.nome || '',
       preco: String(item.preco ?? ''),
       codigoPdv: item.codigo_pdv || '',
+      foto: item.foto || '',
+      fotoNova: '',
       turnoAtivo: false,
       turnoInicio: '11:00',
       turnoFim: '15:00',
@@ -713,7 +748,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
   }
 
   async function salvarEdicao() {
-    const { item, preco, codigoPdv } = modalEdicao
+    const { item, nome, preco, codigoPdv, foto, fotoNova } = modalEdicao
     const precoNum = Number(String(preco).replace(',', '.'))
     if (!precoNum || precoNum <= 0) {
       notificar('erro', 'Preço deve ser maior que zero.')
@@ -723,9 +758,53 @@ function Painel({ sessao, onSair, tema, setTema }) {
       notificar('erro', 'Código PDV não pode ficar vazio.')
       return
     }
+    if (!nome.trim()) {
+      notificar('erro', 'Nome não pode ficar vazio.')
+      return
+    }
 
     setSalvandoEdicao(true)
     try {
+      const nomeMudou = nome.trim() !== item.nome
+      const fotoMudou = !!fotoNova
+      if (nomeMudou || fotoMudou) {
+        // Nome e foto só existem via PUT completo do item (não tem PATCH dedicado no iFood
+        // pra isso) — então reenvia tudo de uma vez, inclusive preço/PDV atuais do form.
+        let imagemPath = foto || undefined
+        if (fotoNova) {
+          const up = await apiFetch('/imagens', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imagem: fotoNova }),
+          })
+          imagemPath = up.imagem_path
+        }
+        await apiFetch(`/itens/${item.itemId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: item.productId,
+            category_id: item.categoryId,
+            nome: nome.trim(),
+            preco: precoNum,
+            codigo_pdv: codigoPdv.trim(),
+            status: item.status,
+            imagem_path: imagemPath,
+          }),
+        })
+        setItens((prev) =>
+          prev.map((i) =>
+            i.itemId === item.itemId
+              ? { ...i, nome: nome.trim(), preco: precoNum, codigo_pdv: codigoPdv.trim(), foto: imagemPath }
+              : i
+          )
+        )
+        notificar('sucesso', `"${nome.trim()}" atualizado.`)
+        setModalEdicao(null)
+        carregarAuditoria()
+        return
+      }
+
       const tarefas = []
       if (precoNum !== Number(item.preco)) {
         tarefas.push(
@@ -996,6 +1075,17 @@ function Painel({ sessao, onSair, tema, setTema }) {
                       </p>
                     </button>
                     {ativa && <Pill color={C.good}>Ativa</Pill>}
+                    {ativa && (
+                      <button
+                        type="button"
+                        onClick={abrirDetalhesLoja}
+                        title="Ver detalhes e disponibilidade da loja"
+                        className="botao-icone-fantasma text-[10px] font-semibold px-2 py-1.5 rounded-lg flex-shrink-0"
+                        style={{ color: C.text2, border: `1px solid ${C.cardBorder}` }}
+                      >
+                        Detalhes
+                      </button>
+                    )}
                     {sessao.usuario.papel === 'administrador' && (
                       <button
                         type="button"
@@ -1050,6 +1140,86 @@ function Painel({ sessao, onSair, tema, setTema }) {
                 </form>
               </div>
             )}
+          </Modal>
+        )}
+
+        {modalDetalhesLoja && (
+          <Modal titulo="Detalhes e disponibilidade da loja" onClose={() => setModalDetalhesLoja(false)}>
+            {carregandoDetalhesLoja && (
+              <p className="text-xs flex items-center gap-1.5" style={{ color: C.text2 }}>
+                <Loader2 size={12} className="animate-spin" /> Carregando...
+              </p>
+            )}
+
+            {!carregandoDetalhesLoja && detalhesLoja && (
+              <div className="flex flex-col gap-3.5 mb-4">
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: C.text1 }}>
+                    {detalhesLoja.name}
+                  </p>
+                  <p className="text-xs" style={{ color: C.text2 }}>
+                    {detalhesLoja.corporateName}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Pill color={detalhesLoja.status === 'AVAILABLE' || detalhesLoja.status === 'ENABLED' ? C.good : C.neutral}>
+                    Status da conta: {detalhesLoja.status}
+                  </Pill>
+                  {detalhesLoja.test === 'TEST' && <Pill color={C.neutral}>Sandbox</Pill>}
+                </div>
+                {detalhesLoja.address && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: C.text2 }}>
+                      Endereço
+                    </p>
+                    <p className="text-xs" style={{ color: C.text1 }}>
+                      {detalhesLoja.address.street}, {detalhesLoja.address.number} — {detalhesLoja.address.district}
+                      <br />
+                      {detalhesLoja.address.city}/{detalhesLoja.address.state}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!carregandoDetalhesLoja && Array.isArray(disponibilidadeLoja) && (
+              <div className="border-t pt-3.5 flex flex-col gap-2.5" style={{ borderColor: C.cardBorder }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: C.text2 }}>
+                  Disponibilidade por canal
+                </p>
+                {disponibilidadeLoja.map((op) => (
+                  <div
+                    key={`${op.operation}-${op.salesChannel}`}
+                    className="rounded-xl px-3.5 py-3"
+                    style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-xs font-semibold" style={{ color: C.text1 }}>
+                        {op.operation} · {op.salesChannel}
+                      </span>
+                      <Pill color={op.available ? C.good : C.bad} dot>
+                        {op.available ? 'Disponível' : 'Indisponível'}
+                      </Pill>
+                    </div>
+                    {op.message?.title && (
+                      <p className="text-xs" style={{ color: C.text2 }}>
+                        {op.message.title}
+                        {op.message.subtitle ? ` — ${op.message.subtitle}` : ''}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setModalDetalhesLoja(false)}
+              className="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl mt-3.5"
+              style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+            >
+              Fechar
+            </button>
           </Modal>
         )}
 
@@ -1262,6 +1432,19 @@ function Painel({ sessao, onSair, tema, setTema }) {
             <div className="flex flex-col gap-3.5">
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
+                  Nome do material
+                </label>
+                <input
+                  className={inputCls}
+                  style={inputStyle}
+                  type="text"
+                  autoFocus
+                  value={modalEdicao.nome}
+                  onChange={(e) => setModalEdicao({ ...modalEdicao, nome: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
                   Preço (R$)
                 </label>
                 <input
@@ -1269,7 +1452,6 @@ function Painel({ sessao, onSair, tema, setTema }) {
                   style={inputStyle}
                   type="text"
                   inputMode="decimal"
-                  autoFocus
                   value={modalEdicao.preco}
                   onChange={(e) => setModalEdicao({ ...modalEdicao, preco: e.target.value })}
                 />
@@ -1285,6 +1467,37 @@ function Painel({ sessao, onSair, tema, setTema }) {
                   value={modalEdicao.codigoPdv}
                   onChange={(e) => setModalEdicao({ ...modalEdicao, codigoPdv: e.target.value })}
                 />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
+                  Foto
+                </label>
+                <div className="flex items-center gap-3">
+                  {(modalEdicao.fotoNova || modalEdicao.foto) && (
+                    <img
+                      src={modalEdicao.fotoNova || modalEdicao.foto}
+                      alt=""
+                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                      style={{ border: `1px solid ${C.cardBorder}` }}
+                    />
+                  )}
+                  <input
+                    className={`${inputCls} py-1.5`}
+                    style={inputStyle}
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    onChange={async (e) => {
+                      const arquivo = e.target.files?.[0]
+                      if (!arquivo) return
+                      try {
+                        const dataUrl = await lerImagemComoDataUrl(arquivo)
+                        setModalEdicao((prev) => (prev ? { ...prev, fotoNova: dataUrl } : prev))
+                      } catch (err) {
+                        notificar('erro', err.message)
+                      }
+                    }}
+                  />
+                </div>
               </div>
               <div className="border-t pt-3.5" style={{ borderColor: C.cardBorder }}>
                 <label className="flex items-center gap-2 text-xs font-semibold mb-2.5 cursor-pointer" style={{ color: C.text1 }}>
@@ -1673,6 +1886,20 @@ function Painel({ sessao, onSair, tema, setTema }) {
                 />
               )}
 
+              {view === 'pedidos' && (
+                <PedidosView apiFetch={apiFetch} C={C} notificar={notificar} inputStyle={inputStyle} lojaNome={lojaAtual?.nome} />
+              )}
+
+              {view === 'kds' && (
+                <KDSView
+                  apiFetch={apiFetch}
+                  C={C}
+                  notificar={notificar}
+                  setConfirmacao={setConfirmacao}
+                  onAbrirHistorico={() => setView('pedidos')}
+                />
+              )}
+
               {view === 'catalogo' && (
                 <CatalogoView
                   itens={itens}
@@ -1712,6 +1939,14 @@ function Painel({ sessao, onSair, tema, setTema }) {
                   form={form}
                   setForm={setForm}
                   onCriarItem={handleSubmit}
+                  onSelecionarFoto={async (arquivo) => {
+                    try {
+                      const dataUrl = await lerImagemComoDataUrl(arquivo)
+                      setForm((prev) => ({ ...prev, foto: dataUrl }))
+                    } catch (err) {
+                      notificar('erro', err.message)
+                    }
+                  }}
                   requisitos={requisitos}
                   formValido={formValido}
                   salvando={salvando}

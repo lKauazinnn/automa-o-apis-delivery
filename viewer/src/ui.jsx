@@ -105,6 +105,24 @@ export const ACAO_LABEL = {
   remover_loja: 'removeu a loja',
 }
 
+const FORMATOS_FOTO_ACEITOS = new Set(['image/jpeg', 'image/jpg', 'image/png'])
+const TAMANHO_MAX_FOTO = 5 * 1024 * 1024 // 5MB — limite do próprio endpoint de upload do iFood
+
+export function lerImagemComoDataUrl(file) {
+  if (!FORMATOS_FOTO_ACEITOS.has(file.type)) {
+    return Promise.reject(new Error('Formato de imagem não aceito. Use JPG ou PNG.'))
+  }
+  if (file.size > TAMANHO_MAX_FOTO) {
+    return Promise.reject(new Error('Imagem maior que 5MB — o iFood não aceita.'))
+  }
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader()
+    leitor.onload = () => resolve(leitor.result)
+    leitor.onerror = () => reject(new Error('Não consegui ler o arquivo de imagem.'))
+    leitor.readAsDataURL(file)
+  })
+}
+
 export function formatarTimestamp(iso) {
   try {
     return new Date(iso).toLocaleString('pt-BR')
@@ -176,6 +194,27 @@ export function Pill({ children, color, dot = false }) {
       {dot && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />}
       {children}
     </span>
+  )
+}
+
+export function Toggle({ ligado, onChange, disabled = false, titulo }) {
+  const C = useContext(CoresContext)
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={ligado}
+      title={titulo}
+      disabled={disabled}
+      onClick={onChange}
+      className="relative inline-flex flex-shrink-0 rounded-full transition-colors disabled:opacity-40"
+      style={{ width: 38, height: 21, background: ligado ? C.good : C.text3 }}
+    >
+      <span
+        className="absolute rounded-full bg-white transition-all"
+        style={{ width: 15, height: 15, top: 3, left: ligado ? 20 : 3, boxShadow: '0 1px 2px rgba(0,0,0,0.35)' }}
+      />
+    </button>
   )
 }
 

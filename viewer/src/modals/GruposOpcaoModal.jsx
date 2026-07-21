@@ -1,17 +1,130 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, ChevronRight, Loader2, Plus, Trash2 } from 'lucide-react'
-import { Modal } from '../ui'
+import { Check, ChevronDown, ChevronRight, Loader2, Pause, Pencil, Play, Plus, Trash2, X } from 'lucide-react'
+import { lerImagemComoDataUrl, Modal } from '../ui'
 
-function LinhaOpcao({ opcao, podeExcluir, onExcluir, C }) {
+function LinhaOpcao({ opcao, podeExcluir, onExcluir, onAlternarStatus, onEditar, C, inputStyle }) {
   const [excluindo, setExcluindo] = useState(false)
+  const [alternando, setAlternando] = useState(false)
+  const [editando, setEditando] = useState(false)
+  const [salvando, setSalvando] = useState(false)
+  const [form, setForm] = useState({ nome: opcao.name || '', preco: opcao.price?.value ?? '', foto: opcao.imagePath || '' })
+  const pausada = opcao.status === 'UNAVAILABLE'
+
+  if (editando) {
+    return (
+      <form
+        className="flex flex-col gap-1.5 rounded-md px-2.5 py-2"
+        style={{ background: C.cardBg, border: `1px solid ${C.cardBorder}` }}
+        onSubmit={async (e) => {
+          e.preventDefault()
+          setSalvando(true)
+          const ok = await onEditar(opcao, form)
+          setSalvando(false)
+          if (ok) setEditando(false)
+        }}
+      >
+        <div className="flex gap-1.5">
+          <input
+            required
+            autoFocus
+            className="flex-1 min-w-0 rounded-md px-2 py-1.5 text-xs outline-none"
+            style={inputStyle}
+            value={form.nome}
+            onChange={(e) => setForm({ ...form, nome: e.target.value })}
+            placeholder="Nome da opção"
+          />
+          <input
+            required
+            className="w-20 flex-shrink-0 rounded-md px-2 py-1.5 text-xs outline-none"
+            style={inputStyle}
+            inputMode="decimal"
+            value={form.preco}
+            onChange={(e) => setForm({ ...form, preco: e.target.value })}
+            placeholder="Preço"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {form.foto && <img src={form.foto} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />}
+          <input
+            className="flex-1 min-w-0 rounded-md text-[11px] outline-none"
+            style={inputStyle}
+            type="file"
+            accept="image/png,image/jpeg"
+            onChange={async (e) => {
+              const arquivo = e.target.files?.[0]
+              if (!arquivo) return
+              const dataUrl = await lerImagemComoDataUrl(arquivo)
+              setForm((prev) => ({ ...prev, foto: dataUrl }))
+            }}
+          />
+          <button
+            type="submit"
+            disabled={salvando}
+            className="w-7 h-7 rounded-md inline-flex items-center justify-center flex-shrink-0 disabled:opacity-40"
+            style={{ background: C.goodBg, border: `1px solid ${C.goodBd}`, color: C.good }}
+            title="Salvar"
+          >
+            {salvando ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditando(false)}
+            className="botao-icone-fantasma w-7 h-7 rounded-md inline-flex items-center justify-center flex-shrink-0"
+            style={{ color: C.text3 }}
+            title="Cancelar"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      </form>
+    )
+  }
+
   return (
     <div className="flex items-center gap-2 text-xs rounded-md px-2.5 py-1.5" style={{ background: C.cardBg }}>
+      {opcao.imagePath && (
+        <img src={opcao.imagePath} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
+      )}
       <span className="truncate flex-1" style={{ color: C.text1 }}>
         {opcao.name || opcao.externalCode || opcao.productId}
       </span>
       <span className="font-mono flex-shrink-0" style={{ color: C.text3 }}>
         R$ {Number(opcao.price?.value ?? 0).toFixed(2)}
       </span>
+      {podeExcluir && (
+        <button
+          type="button"
+          onClick={() => {
+            setForm({ nome: opcao.name || '', preco: opcao.price?.value ?? '', foto: opcao.imagePath || '' })
+            setEditando(true)
+          }}
+          className="botao-icone-fantasma w-6 h-6 rounded-md inline-flex items-center justify-center flex-shrink-0"
+          style={{ color: C.text2 }}
+          title="Editar opção"
+        >
+          <Pencil size={11} />
+        </button>
+      )}
+      {podeExcluir && (
+        <button
+          type="button"
+          disabled={alternando}
+          onClick={async () => {
+            setAlternando(true)
+            await onAlternarStatus(opcao)
+            setAlternando(false)
+          }}
+          title={pausada ? 'Despausar opção' : 'Pausar opção'}
+          className="w-6 h-6 rounded-md inline-flex items-center justify-center flex-shrink-0 disabled:opacity-40"
+          style={
+            pausada
+              ? { background: C.goodBg, border: `1px solid ${C.goodBd}`, color: C.good }
+              : { background: C.neutralBg, border: `1px solid ${C.neutralBd}`, color: C.neutral }
+          }
+        >
+          {alternando ? <Loader2 size={11} className="animate-spin" /> : pausada ? <Play size={11} /> : <Pause size={11} />}
+        </button>
+      )}
       {podeExcluir && (
         <button
           type="button"
@@ -39,7 +152,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
   const [criando, setCriando] = useState(false)
   const [expandido, setExpandido] = useState(null)
   const [excluindoGrupo, setExcluindoGrupo] = useState(null)
-  const [novaOpcao, setNovaOpcao] = useState({ nome: '', preco: '', codigo_pdv: '' })
+  const [novaOpcao, setNovaOpcao] = useState({ nome: '', preco: '', codigo_pdv: '', foto: '' })
   const [criandoOpcao, setCriandoOpcao] = useState(false)
   // A listagem de grupos do iFood não devolve as opções já cadastradas dentro de cada
   // grupo (a API sempre volta "options: []", mesmo quando existem) — então só temos como
@@ -105,21 +218,97 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
     }
     setCriandoOpcao(true)
     try {
+      let imagemPath
+      if (novaOpcao.foto) {
+        const up = await apiFetch('/imagens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagem: novaOpcao.foto }),
+        })
+        imagemPath = up.imagem_path
+      }
       const criada = await apiFetch(`/grupos-opcao/${grupo.id}/opcoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: novaOpcao.nome.trim(), preco, codigo_pdv: novaOpcao.codigo_pdv.trim() }),
+        body: JSON.stringify({
+          nome: novaOpcao.nome.trim(),
+          preco,
+          codigo_pdv: novaOpcao.codigo_pdv.trim(),
+          imagem_path: imagemPath,
+        }),
       })
       notificar('sucesso', `Opção "${novaOpcao.nome.trim()}" criada.`)
       setOpcoesCriadasAqui((prev) => ({
         ...prev,
-        [grupo.id]: [...(prev[grupo.id] || []), { ...criada, name: novaOpcao.nome.trim() }],
+        [grupo.id]: [...(prev[grupo.id] || []), { ...criada, name: novaOpcao.nome.trim(), imagePath: novaOpcao.foto }],
       }))
-      setNovaOpcao({ nome: '', preco: '', codigo_pdv: '' })
+      setNovaOpcao({ nome: '', preco: '', codigo_pdv: '', foto: '' })
     } catch (e) {
       notificar('erro', e.message)
     } finally {
       setCriandoOpcao(false)
+    }
+  }
+
+  async function alternarStatusOpcao(grupo, opcao) {
+    const novoStatus = opcao.status === 'UNAVAILABLE' ? 'AVAILABLE' : 'UNAVAILABLE'
+    try {
+      await apiFetch(`/grupos-opcao/${grupo.id}/opcoes/${opcao.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: novoStatus, nome: opcao.name }),
+      })
+      setOpcoesCriadasAqui((prev) => ({
+        ...prev,
+        [grupo.id]: (prev[grupo.id] || []).map((o) => (o.productId === opcao.productId ? { ...o, status: novoStatus } : o)),
+      }))
+      notificar('sucesso', `"${opcao.name}" ${novoStatus === 'UNAVAILABLE' ? 'pausada' : 'despausada'}.`)
+    } catch (e) {
+      notificar('erro', e.message)
+    }
+  }
+
+  async function editarOpcao(opcao, form) {
+    const preco = Number(String(form.preco).replace(',', '.'))
+    if (!preco || preco <= 0) {
+      notificar('erro', 'Preço da opção deve ser maior que zero.')
+      return false
+    }
+    if (!form.foto) {
+      notificar('erro', 'Essa opção precisa de uma foto — o iFood exige foto pra editar (envie uma, mesmo que já tivesse antes).')
+      return false
+    }
+    try {
+      let imagemPath = form.foto
+      if (form.foto.startsWith('data:')) {
+        const up = await apiFetch('/imagens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagem: form.foto }),
+        })
+        imagemPath = up.imagem_path
+      }
+      await apiFetch(`/grupos-opcao/opcoes/${opcao.productId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: form.nome.trim(), preco, imagem_path: imagemPath, nome_anterior: opcao.name }),
+      })
+      setOpcoesCriadasAqui((prev) => {
+        const next = {}
+        for (const [grupoId, opcoes] of Object.entries(prev)) {
+          next[grupoId] = opcoes.map((o) =>
+            o.productId === opcao.productId
+              ? { ...o, name: form.nome.trim(), imagePath: imagemPath, price: { value: preco } }
+              : o
+          )
+        }
+        return next
+      })
+      notificar('sucesso', `"${form.nome.trim()}" atualizada.`)
+      return true
+    } catch (e) {
+      notificar('erro', e.message)
+      return false
     }
   }
 
@@ -196,37 +385,63 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
                       opcao={opcao}
                       podeExcluir={podeEditar}
                       onExcluir={(o) => excluirOpcao(grupo, o)}
+                      onAlternarStatus={(o) => alternarStatusOpcao(grupo, o)}
+                      onEditar={editarOpcao}
                       C={C}
+                      inputStyle={inputStyle}
                     />
                   ))}
                   {podeEditar && (
-                    <form onSubmit={(e) => criarOpcao(e, grupo)} className="flex gap-1.5 pt-1.5">
-                      <input
-                        required
-                        className="flex-1 min-w-0 rounded-md px-2 py-1.5 text-xs outline-none"
-                        style={inputStyle}
-                        value={novaOpcao.nome}
-                        onChange={(e) => setNovaOpcao({ ...novaOpcao, nome: e.target.value })}
-                        placeholder="Nome da opção"
-                      />
-                      <input
-                        required
-                        className="w-20 flex-shrink-0 rounded-md px-2 py-1.5 text-xs outline-none"
-                        style={inputStyle}
-                        inputMode="decimal"
-                        value={novaOpcao.preco}
-                        onChange={(e) => setNovaOpcao({ ...novaOpcao, preco: e.target.value })}
-                        placeholder="Preço"
-                      />
-                      <button
-                        type="submit"
-                        disabled={criandoOpcao}
-                        className="botao-icone-fantasma w-8 h-8 rounded-md inline-flex items-center justify-center flex-shrink-0 disabled:opacity-40"
-                        style={{ color: '#F56C35', border: `1px solid ${C.cardBorder}` }}
-                        title="Adicionar opção"
-                      >
-                        {criandoOpcao ? <Loader2 size={12} className="animate-spin" /> : <Plus size={13} />}
-                      </button>
+                    <form onSubmit={(e) => criarOpcao(e, grupo)} className="flex flex-col gap-1.5 pt-1.5">
+                      <div className="flex gap-1.5">
+                        <input
+                          required
+                          className="flex-1 min-w-0 rounded-md px-2 py-1.5 text-xs outline-none"
+                          style={inputStyle}
+                          value={novaOpcao.nome}
+                          onChange={(e) => setNovaOpcao({ ...novaOpcao, nome: e.target.value })}
+                          placeholder="Nome da opção"
+                        />
+                        <input
+                          required
+                          className="w-20 flex-shrink-0 rounded-md px-2 py-1.5 text-xs outline-none"
+                          style={inputStyle}
+                          inputMode="decimal"
+                          value={novaOpcao.preco}
+                          onChange={(e) => setNovaOpcao({ ...novaOpcao, preco: e.target.value })}
+                          placeholder="Preço"
+                        />
+                        <button
+                          type="submit"
+                          disabled={criandoOpcao}
+                          className="botao-icone-fantasma w-8 h-8 rounded-md inline-flex items-center justify-center flex-shrink-0 disabled:opacity-40"
+                          style={{ color: '#F56C35', border: `1px solid ${C.cardBorder}` }}
+                          title="Adicionar opção"
+                        >
+                          {criandoOpcao ? <Loader2 size={12} className="animate-spin" /> : <Plus size={13} />}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {novaOpcao.foto && (
+                          <img src={novaOpcao.foto} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
+                        )}
+                        <input
+                          className="flex-1 min-w-0 rounded-md text-[11px] outline-none"
+                          style={inputStyle}
+                          type="file"
+                          accept="image/png,image/jpeg"
+                          onChange={async (e) => {
+                            const arquivo = e.target.files?.[0]
+                            if (!arquivo) return
+                            try {
+                              const dataUrl = await lerImagemComoDataUrl(arquivo)
+                              setNovaOpcao((prev) => ({ ...prev, foto: dataUrl }))
+                            } catch (err) {
+                              notificar('erro', err.message)
+                            }
+                          }}
+                        />
+                      </div>
                     </form>
                   )}
                 </div>
