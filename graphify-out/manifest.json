@@ -1,0 +1,302 @@
+{
+  "pyproject.toml": {
+    "mtime": 1784129953.8174882,
+    "ast_hash": "196221309cc53221331674e067cd2de6",
+    "semantic_hash": ""
+  },
+  "scripts/carga_massa.py": {
+    "mtime": 1783786489.230291,
+    "ast_hash": "4d3e474343ddc624f7405d5c49878034",
+    "semantic_hash": ""
+  },
+  "scripts/descobrir_lojas.py": {
+    "mtime": 1784727025.736884,
+    "ast_hash": "4d5e7c99f8e95b61fd7bebe564cacbef",
+    "semantic_hash": ""
+  },
+  "scripts/exportar_catalogo.py": {
+    "mtime": 1783781885.9054809,
+    "ast_hash": "0a5f54af4f1c3addb7c2848af092ee1e",
+    "semantic_hash": ""
+  },
+  "scripts/testar_sandbox.py": {
+    "mtime": 1783781885.9064782,
+    "ast_hash": "d432a21eb7278661f83a73434de3807e",
+    "semantic_hash": ""
+  },
+  "scripts/ver_catalogo.py": {
+    "mtime": 1783781885.907475,
+    "ast_hash": "dc3dca0704f0fdd3f0145fdb5534384d",
+    "semantic_hash": ""
+  },
+  "server/app.py": {
+    "mtime": 1784727026.4314265,
+    "ast_hash": "45828dbf0c43c7abc3edf91f04d0b6cd",
+    "semantic_hash": ""
+  },
+  "sql/001_criar_tabela_auditoria.sql": {
+    "mtime": 1783973925.9966948,
+    "ast_hash": "516618eaa877814f21539d8bea8be95f",
+    "semantic_hash": ""
+  },
+  "sql/002_criar_tabela_perfis.sql": {
+    "mtime": 1783974819.4364898,
+    "ast_hash": "10728bbc6cb1a8e5d45eb2d8df4f0d9e",
+    "semantic_hash": ""
+  },
+  "sql/003_criar_tabela_lojas.sql": {
+    "mtime": 1783979190.3539405,
+    "ast_hash": "1c3f23d11f3209743c5bc6432126ce45",
+    "semantic_hash": ""
+  },
+  "sql/004_flag_senha_temporaria.sql": {
+    "mtime": 1784122061.111762,
+    "ast_hash": "8773e746bceb02fb0d3b2119651f3443",
+    "semantic_hash": ""
+  },
+  "sql/005_delta_auditoria.sql": {
+    "mtime": 1784122061.1136072,
+    "ast_hash": "46c68d4e3e77669917aaebb426db8e5e",
+    "semantic_hash": ""
+  },
+  "sql/006_criar_tabelas_pedidos_eventos.sql": {
+    "mtime": 1784727026.4324243,
+    "ast_hash": "94f68cb4e5e8e8a8030fa28aa084a1b8",
+    "semantic_hash": ""
+  },
+  "src/ifood_automacao/__init__.py": {
+    "mtime": 1783781885.9094708,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "src/ifood_automacao/auth.py": {
+    "mtime": 1783781885.9104688,
+    "ast_hash": "2de85340dcf4f12630e863a7729d8729",
+    "semantic_hash": ""
+  },
+  "src/ifood_automacao/client.py": {
+    "mtime": 1784727026.4334211,
+    "ast_hash": "2180e093889490af1066bbb51dbcb949",
+    "semantic_hash": ""
+  },
+  "src/ifood_automacao/pedidos.py": {
+    "mtime": 1784727026.4334211,
+    "ast_hash": "0f8fdb29edbb0af7600375c5d5278d87",
+    "semantic_hash": ""
+  },
+  "src/ifood_automacao/planilha.py": {
+    "mtime": 1783781885.9114647,
+    "ast_hash": "bbb33638b1be6bb96b0452107fdf4abe",
+    "semantic_hash": ""
+  },
+  "src/ifood_automacao/rate_limit.py": {
+    "mtime": 1783781885.9124618,
+    "ast_hash": "9829d7f594de43c631d6c1260945172f",
+    "semantic_hash": ""
+  },
+  "vercel.json": {
+    "mtime": 1784129987.1503825,
+    "ast_hash": "df1fe10b318c1cd337228610a68ffb50",
+    "semantic_hash": ""
+  },
+  "viewer/.oxlintrc.json": {
+    "mtime": 1783781885.9144566,
+    "ast_hash": "2d750bd852cf8fe072f64a62ab29084b",
+    "semantic_hash": ""
+  },
+  "viewer/package.json": {
+    "mtime": 1784122061.1182785,
+    "ast_hash": "9e37f44098ee83a0ad74d4b4fae86f8d",
+    "semantic_hash": ""
+  },
+  "viewer/postcss.config.js": {
+    "mtime": 1783781885.9184458,
+    "ast_hash": "5b84f4567208c7c747079c0477373231",
+    "semantic_hash": ""
+  },
+  "viewer/src/App.jsx": {
+    "mtime": 1784727026.435417,
+    "ast_hash": "caa09c0651802f2c7e339e45bd9dfb80",
+    "semantic_hash": ""
+  },
+  "viewer/src/ErroFatal.jsx": {
+    "mtime": 1784122061.121056,
+    "ast_hash": "40e2e607d6ecf6408d39a565e3294170",
+    "semantic_hash": ""
+  },
+  "viewer/src/Graficos.jsx": {
+    "mtime": 1784137236.371743,
+    "ast_hash": "362e898b762583385f1e6bfc2d89721a",
+    "semantic_hash": ""
+  },
+  "viewer/src/Sidebar.jsx": {
+    "mtime": 1784727026.4364152,
+    "ast_hash": "1a7168229707e3a70ea001ec017ae03e",
+    "semantic_hash": ""
+  },
+  "viewer/src/TelasAuth.jsx": {
+    "mtime": 1784316758.7556798,
+    "ast_hash": "b645ece42b758e71969feee42f64c681",
+    "semantic_hash": ""
+  },
+  "viewer/src/auth.js": {
+    "mtime": 1784316758.7576747,
+    "ast_hash": "5cdbad4354716d300f9368739fc6f8c7",
+    "semantic_hash": ""
+  },
+  "viewer/src/components/CerebroGraphify.jsx": {
+    "mtime": 1784727025.621194,
+    "ast_hash": "dd0bfeaf0132131ed7de7c4a0d164822",
+    "semantic_hash": ""
+  },
+  "viewer/src/main.jsx": {
+    "mtime": 1784122061.126033,
+    "ast_hash": "965cbf18100ad8fa553fcaec943da946",
+    "semantic_hash": ""
+  },
+  "viewer/src/modals/CategoriasModal.jsx": {
+    "mtime": 1784149753.6226847,
+    "ast_hash": "bf5eda3175d18e51125cbd4504d96ad5",
+    "semantic_hash": ""
+  },
+  "viewer/src/modals/ComboModal.jsx": {
+    "mtime": 1784149888.3568504,
+    "ast_hash": "6be876818aab43ee8241d8b0e64fbf07",
+    "semantic_hash": ""
+  },
+  "viewer/src/modals/GruposOpcaoModal.jsx": {
+    "mtime": 1784727026.4374108,
+    "ast_hash": "05934f2530397e59b4fda03e59e1c5af",
+    "semantic_hash": ""
+  },
+  "viewer/src/modals/HorarioFuncionamentoModal.jsx": {
+    "mtime": 1784149915.1757288,
+    "ast_hash": "f35e6d2863cce0349d576bc7ec0b1594",
+    "semantic_hash": ""
+  },
+  "viewer/src/modals/InterrupcoesModal.jsx": {
+    "mtime": 1784149939.9700854,
+    "ast_hash": "bec256be4d8198fca522742f0ce0af67",
+    "semantic_hash": ""
+  },
+  "viewer/src/ui.jsx": {
+    "mtime": 1784727026.438408,
+    "ast_hash": "4fa5c87ee008d09ee366097126ab77a6",
+    "semantic_hash": ""
+  },
+  "viewer/src/views/AuditoriaView.jsx": {
+    "mtime": 1784135967.9823492,
+    "ast_hash": "fe9dbd5e18661b102d996c1e04c6cd21",
+    "semantic_hash": ""
+  },
+  "viewer/src/views/CatalogoView.jsx": {
+    "mtime": 1784727026.4394047,
+    "ast_hash": "a9d2d44923ae1eb84fab27829c873d7e",
+    "semantic_hash": ""
+  },
+  "viewer/src/views/DashboardView.jsx": {
+    "mtime": 1784135986.6446004,
+    "ast_hash": "0e6af964662f8201214d6c65e9ef0b2d",
+    "semantic_hash": ""
+  },
+  "viewer/src/views/KDSView.jsx": {
+    "mtime": 1784727026.4394047,
+    "ast_hash": "b4e84b765703f2cf9dc689a76c817ca7",
+    "semantic_hash": ""
+  },
+  "viewer/src/views/PedidosView.jsx": {
+    "mtime": 1784727026.4404044,
+    "ast_hash": "65584218675b310b097dfdc64bf39339",
+    "semantic_hash": ""
+  },
+  "viewer/tailwind.config.js": {
+    "mtime": 1783781885.926426,
+    "ast_hash": "47962e82d51a6f8d72270ff1b7f6b22f",
+    "semantic_hash": ""
+  },
+  "viewer/vite.config.js": {
+    "mtime": 1784122061.128028,
+    "ast_hash": "796473bb7f8a6c144aff2ab52ac11aac",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1784316758.6857953,
+    "ast_hash": "ab254d0a1c83f1f4813a79ddddbdf284",
+    "semantic_hash": ""
+  },
+  "HOMOLOGACAO.md": {
+    "mtime": 1784727026.429431,
+    "ast_hash": "9316936f4be8bc691fb3870829f51708",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1784130134.7813897,
+    "ast_hash": "92a4426f4169b13569f6fe15df4ac509",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1784130051.3981254,
+    "ast_hash": "32b9e42e3441194794a7cd58ae064679",
+    "semantic_hash": ""
+  },
+  "scripts/requirements.txt": {
+    "mtime": 1784130061.3514032,
+    "ast_hash": "6568d7ab50fb0da8f4602fc4f2fed0b0",
+    "semantic_hash": ""
+  },
+  "viewer/BRIEFING_REDESIGN.md": {
+    "mtime": 1784122061.1146228,
+    "ast_hash": "a803babc45a30a03f4b60f85d81ca8b3",
+    "semantic_hash": ""
+  },
+  "viewer/CLAUDE.md": {
+    "mtime": 1784122061.1155963,
+    "ast_hash": "a9260b4481af2451cb9b1d4b0a72d407",
+    "semantic_hash": ""
+  },
+  "viewer/README.md": {
+    "mtime": 1783781885.9154568,
+    "ast_hash": "2e7344e9810cbd1b6fdb6aa7efe117e7",
+    "semantic_hash": ""
+  },
+  "viewer/index.html": {
+    "mtime": 1783781885.9164565,
+    "ast_hash": "53a5daa6267cf1cea6a141c850a99ef2",
+    "semantic_hash": ""
+  },
+  "viewer/public/brand/logo-cajupar-icon.png": {
+    "mtime": 1783781885.9194436,
+    "ast_hash": "4f6e0aadf33c94e4a50839aa8e37ea7e",
+    "semantic_hash": ""
+  },
+  "viewer/public/brand/logo-cajupar.png": {
+    "mtime": 1783781885.9214385,
+    "ast_hash": "43d5b882a12f5376248729aff11394a1",
+    "semantic_hash": ""
+  },
+  "viewer/public/favicon.svg": {
+    "mtime": 1783781885.9214385,
+    "ast_hash": "7e840862161341271697daa99a40d76b",
+    "semantic_hash": ""
+  },
+  "viewer/public/icons.svg": {
+    "mtime": 1783781885.9224353,
+    "ast_hash": "21c7473c592c67dc87223d49892c8f0a",
+    "semantic_hash": ""
+  },
+  "viewer/src/assets/hero.png": {
+    "mtime": 1783781885.9244306,
+    "ast_hash": "aead493361b27e7510691c5d7072dfc1",
+    "semantic_hash": ""
+  },
+  "viewer/src/assets/react.svg": {
+    "mtime": 1783781885.9244306,
+    "ast_hash": "f0402b67b6ce880f65666bb49e841696",
+    "semantic_hash": ""
+  },
+  "viewer/src/assets/vite.svg": {
+    "mtime": 1783781885.9254289,
+    "ast_hash": "6d5180a782d64c8cf51ba01c2a2184d8",
+    "semantic_hash": ""
+  }
+}
