@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1556) (0 connections)
+- [Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1420) (0 connections)
 
 ## Relationships
 

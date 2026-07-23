@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Converte o caminho absoluto (com mojibake) num caminho relativo à raiz.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py#L93) (0 connections)
+- [Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py#L49) (0 connections)
 
 ## Relationships
 

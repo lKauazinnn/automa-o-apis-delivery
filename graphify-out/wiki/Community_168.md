@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L439) (0 connections)
+- [Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L367) (0 connections)
 
 ## Relationships
 

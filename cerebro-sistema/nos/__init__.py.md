@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 28
+comunidade: 29
 heat: 0.002
 complexidade: 1
 arquivo: "automa-o-apis-delivery/src/ifood_automacao/__init__.py"
 local: L1
-tags: [c/28, tipo/função]
+tags: [c/29, tipo/função]
 ---
 
 # __init__.py

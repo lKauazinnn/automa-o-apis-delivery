@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 36
-heat: 0.002
+comunidade: 27
+heat: 0.004
 complexidade: 1
-arquivo: "src/ifood_automacao/__init__.py"
+arquivo: "src/food99_automacao/__init__.py"
 local: L1
-tags: [c/36, tipo/função]
+tags: [c/27, tipo/função]
 ---
 
 # __init__.py

@@ -1,11 +1,11 @@
 ---
 tipo: classe
-comunidade: 221
-heat: 0.082
+comunidade: 223
+heat: 0.068
 complexidade: 0
 arquivo: "viewer/package.json"
 local: L23
-tags: [c/221, tipo/classe]
+tags: [c/223, tipo/classe]
 ---
 
 # oxlint

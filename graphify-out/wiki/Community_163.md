@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L297) (0 connections)
+- [Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L252) (0 connections)
 
 ## Relationships
 

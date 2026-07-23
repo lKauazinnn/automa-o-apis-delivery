@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1701) (0 connections)
+- [Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1487) (0 connections)
 
 ## Relationships
 

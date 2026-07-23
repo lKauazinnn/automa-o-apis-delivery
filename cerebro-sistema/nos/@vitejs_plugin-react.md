@@ -1,11 +1,11 @@
 ---
 tipo: classe
-comunidade: 219
-heat: 0.082
+comunidade: 221
+heat: 0.068
 complexidade: 0
 arquivo: "viewer/package.json"
 local: L21
-tags: [c/219, tipo/classe]
+tags: [c/221, tipo/classe]
 ---
 
 # @vitejs/plugin-react

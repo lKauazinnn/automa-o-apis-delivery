@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 13
+comunidade: 14
 heat: 0.032
 complexidade: 10
 arquivo: "server/app.py"
 local: L261
-tags: [c/13, tipo/função]
+tags: [c/14, tipo/função]
 ---
 
 # tratar_erro()

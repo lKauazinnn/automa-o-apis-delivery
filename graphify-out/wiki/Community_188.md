@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cliente fino para os endpoints da Merchant API / Catalog API do iFood usados na](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L1) (0 connections)
+- [Autenticação OAuth2 (client_credentials) com a Merchant API do iFood.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [src/ifood_automacao/client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py)
+- [src/ifood_automacao/auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py)
 
 ## Audit Trail
 

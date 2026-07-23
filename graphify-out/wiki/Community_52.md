@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1620) (0 connections)
+- [Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1532) (0 connections)
 
 ## Relationships
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1366) (0 connections)
+- [Busca os detalhes completos do pedido na Order API e materializa localmente em](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1187) (0 connections)
 
 ## Relationships
 

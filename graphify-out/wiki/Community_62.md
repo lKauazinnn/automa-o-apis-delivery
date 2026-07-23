@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1619) (0 connections)
+- [id -> nome único da nota (com sufixo (2), (3)... em colisões).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py#L113) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\scripts\gerar_cerebro.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py)
 
 ## Audit Trail
 

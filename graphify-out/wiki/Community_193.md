@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria um item do tipo COMBO_V2 (ex: "Combo hambúrguer e refrigerante").      `g](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L140) (0 connections)
+- [Disponibilidade da loja por operação/canal de venda: se está apta a receber pedi](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L26) (0 connections)
 
 ## Relationships
 

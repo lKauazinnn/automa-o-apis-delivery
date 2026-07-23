@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [react-dom](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L15) (0 connections)
+- [oxc](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/.oxlintrc.json#L3) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [viewer/package.json](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json)
+- [viewer/.oxlintrc.json](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/.oxlintrc.json)
 
 ## Audit Trail
 

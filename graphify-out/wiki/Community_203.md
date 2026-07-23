@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Edita nome e foto de uma opção (complemento) já existente. `product_id` é o](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L430) (0 connections)
+- [Cria uma opção nova (ex: "Coca-Cola") dentro de um grupo de complemento já exist](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L394) (0 connections)
 
 ## Relationships
 

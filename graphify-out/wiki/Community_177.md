@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Liga/desliga a flag que força troca de senha no próximo login. Chamado com True](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1007) (0 connections)
+- [Define em quais dias/horários um item fica disponível (ex: um prato que só vende](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L875) (0 connections)
 
 ## Relationships
 

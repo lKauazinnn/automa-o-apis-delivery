@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L349) (0 connections)
+- [Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L289) (0 connections)
 
 ## Relationships
 

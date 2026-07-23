@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Autenticação OAuth2 (client_credentials) com a Merchant API do iFood.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py#L1) (0 connections)
+- [Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1344) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [src/ifood_automacao/auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py)
+- [server/app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 
 ## Audit Trail
 

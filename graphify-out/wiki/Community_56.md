@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py#L49) (0 connections)
+- [Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1850) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\scripts\gerar_cerebro.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 
 ## Audit Trail
 

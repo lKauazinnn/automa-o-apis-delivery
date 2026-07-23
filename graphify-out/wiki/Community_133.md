@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1522) (0 connections)
+- [Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1418) (0 connections)
 
 ## Relationships
 

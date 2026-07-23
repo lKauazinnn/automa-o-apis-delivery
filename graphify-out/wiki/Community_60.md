@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [id -> nome único da nota (com sufixo (2), (3)... em colisões).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py#L113) (0 connections)
+- [Converte o caminho absoluto (com mojibake) num caminho relativo à raiz.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py#L93) (0 connections)
 
 ## Relationships
 

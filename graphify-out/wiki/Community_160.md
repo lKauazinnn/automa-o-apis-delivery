@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L217) (0 connections)
+- [Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L132) (0 connections)
 
 ## Relationships
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L133) (0 connections)
+- [Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1786) (0 connections)
 
 ## Relationships
 

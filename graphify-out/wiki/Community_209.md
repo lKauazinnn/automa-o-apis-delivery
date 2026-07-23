@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Confirma o recebimento dos eventos — obrigatório, senão o iFood reenvia os mesmo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L41) (0 connections)
+- [Cliente fino para a Order API e a Events API (polling) do iFood — mesmo padrão d](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L1) (0 connections)
 
 ## Relationships
 

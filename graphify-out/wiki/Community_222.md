@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [postcss](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L24) (0 connections)
+- [autoprefixer](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L22) (0 connections)
 
 ## Relationships
 

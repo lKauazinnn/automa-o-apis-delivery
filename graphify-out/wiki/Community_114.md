@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id`](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L536) (0 connections)
+- [Substitui a semana inteira de horário de funcionamento da loja de uma vez.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L430) (0 connections)
 
 ## Relationships
 

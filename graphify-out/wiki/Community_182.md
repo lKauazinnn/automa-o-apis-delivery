@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Busca os detalhes completos do pedido na Order API e materializa localmente em](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1165) (0 connections)
+- [Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1091) (0 connections)
 
 ## Relationships
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [oxc](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/.oxlintrc.json#L3) (0 connections)
+- [Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/rate_limit.py#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [viewer/.oxlintrc.json](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/.oxlintrc.json)
+- [src/ifood_automacao/rate_limit.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/rate_limit.py)
 
 ## Audit Trail
 

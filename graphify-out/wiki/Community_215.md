@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [warn](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/.oxlintrc.json#L6) (0 connections)
+- [react](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/.oxlintrc.json#L3) (0 connections)
 
 ## Relationships
 

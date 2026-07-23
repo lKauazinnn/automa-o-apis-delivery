@@ -1,6 +1,6 @@
 # Auth Service
 
-> 52 nodes · cohesion 0.07
+> 51 nodes · cohesion 0.08
 
 ## Key Concepts
 
@@ -24,12 +24,12 @@
 - [criar_item()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/client.py#L165) (5 connections)
 - [order_detail()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/client.py#L44) (5 connections)
 - [upload_menu()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/client.py#L126) (5 connections)
-- [alterar_status_99food()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1764) (4 connections)
 - [_app_secret()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/auth.py#L33) (4 connections)
 - [gerar_sign()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/auth.py#L86) (4 connections)
 - [get_authorization_url()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/auth.py#L102) (4 connections)
 - [_achar_item_v3()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/client.py#L95) (4 connections)
-- *... and 27 more nodes in this community*
+- [aguardar_upload()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/client.py#L150) (4 connections)
+- *... and 26 more nodes in this community*
 
 ## Relationships
 
@@ -38,15 +38,14 @@
 ## Source Files
 
 - [C:/Users/Gustavo/Desktop/automação ifood/automa-o-apis-delivery/src/ifood_automacao/client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/client.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\src\food99_automacao\auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/auth.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\src\food99_automacao\client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/client.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py)
 
 ## Audit Trail
 
-- EXTRACTED: 177 (80%)
-- INFERRED: 44 (20%)
+- EXTRACTED: 175 (81%)
+- INFERRED: 42 (19%)
 - AMBIGUOUS: 0 (0%)
 
 ---

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [tailwindcss](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L25) (0 connections)
+- [oxlint](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L23) (0 connections)
 
 ## Relationships
 

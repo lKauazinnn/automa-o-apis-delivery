@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` é o `id` da op](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L458) (0 connections)
+- [Edita nome e foto de uma opção (complemento) já existente. `product_id` é o](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L430) (0 connections)
 
 ## Relationships
 

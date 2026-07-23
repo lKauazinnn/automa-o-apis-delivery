@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 31
-heat: 0.002
+comunidade: 3
+heat: 0.006
 complexidade: 1
-arquivo: "sistema-pedidos/backend/app/routers/__init__.py"
+arquivo: "sistema-pedidos/backend/app/__init__.py"
 local: L1
-tags: [c/31, tipo/função]
+tags: [c/3, tipo/função]
 ---
 
 # __init__.py

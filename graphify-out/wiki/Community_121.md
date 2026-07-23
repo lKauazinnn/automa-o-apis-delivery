@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L931) (0 connections)
+- [Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L770) (0 connections)
 
 ## Relationships
 

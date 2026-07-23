@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1539) (0 connections)
+- [tailwind.config.js](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/tailwind.config.js#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\viewer\tailwind.config.js](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/tailwind.config.js)
 
 ## Audit Trail
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1420) (0 connections)
+- [Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1243) (0 connections)
 
 ## Relationships
 

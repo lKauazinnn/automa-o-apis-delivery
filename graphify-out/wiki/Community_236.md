@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L186) (0 connections)
+- [Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L60) (0 connections)
 
 ## Relationships
 

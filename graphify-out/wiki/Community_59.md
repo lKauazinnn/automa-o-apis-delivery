@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Nome-base da nota: label em minúsculas, saneado pro sistema de arquivos.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py#L102) (0 connections)
+- [Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/gerar_cerebro.py#L72) (0 connections)
 
 ## Relationships
 

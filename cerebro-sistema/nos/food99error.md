@@ -1,11 +1,11 @@
 ---
 tipo: classe
-comunidade: 13
+comunidade: 14
 heat: 0.011
 complexidade: 1
 arquivo: "src/food99_automacao/auth.py"
 local: L25
-tags: [c/13, tipo/classe]
+tags: [c/14, tipo/classe]
 ---
 
 # Food99Error

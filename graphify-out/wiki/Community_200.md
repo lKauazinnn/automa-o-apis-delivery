@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria um grupo de complemento vazio (ex: "Escolha sua bebida"). Depois associe](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L361) (0 connections)
+- [Define os turnos de disponibilidade de um item (ex: item que só vende no almoço)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L272) (0 connections)
 
 ## Relationships
 

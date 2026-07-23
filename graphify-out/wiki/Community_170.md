@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L544) (0 connections)
+- [Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L439) (0 connections)
 
 ## Relationships
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1532) (0 connections)
+- [Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1464) (0 connections)
 
 ## Relationships
 

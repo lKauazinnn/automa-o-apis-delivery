@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Envia uma imagem (jpg/jpeg/png, até 5MB) e devolve o `imagePath` a usar em](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L474) (0 connections)
+- [Atualiza o preço de uma opção (complemento) já existente. Endpoint em lote (acei](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L444) (0 connections)
 
 ## Relationships
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Edita nome/status/sequência de uma categoria. Ex: edit_category(m, c, cid, statu](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L242) (0 connections)
+- [Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L206) (0 connections)
 
 ## Relationships
 

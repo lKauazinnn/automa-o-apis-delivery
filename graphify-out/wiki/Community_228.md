@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L234) (0 connections)
+- [Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L179) (0 connections)
 
 ## Relationships
 

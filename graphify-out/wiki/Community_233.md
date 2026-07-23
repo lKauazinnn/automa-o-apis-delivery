@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L900) (0 connections)
+- [Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L477) (0 connections)
 
 ## Relationships
 

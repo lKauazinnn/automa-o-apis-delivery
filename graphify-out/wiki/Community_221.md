@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [oxlint](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L23) (0 connections)
+- [@vitejs/plugin-react](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L21) (0 connections)
 
 ## Relationships
 

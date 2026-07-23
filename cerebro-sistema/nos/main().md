@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 14
+comunidade: 13
 heat: 0.038
 complexidade: 7
 arquivo: "scripts/carga_massa.py"
 local: L51
-tags: [c/14, tipo/função]
+tags: [c/13, tipo/função]
 ---
 
 # main()

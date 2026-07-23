@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 14
+comunidade: 13
 heat: 0.01
 complexidade: 1
 arquivo: "scripts/carga_massa.py"
 local: L39
-tags: [c/14, tipo/função]
+tags: [c/13, tipo/função]
 ---
 
 # registrar()

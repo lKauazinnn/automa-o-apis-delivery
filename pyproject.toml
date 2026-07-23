@@ -1,2 +1,15 @@
+[project]
+name = "automacao-ifood"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "python-dotenv>=1.0",
+    "flask>=3.1",
+    "flask-cors>=5.0",
+]
+
+# A Vercel serve o app Flask como função única a partir deste entrypoint (server/app.py -> app).
+# Todas as rotas (/api/..., /webhook/ifood, /webhook/99food) são roteadas pra ele.
 [tool.vercel]
 entrypoint = "server.app:app"

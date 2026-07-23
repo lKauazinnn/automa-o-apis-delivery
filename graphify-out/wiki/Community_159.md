@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L197) (0 connections)
+- [Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L124) (0 connections)
 
 ## Relationships
 

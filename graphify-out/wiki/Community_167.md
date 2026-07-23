@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Substitui a semana inteira de horário de funcionamento da loja de uma vez.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L415) (0 connections)
+- [Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L358) (0 connections)
 
 ## Relationships
 

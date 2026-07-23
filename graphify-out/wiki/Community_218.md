@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [@types/react-dom](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L20) (0 connections)
+- [react-dom](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L15) (0 connections)
 
 ## Relationships
 

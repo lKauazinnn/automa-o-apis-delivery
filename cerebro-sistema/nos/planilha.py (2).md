@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 14
+comunidade: 13
 heat: 0.006
 complexidade: 1
 arquivo: "src/ifood_automacao/planilha.py"
 local: L1
-tags: [c/14, tipo/função]
+tags: [c/13, tipo/função]
 ---
 
 # planilha.py

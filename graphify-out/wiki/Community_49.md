@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1527) (0 connections)
+- [Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1430) (0 connections)
 
 ## Relationships
 

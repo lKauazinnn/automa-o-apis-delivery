@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Disponibilidade da loja por operação/canal de venda: se está apta a receber pedi](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L26) (0 connections)
+- [Lista as lojas (merchants) associadas às credenciais configuradas.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L11) (0 connections)
 
 ## Relationships
 

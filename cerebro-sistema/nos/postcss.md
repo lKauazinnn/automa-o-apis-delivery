@@ -1,11 +1,11 @@
 ---
 tipo: classe
-comunidade: 222
-heat: 0.082
+comunidade: 224
+heat: 0.068
 complexidade: 0
 arquivo: "viewer/package.json"
 local: L24
-tags: [c/222, tipo/classe]
+tags: [c/224, tipo/classe]
 ---
 
 # postcss

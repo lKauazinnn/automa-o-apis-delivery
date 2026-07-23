@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L114) (0 connections)
+- [tailwindcss](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L25) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [C:/Users/Gustavo/Desktop/automação ifood/server/app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
+- [viewer/package.json](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json)
 
 ## Audit Trail
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Lista as lojas (merchants) associadas às credenciais configuradas.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L11) (0 connections)
+- [Retorna um access token válido, reaproveitando o cache em memória enquanto não e](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py#L17) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [src/ifood_automacao/client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py)
+- [src/ifood_automacao/auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py)
 
 ## Audit Trail
 

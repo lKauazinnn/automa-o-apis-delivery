@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria uma opção nova (ex: "Coca-Cola") dentro de um grupo de complemento já exist](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L394) (0 connections)
+- [Fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L326) (0 connections)
 
 ## Relationships
 

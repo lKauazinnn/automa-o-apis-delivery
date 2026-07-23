@@ -4,6 +4,35 @@
   "graph": {},
   "nodes": [
     {
+      "label": "index.py",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\api\\index.py",
+      "source_location": "L1",
+      "complexity": 1,
+      "loc": 1,
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.004,
+      "owner": "unowned",
+      "id": "c_users_gustavo_desktop_automa_o_ifood_api_index_py",
+      "community": 25,
+      "norm_label": "index.py"
+    },
+    {
+      "label": "Entrypoint da Vercel: exp\u00f5e o app Flask (server/app.py) como fun\u00e7\u00e3o serverless.",
+      "file_type": "rationale",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\api\\index.py",
+      "source_location": "L1",
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.004,
+      "owner": "unowned",
+      "community": 25,
+      "norm_label": "entrypoint da vercel: expoe o app flask (server/app.py) como funcao serverless.",
+      "id": "index_rationale_1"
+    },
+    {
       "label": "carga_massa.py",
       "file_type": "code",
       "type": "FUNCTION",
@@ -16,7 +45,7 @@
       "heat": 0.011,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_scripts_carga_massa_py",
-      "community": 14,
+      "community": 13,
       "norm_label": "carga_massa.py"
     },
     {
@@ -32,7 +61,7 @@
       "heat": 0.011,
       "owner": "unowned",
       "id": "carga_massa_carregar_ja_processados",
-      "community": 14,
+      "community": 13,
       "norm_label": "carregar_ja_processados()"
     },
     {
@@ -48,7 +77,7 @@
       "heat": 0.01,
       "owner": "unowned",
       "id": "carga_massa_registrar",
-      "community": 14,
+      "community": 13,
       "norm_label": "registrar()"
     },
     {
@@ -64,7 +93,7 @@
       "heat": 0.038,
       "owner": "unowned",
       "id": "carga_massa_main",
-      "community": 14,
+      "community": 13,
       "norm_label": "main()"
     },
     {
@@ -76,7 +105,7 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "community": 14,
+      "community": 13,
       "norm_label": "carga em massa: cria/atualiza todos os itens ativos da planilha no catalogo ifoo",
       "id": "carga_massa_rationale_1"
     },
@@ -241,7 +270,7 @@
       "heat": 0.019,
       "owner": "unowned",
       "id": "app_erroautenticacao",
-      "community": 13,
+      "community": 14,
       "norm_label": "erroautenticacao"
     },
     {
@@ -254,7 +283,7 @@
       "heat": 0.009,
       "owner": "unowned",
       "id": "exception",
-      "community": 13,
+      "community": 14,
       "norm_label": "exception"
     },
     {
@@ -270,7 +299,7 @@
       "heat": 0.004,
       "owner": "unowned",
       "id": "app_erroautenticacao_init",
-      "community": 13,
+      "community": 14,
       "norm_label": ".__init__()"
     },
     {
@@ -286,7 +315,7 @@
       "heat": 0.03,
       "owner": "unowned",
       "id": "app_usuario_atual",
-      "community": 13,
+      "community": 0,
       "norm_label": "usuario_atual()"
     },
     {
@@ -398,7 +427,7 @@
       "heat": 0.032,
       "owner": "unowned",
       "id": "app_tratar_erro",
-      "community": 13,
+      "community": 14,
       "norm_label": "tratar_erro()"
     },
     {
@@ -679,7 +708,7 @@
       "granularity": "low",
       "heat": 0.204,
       "owner": "unowned",
-      "community": 13,
+      "community": 14,
       "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40",
       "community_name": "Community 10",
       "id": "app_rationale_85"
@@ -694,7 +723,7 @@
       "heat": 0.204,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 13,
+      "community": 0,
       "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut",
       "community_name": "Community 10",
       "id": "app_rationale_93"
@@ -736,7 +765,7 @@
       "granularity": "low",
       "heat": 0.204,
       "owner": "unowned",
-      "community": 13,
+      "community": 14,
       "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res",
       "community_name": "Community 10",
       "id": "app_rationale_210"
@@ -1083,7 +1112,7 @@
       "source_location": "L59",
       "level": 3,
       "granularity": "low",
-      "heat": 0.164,
+      "heat": 0.137,
       "owner": "unowned",
       "community": 2,
       "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est",
@@ -1097,7 +1126,7 @@
       "source_location": "L91",
       "level": 3,
       "granularity": "low",
-      "heat": 0.164,
+      "heat": 0.137,
       "owner": "unowned",
       "community": 2,
       "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata",
@@ -1111,7 +1140,7 @@
       "source_location": "L102",
       "level": 3,
       "granularity": "low",
-      "heat": 0.164,
+      "heat": 0.137,
       "owner": "unowned",
       "community": 4,
       "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente.",
@@ -1125,7 +1154,7 @@
       "source_location": "L113",
       "level": 3,
       "granularity": "low",
-      "heat": 0.164,
+      "heat": 0.137,
       "owner": "unowned",
       "community": 4,
       "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo.",
@@ -1145,7 +1174,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_planilha_py",
-      "community": 14,
+      "community": 13,
       "norm_label": "planilha.py"
     },
     {
@@ -1161,7 +1190,7 @@
       "heat": 0.009,
       "owner": "unowned",
       "id": "planilha_carregar_itens",
-      "community": 14,
+      "community": 13,
       "norm_label": "carregar_itens()"
     },
     {
@@ -1173,7 +1202,7 @@
       "granularity": "low",
       "heat": 0.006,
       "owner": "unowned",
-      "community": 14,
+      "community": 13,
       "norm_label": "leitura da planilha de itens/pdv.",
       "id": "planilha_rationale_1"
     },
@@ -1235,7 +1264,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_src_ifood_automacao_init_py",
-      "community": 28,
+      "community": 29,
       "norm_label": "__init__.py"
     },
     {
@@ -1251,7 +1280,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_postcss_config_js",
-      "community": 29,
+      "community": 30,
       "norm_label": "postcss.config.js"
     },
     {
@@ -1267,7 +1296,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_automa_o_apis_delivery_viewer_tailwind_config_js",
-      "community": 30,
+      "community": 31,
       "norm_label": "tailwind.config.js"
     },
     {
@@ -2093,7 +2122,7 @@
       "heat": 0.011,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_scripts_carga_massa_py",
-      "community": 14,
+      "community": 13,
       "norm_label": "carga_massa.py"
     },
     {
@@ -3227,7 +3256,7 @@
       "heat": 0.021,
       "owner": "unowned",
       "id": "app_alterar_status_99food",
-      "community": 4,
+      "community": 0,
       "norm_label": "alterar_status_99food()"
     },
     {
@@ -3335,7 +3364,7 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "community": 13,
+      "community": 14,
       "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40",
       "id": "app_rationale_127"
     },
@@ -3349,7 +3378,7 @@
       "heat": 0.004,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 13,
+      "community": 0,
       "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut",
       "id": "app_rationale_135"
     },
@@ -3388,7 +3417,7 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "community": 13,
+      "community": 14,
       "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res",
       "id": "app_rationale_262"
     },
@@ -3742,9 +3771,9 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "id": "app_rationale_1507",
       "community": 0,
-      "norm_label": "health check que o portal do ifood pode bater ao cadastrar/validar o webhook."
+      "norm_label": "health check que o portal do ifood pode bater ao cadastrar/validar o webhook.",
+      "id": "app_rationale_1507"
     },
     {
       "label": "Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
@@ -3769,9 +3798,9 @@
       "heat": 0.004,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "app_rationale_1592",
       "community": 0,
-      "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o"
+      "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o",
+      "id": "app_rationale_1592"
     },
     {
       "label": "Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
@@ -3782,9 +3811,9 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "id": "app_rationale_1648",
       "community": 0,
-      "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`"
+      "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
+      "id": "app_rationale_1648"
     },
     {
       "label": "Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem",
@@ -3795,9 +3824,9 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "id": "app_rationale_1680",
       "community": 0,
-      "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem"
+      "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
+      "id": "app_rationale_1680"
     },
     {
       "label": "Edi\u00e7\u00e3o combinada (nome/descri\u00e7\u00e3o/pre\u00e7o/PDV) num \u00daNICO updateItem v3 \u2014 evita v\u00e1ri",
@@ -3808,9 +3837,9 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "id": "app_rationale_1825",
       "community": 0,
-      "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari"
+      "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
+      "id": "app_rationale_1825"
     },
     {
       "label": "Cria um item novo no card\u00e1pio do 99 (reconstr\u00f3i o menu + upload v3). N\u00e3o-destrut",
@@ -3821,9 +3850,9 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "id": "app_rationale_1910",
       "community": 0,
-      "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut"
+      "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
+      "id": "app_rationale_1910"
     },
     {
       "label": "Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa",
@@ -3834,9 +3863,25 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "id": "app_rationale_1966",
       "community": 0,
-      "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa"
+      "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
+      "id": "app_rationale_1966"
+    },
+    {
+      "label": "__init__.py",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\server\\__init__.py",
+      "source_location": "L1",
+      "complexity": 1,
+      "loc": 1,
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.002,
+      "owner": "unowned",
+      "id": "c_users_gustavo_desktop_automa_o_ifood_server_init_py",
+      "community": 32,
+      "norm_label": "__init__.py"
     },
     {
       "label": "seed.py",
@@ -5113,7 +5158,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_sistema_pedidos_backend_app_routers_init_py",
-      "community": 31,
+      "community": 33,
       "norm_label": "__init__.py"
     },
     {
@@ -5129,7 +5174,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_sistema_pedidos_frontend_postcss_config_js",
-      "community": 32,
+      "community": 34,
       "norm_label": "postcss.config.js"
     },
     {
@@ -5145,7 +5190,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_sistema_pedidos_frontend_tailwind_config_js",
-      "community": 33,
+      "community": 35,
       "norm_label": "tailwind.config.js"
     },
     {
@@ -5321,7 +5366,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_sistema_pedidos_frontend_src_types_ts",
-      "community": 34,
+      "community": 36,
       "norm_label": "types.ts"
     },
     {
@@ -5337,7 +5382,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_sistema_pedidos_frontend_src_vite_env_d_ts",
-      "community": 35,
+      "community": 37,
       "norm_label": "vite-env.d.ts"
     },
     {
@@ -5497,7 +5542,7 @@
       "heat": 0.004,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_sistema_pedidos_frontend_src_components_statusbadge_tsx",
-      "community": 25,
+      "community": 26,
       "norm_label": "statusbadge.tsx"
     },
     {
@@ -5513,7 +5558,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "statusbadge_statusbadge",
-      "community": 25,
+      "community": 26,
       "norm_label": "statusbadge()"
     },
     {
@@ -6219,7 +6264,7 @@
       "owner": "unowned",
       "sensitivity": "HIGH",
       "id": "auth_food99error",
-      "community": 13,
+      "community": 14,
       "norm_label": "food99error"
     },
     {
@@ -6368,7 +6413,7 @@
       "heat": 0.004,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 13,
+      "community": 14,
       "norm_label": "erro de negocio devolvido pela api (errno != 0).",
       "id": "auth_rationale_26"
     },
@@ -6951,7 +6996,7 @@
       "heat": 0.004,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_src_food99_automacao_init_py",
-      "community": 26,
+      "community": 27,
       "norm_label": "__init__.py"
     },
     {
@@ -6963,7 +7008,7 @@
       "granularity": "low",
       "heat": 0.004,
       "owner": "unowned",
-      "community": 26,
+      "community": 27,
       "norm_label": "cliente da api do 99food / didi food (openapi.didi-food.com).  estrutura espelha",
       "id": "init_rationale_1"
     },
@@ -7744,7 +7789,7 @@
       "heat": 0.006,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_planilha_py",
-      "community": 14,
+      "community": 13,
       "norm_label": "planilha.py"
     },
     {
@@ -7776,7 +7821,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_src_ifood_automacao_init_py",
-      "community": 36,
+      "community": 38,
       "norm_label": "__init__.py"
     },
     {
@@ -7792,7 +7837,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_postcss_config_js",
-      "community": 37,
+      "community": 39,
       "norm_label": "postcss.config.js"
     },
     {
@@ -7808,7 +7853,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "id": "c_users_gustavo_desktop_automa_o_ifood_viewer_tailwind_config_js",
-      "community": 38,
+      "community": 40,
       "norm_label": "tailwind.config.js"
     },
     {
@@ -9505,7 +9550,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 39,
+      "community": 41,
       "norm_label": "o 99 manda todo preco em centavos (ex: 300 = r$3,00) \u2192 converte pra reais.",
       "id": "app_rationale_1534"
     },
@@ -9519,7 +9564,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 40,
+      "community": 42,
       "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o",
       "id": "app_rationale_1539"
     },
@@ -9532,7 +9577,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 41,
+      "community": 43,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1595"
     },
@@ -9545,7 +9590,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 42,
+      "community": 44,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1627"
     },
@@ -9558,7 +9603,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 43,
+      "community": 45,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1772"
     },
@@ -9571,7 +9616,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 44,
+      "community": 46,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1857"
     },
@@ -9584,7 +9629,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 45,
+      "community": 47,
       "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
       "id": "app_rationale_1913"
     },
@@ -9597,7 +9642,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 46,
+      "community": 48,
       "norm_label": "limpar\" no kds: some do quadro sem apagar o pedido (continua em pedidos/auditori",
       "id": "app_rationale_1412"
     },
@@ -9610,7 +9655,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 47,
+      "community": 49,
       "norm_label": "consulta agora os eventos pendentes no ifood (events api) pra loja informada. ch",
       "id": "app_rationale_1430"
     },
@@ -9623,7 +9668,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 48,
+      "community": 50,
       "norm_label": "verificacao/health que o portal do 99 pode fazer ao cadastrar o webhook.",
       "id": "app_rationale_1464"
     },
@@ -9636,7 +9681,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 49,
+      "community": 51,
       "norm_label": "o 99 manda todo preco em centavos (ex: 300 = r$3,00) \u2192 converte pra reais.",
       "id": "app_rationale_1527"
     },
@@ -9650,7 +9695,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 50,
+      "community": 52,
       "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o",
       "id": "app_rationale_1532"
     },
@@ -9663,7 +9708,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 51,
+      "community": 53,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1588"
     },
@@ -9676,7 +9721,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 52,
+      "community": 54,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1620"
     },
@@ -9689,7 +9734,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 53,
+      "community": 55,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1765"
     },
@@ -9702,7 +9747,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 54,
+      "community": 56,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1850"
     },
@@ -9715,7 +9760,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 55,
+      "community": 57,
       "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
       "id": "app_rationale_1906"
     },
@@ -9728,7 +9773,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 56,
+      "community": 58,
       "norm_label": "rotulo pt do no. infere o tipo quando o graphify (modo ast-only) deixa `type=non",
       "id": "gerar_cerebro_rationale_49"
     },
@@ -9741,7 +9786,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 57,
+      "community": 59,
       "norm_label": "rotulo pt do no. infere o tipo quando o graphify (modo ast-only) deixa `type=non",
       "id": "gerar_cerebro_rationale_72"
     },
@@ -9754,7 +9799,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 58,
+      "community": 60,
       "norm_label": "converte o caminho absoluto (com mojibake) num caminho relativo a raiz.",
       "id": "gerar_cerebro_rationale_93"
     },
@@ -9767,7 +9812,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 59,
+      "community": 61,
       "norm_label": "nome-base da nota: label em minusculas, saneado pro sistema de arquivos.",
       "id": "gerar_cerebro_rationale_102"
     },
@@ -9780,7 +9825,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 60,
+      "community": 62,
       "norm_label": "id -> nome unico da nota (com sufixo (2), (3)... em colisoes).",
       "id": "gerar_cerebro_rationale_113"
     },
@@ -9794,7 +9839,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 61,
+      "community": 63,
       "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o",
       "id": "app_rationale_1531"
     },
@@ -9807,7 +9852,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 62,
+      "community": 64,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1619"
     },
@@ -9820,7 +9865,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 63,
+      "community": 65,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1764"
     },
@@ -9833,7 +9878,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 64,
+      "community": 66,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1849"
     },
@@ -9846,7 +9891,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 65,
+      "community": 67,
       "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
       "id": "app_rationale_1905"
     },
@@ -9859,7 +9904,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 66,
+      "community": 68,
       "norm_label": "limpar\" no kds: some do quadro sem apagar o pedido (continua em pedidos/auditori",
       "id": "app_rationale_1405"
     },
@@ -9872,7 +9917,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 67,
+      "community": 69,
       "norm_label": "consulta agora os eventos pendentes no ifood (events api) pra loja informada. ch",
       "id": "app_rationale_1423"
     },
@@ -9885,7 +9930,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 68,
+      "community": 70,
       "norm_label": "verificacao/health que o portal do 99 pode fazer ao cadastrar o webhook.",
       "id": "app_rationale_1457"
     },
@@ -9898,7 +9943,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 69,
+      "community": 71,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1524"
     },
@@ -9911,7 +9956,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 70,
+      "community": 72,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1580"
     },
@@ -9924,7 +9969,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 71,
+      "community": 73,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1612"
     },
@@ -9937,7 +9982,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 72,
+      "community": 74,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1757"
     },
@@ -9950,7 +9995,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 73,
+      "community": 75,
       "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
       "id": "app_rationale_1842"
     },
@@ -9963,7 +10008,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 74,
+      "community": 76,
       "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
       "id": "app_rationale_1898"
     },
@@ -9976,7 +10021,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 75,
+      "community": 77,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1566"
     },
@@ -9989,7 +10034,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 76,
+      "community": 78,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1598"
     },
@@ -10002,7 +10047,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 77,
+      "community": 79,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1743"
     },
@@ -10015,7 +10060,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 78,
+      "community": 80,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1828"
     },
@@ -10028,7 +10073,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 79,
+      "community": 81,
       "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
       "id": "app_rationale_1884"
     },
@@ -10041,7 +10086,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 80,
+      "community": 82,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1561"
     },
@@ -10054,7 +10099,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 81,
+      "community": 83,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1593"
     },
@@ -10067,7 +10112,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 82,
+      "community": 84,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1738"
     },
@@ -10080,7 +10125,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 83,
+      "community": 85,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1823"
     },
@@ -10093,7 +10138,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 84,
+      "community": 86,
       "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
       "id": "app_rationale_1879"
     },
@@ -10106,7 +10151,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 85,
+      "community": 87,
       "norm_label": "consulta agora os eventos pendentes no ifood (events api) pra loja informada. ch",
       "id": "app_rationale_1386"
     },
@@ -10119,7 +10164,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 86,
+      "community": 88,
       "norm_label": "consulta agora os eventos pendentes no ifood (events api) pra loja informada. ch",
       "id": "app_rationale_1404"
     },
@@ -10132,7 +10177,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 87,
+      "community": 89,
       "norm_label": "verificacao/health que o portal do 99 pode fazer ao cadastrar o webhook.",
       "id": "app_rationale_1438"
     },
@@ -10146,7 +10191,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 88,
+      "community": 90,
       "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o",
       "id": "app_rationale_1505"
     },
@@ -10159,7 +10204,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 89,
+      "community": 91,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1542"
     },
@@ -10172,7 +10217,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 90,
+      "community": 92,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1574"
     },
@@ -10185,7 +10230,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 91,
+      "community": 93,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1719"
     },
@@ -10198,7 +10243,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 92,
+      "community": 94,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1804"
     },
@@ -10211,7 +10256,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 93,
+      "community": 95,
       "norm_label": "gera um pedido de teste no formato real do 99 (evento ordernew) e o materializa",
       "id": "app_rationale_1860"
     },
@@ -10224,7 +10269,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 94,
+      "community": 96,
       "norm_label": "busca os detalhes completos do pedido na order api e materializa localmente em",
       "id": "app_rationale_1189"
     },
@@ -10237,7 +10282,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 95,
+      "community": 97,
       "norm_label": "um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no",
       "id": "app_rationale_1243"
     },
@@ -10250,7 +10295,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 96,
+      "community": 98,
       "norm_label": "limpar\" no kds: some do quadro sem apagar o pedido (continua em pedidos/auditori",
       "id": "app_rationale_1368"
     },
@@ -10263,7 +10308,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 97,
+      "community": 99,
       "norm_label": "verificacao/health que o portal do 99 pode fazer ao cadastrar o webhook.",
       "id": "app_rationale_1420"
     },
@@ -10277,7 +10322,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 98,
+      "community": 100,
       "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o",
       "id": "app_rationale_1487"
     },
@@ -10290,7 +10335,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 99,
+      "community": 101,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1556"
     },
@@ -10303,7 +10348,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 100,
+      "community": 102,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1701"
     },
@@ -10316,7 +10361,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 101,
+      "community": 103,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1786"
     },
@@ -10329,7 +10374,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 102,
+      "community": 104,
       "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40",
       "id": "app_rationale_125"
     },
@@ -10343,7 +10388,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 103,
+      "community": 105,
       "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut",
       "id": "app_rationale_133"
     },
@@ -10356,7 +10401,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 104,
+      "community": 106,
       "norm_label": "loja alvo da requisicao: vem de ?loja=<id> na query string, ou a padrao do .env.",
       "id": "app_rationale_198"
     },
@@ -10369,7 +10414,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 105,
+      "community": 107,
       "norm_label": "grava uma linha na tabela `auditoria` do supabase para toda acao que altera o ca",
       "id": "app_rationale_218"
     },
@@ -10382,7 +10427,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 106,
+      "community": 108,
       "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res",
       "id": "app_rationale_260"
     },
@@ -10395,7 +10440,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 107,
+      "community": 109,
       "norm_label": "devolve quem e o usuario logado (id, email, nome, papel) \u2014 o front usa isso depo",
       "id": "app_rationale_297"
     },
@@ -10408,7 +10453,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 108,
+      "community": 110,
       "norm_label": "lojas cadastradas em `public.lojas` no supabase (nao e mais list_merchants() do",
       "id": "app_rationale_305"
     },
@@ -10421,7 +10466,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 109,
+      "community": 111,
       "norm_label": "detalhes completos da loja atual no ifood: razao social, endereco, tipo, status",
       "id": "app_rationale_364"
     },
@@ -10434,7 +10479,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 110,
+      "community": 112,
       "norm_label": "se a loja esta apta a receber pedido agora (por operacao/canal de venda), e se n",
       "id": "app_rationale_373"
     },
@@ -10447,7 +10492,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 111,
+      "community": 113,
       "norm_label": "recebe a imagem em base64 (data url) do front e devolve o imagepath do ifood, pa",
       "id": "app_rationale_382"
     },
@@ -10460,7 +10505,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 112,
+      "community": 114,
       "norm_label": "substitui a semana inteira de horario de funcionamento da loja de uma vez.",
       "id": "app_rationale_430"
     },
@@ -10473,7 +10518,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 113,
+      "community": 115,
       "norm_label": "fecha a loja temporariamente (ex: sem entregador disponivel, cozinha travada).",
       "id": "app_rationale_454"
     },
@@ -10486,7 +10531,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 114,
+      "community": 116,
       "norm_label": "pausa/despausa uma opcao (complemento) sem exclui-la. `option_id` aqui e o `id`",
       "id": "app_rationale_536"
     },
@@ -10499,7 +10544,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 115,
+      "community": 117,
       "norm_label": "edita nome, foto e/ou preco de uma opcao (complemento) ja existente. `product_id",
       "id": "app_rationale_559"
     },
@@ -10513,7 +10558,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 116,
+      "community": 118,
       "norm_label": "cria um item novo. so administrador/gerente pode \u2014 e agora isso e checado de ver",
       "id": "app_rationale_610"
     },
@@ -10526,7 +10571,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 117,
+      "community": 119,
       "norm_label": "edita nome/preco/codigo pdv/foto de um item ja existente. o put do ifood substit",
       "id": "app_rationale_655"
     },
@@ -10539,7 +10584,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 118,
+      "community": 120,
       "norm_label": "edita nome/status/sequencia de uma categoria (ex: pausar a categoria inteira,",
       "id": "app_rationale_734"
     },
@@ -10552,7 +10597,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 119,
+      "community": 121,
       "norm_label": "cria um item do tipo combo_v2 compondo grupos de opcao que ja existem no catalog",
       "id": "app_rationale_770"
     },
@@ -10565,7 +10610,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 120,
+      "community": 122,
       "norm_label": "define em quais dias/horarios um item fica disponivel (ex: um prato que so vende",
       "id": "app_rationale_890"
     },
@@ -10578,7 +10623,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 121,
+      "community": 123,
       "norm_label": "pausa ou despausa varios itens de uma vez, item por item (a api do ifood nao tem",
       "id": "app_rationale_931"
     },
@@ -10591,7 +10636,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 122,
+      "community": 124,
       "norm_label": "liga/desliga a flag que forca troca de senha no proximo login. chamado com true",
       "id": "app_rationale_1029"
     },
@@ -10605,7 +10650,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 123,
+      "community": 125,
       "norm_label": "cria a conta do usuario direto pela admin api do supabase, ja com senha definida",
       "id": "app_rationale_1045"
     },
@@ -10619,7 +10664,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 124,
+      "community": 126,
       "norm_label": "define uma senha nova pra alguem direto pela admin api do supabase e devolve ela",
       "id": "app_rationale_1087"
     },
@@ -10632,7 +10677,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 125,
+      "community": 127,
       "norm_label": "chamado pelo front logo depois que o proprio usuario troca a senha (direto no su",
       "id": "app_rationale_1113"
     },
@@ -10645,7 +10690,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 126,
+      "community": 128,
       "norm_label": "order/events api: implementado a partir da doc publica, ainda nao disparado cont",
       "id": "app_rationale_1165"
     },
@@ -10658,7 +10703,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 127,
+      "community": 129,
       "norm_label": "busca os detalhes completos do pedido na order api e materializa localmente em",
       "id": "app_rationale_1187"
     },
@@ -10671,7 +10716,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 128,
+      "community": 130,
       "norm_label": "um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no",
       "id": "app_rationale_1241"
     },
@@ -10684,7 +10729,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 129,
+      "community": 131,
       "norm_label": "limpar\" no kds: some do quadro sem apagar o pedido (continua em pedidos/auditori",
       "id": "app_rationale_1366"
     },
@@ -10697,7 +10742,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 130,
+      "community": 132,
       "norm_label": "consulta agora os eventos pendentes no ifood (events api) pra loja informada. ch",
       "id": "app_rationale_1384"
     },
@@ -10710,7 +10755,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 131,
+      "community": 133,
       "norm_label": "verificacao/health que o portal do 99 pode fazer ao cadastrar o webhook.",
       "id": "app_rationale_1418"
     },
@@ -10724,7 +10769,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 132,
+      "community": 134,
       "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o",
       "id": "app_rationale_1485"
     },
@@ -10737,7 +10782,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 133,
+      "community": 135,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1522"
     },
@@ -10750,7 +10795,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 134,
+      "community": 136,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1554"
     },
@@ -10763,7 +10808,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 135,
+      "community": 137,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1699"
     },
@@ -10776,7 +10821,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 136,
+      "community": 138,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1784"
     },
@@ -10789,7 +10834,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 137,
+      "community": 139,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1546"
     },
@@ -10802,7 +10847,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 138,
+      "community": 140,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1691"
     },
@@ -10815,7 +10860,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 139,
+      "community": 141,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1776"
     },
@@ -10829,7 +10874,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 140,
+      "community": 142,
       "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.     aceita o",
       "id": "app_rationale_1475"
     },
@@ -10842,7 +10887,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 141,
+      "community": 143,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1512"
     },
@@ -10855,7 +10900,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 142,
+      "community": 144,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1536"
     },
@@ -10868,7 +10913,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 143,
+      "community": 145,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1681"
     },
@@ -10881,7 +10926,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 144,
+      "community": 146,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1766"
     },
@@ -10895,7 +10940,7 @@
       "heat": 0.002,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 145,
+      "community": 147,
       "norm_label": "converte o payload de pedido do 99 numa linha da tabela `pedidos`.",
       "id": "app_rationale_1460"
     },
@@ -10908,7 +10953,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 146,
+      "community": 148,
       "norm_label": "insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`",
       "id": "app_rationale_1489"
     },
@@ -10921,7 +10966,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 147,
+      "community": 149,
       "norm_label": "se o evento do webhook for de pedido, materializa/atualiza no kds. ignora os dem",
       "id": "app_rationale_1513"
     },
@@ -10934,7 +10979,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 148,
+      "community": 150,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1658"
     },
@@ -10947,7 +10992,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 149,
+      "community": 151,
       "norm_label": "edicao combinada (nome/descricao/preco/pdv) num unico updateitem v3 \u2014 evita vari",
       "id": "app_rationale_1558"
     },
@@ -10960,7 +11005,7 @@
       "granularity": "low",
       "heat": 0.002,
       "owner": "unowned",
-      "community": 150,
+      "community": 152,
       "norm_label": "cria um item novo no cardapio do 99 (reconstroi o menu + upload v3). nao-destrut",
       "id": "app_rationale_1643"
     },
@@ -10970,12 +11015,12 @@
       "source_file": "scripts/carga_massa.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 151,
+      "community": 153,
       "community_name": "Community 9",
       "norm_label": "carga em massa: cria/atualiza todos os itens ativos da planilha no catalogo ifoo",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "scripts_carga_massa_rationale_1"
     },
@@ -10985,12 +11030,12 @@
       "source_file": "scripts/descobrir_lojas.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 152,
+      "community": 154,
       "community_name": "Community 15",
       "norm_label": "lista as lojas (merchants) vinculadas as credenciais do .env.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "scripts_descobrir_lojas_rationale_1"
     },
@@ -11000,12 +11045,12 @@
       "source_file": "scripts/exportar_catalogo.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 153,
+      "community": 155,
       "community_name": "Community 16",
       "norm_label": "puxa o catalogo atual (categorias + itens) direto da api do ifood e exporta pra",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "scripts_exportar_catalogo_rationale_1"
     },
@@ -11015,12 +11060,12 @@
       "source_file": "scripts/testar_sandbox.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 154,
+      "community": 156,
       "community_name": "Community 9",
       "norm_label": "cria uma categoria de teste e alguns itens de exemplo da planilha no catalogo sa",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "scripts_testar_sandbox_rationale_1"
     },
@@ -11030,12 +11075,12 @@
       "source_file": "scripts/ver_catalogo.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 155,
+      "community": 157,
       "community_name": "Community 18",
       "norm_label": "lista catalogos e categorias da loja configurada no .env, para inspecao manual.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "scripts_ver_catalogo_rationale_1"
     },
@@ -11045,7 +11090,7 @@
       "source_file": "server/app.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 156,
+      "community": 158,
       "community_name": "Community 1",
       "norm_label": "api local que serve de ponte entre a interface react e a merchant/catalog api do",
       "level": 3,
@@ -11060,7 +11105,7 @@
       "source_file": "server/app.py",
       "source_location": "L124",
       "_origin": "ast",
-      "community": 157,
+      "community": 159,
       "community_name": "Community 10",
       "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40",
       "level": 3,
@@ -11075,7 +11120,7 @@
       "source_file": "server/app.py",
       "source_location": "L132",
       "_origin": "ast",
-      "community": 158,
+      "community": 160,
       "community_name": "Community 10",
       "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut",
       "level": 3,
@@ -11091,7 +11136,7 @@
       "source_file": "server/app.py",
       "source_location": "L197",
       "_origin": "ast",
-      "community": 159,
+      "community": 161,
       "community_name": "Community 1",
       "norm_label": "loja alvo da requisicao: vem de ?loja=<id> na query string, ou a padrao do .env.",
       "level": 3,
@@ -11106,7 +11151,7 @@
       "source_file": "server/app.py",
       "source_location": "L217",
       "_origin": "ast",
-      "community": 160,
+      "community": 162,
       "community_name": "Community 1",
       "norm_label": "grava uma linha na tabela `auditoria` do supabase para toda acao que altera o ca",
       "level": 3,
@@ -11121,7 +11166,7 @@
       "source_file": "server/app.py",
       "source_location": "L252",
       "_origin": "ast",
-      "community": 161,
+      "community": 163,
       "community_name": "Community 10",
       "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res",
       "level": 3,
@@ -11136,7 +11181,7 @@
       "source_file": "server/app.py",
       "source_location": "L289",
       "_origin": "ast",
-      "community": 162,
+      "community": 164,
       "community_name": "Community 1",
       "norm_label": "devolve quem e o usuario logado (id, email, nome, papel) \u2014 o front usa isso depo",
       "level": 3,
@@ -11151,7 +11196,7 @@
       "source_file": "server/app.py",
       "source_location": "L297",
       "_origin": "ast",
-      "community": 163,
+      "community": 165,
       "community_name": "Community 1",
       "norm_label": "lojas cadastradas em `public.lojas` no supabase (nao e mais list_merchants() do",
       "level": 3,
@@ -11166,7 +11211,7 @@
       "source_file": "server/app.py",
       "source_location": "L349",
       "_origin": "ast",
-      "community": 164,
+      "community": 166,
       "community_name": "Community 1",
       "norm_label": "detalhes completos da loja atual no ifood: razao social, endereco, tipo, status",
       "level": 3,
@@ -11181,7 +11226,7 @@
       "source_file": "server/app.py",
       "source_location": "L358",
       "_origin": "ast",
-      "community": 165,
+      "community": 167,
       "community_name": "Community 1",
       "norm_label": "se a loja esta apta a receber pedido agora (por operacao/canal de venda), e se n",
       "level": 3,
@@ -11196,7 +11241,7 @@
       "source_file": "server/app.py",
       "source_location": "L367",
       "_origin": "ast",
-      "community": 166,
+      "community": 168,
       "community_name": "Community 1",
       "norm_label": "recebe a imagem em base64 (data url) do front e devolve o imagepath do ifood, pa",
       "level": 3,
@@ -11211,7 +11256,7 @@
       "source_file": "server/app.py",
       "source_location": "L415",
       "_origin": "ast",
-      "community": 167,
+      "community": 169,
       "community_name": "Community 1",
       "norm_label": "substitui a semana inteira de horario de funcionamento da loja de uma vez.",
       "level": 3,
@@ -11226,7 +11271,7 @@
       "source_file": "server/app.py",
       "source_location": "L439",
       "_origin": "ast",
-      "community": 168,
+      "community": 170,
       "community_name": "Community 1",
       "norm_label": "fecha a loja temporariamente (ex: sem entregador disponivel, cozinha travada).",
       "level": 3,
@@ -11241,7 +11286,7 @@
       "source_file": "server/app.py",
       "source_location": "L521",
       "_origin": "ast",
-      "community": 169,
+      "community": 171,
       "community_name": "Community 1",
       "norm_label": "pausa/despausa uma opcao (complemento) sem exclui-la. `option_id` aqui e o `id`",
       "level": 3,
@@ -11256,7 +11301,7 @@
       "source_file": "server/app.py",
       "source_location": "L544",
       "_origin": "ast",
-      "community": 170,
+      "community": 172,
       "community_name": "Community 1",
       "norm_label": "edita nome, foto e/ou preco de uma opcao (complemento) ja existente. `product_id",
       "level": 3,
@@ -11271,7 +11316,7 @@
       "source_file": "server/app.py",
       "source_location": "L595",
       "_origin": "ast",
-      "community": 171,
+      "community": 173,
       "community_name": "Community 1",
       "norm_label": "cria um item novo. so administrador/gerente pode \u2014 e agora isso e checado de ver",
       "level": 3,
@@ -11287,7 +11332,7 @@
       "source_file": "server/app.py",
       "source_location": "L640",
       "_origin": "ast",
-      "community": 172,
+      "community": 174,
       "community_name": "Community 1",
       "norm_label": "edita nome/preco/codigo pdv/foto de um item ja existente. o put do ifood substit",
       "level": 3,
@@ -11302,7 +11347,7 @@
       "source_file": "server/app.py",
       "source_location": "L719",
       "_origin": "ast",
-      "community": 173,
+      "community": 175,
       "community_name": "Community 1",
       "norm_label": "edita nome/status/sequencia de uma categoria (ex: pausar a categoria inteira,",
       "level": 3,
@@ -11317,7 +11362,7 @@
       "source_file": "server/app.py",
       "source_location": "L755",
       "_origin": "ast",
-      "community": 174,
+      "community": 176,
       "community_name": "Community 1",
       "norm_label": "cria um item do tipo combo_v2 compondo grupos de opcao que ja existem no catalog",
       "level": 3,
@@ -11332,7 +11377,7 @@
       "source_file": "server/app.py",
       "source_location": "L875",
       "_origin": "ast",
-      "community": 175,
+      "community": 177,
       "community_name": "Community 1",
       "norm_label": "define em quais dias/horarios um item fica disponivel (ex: um prato que so vende",
       "level": 3,
@@ -11347,7 +11392,7 @@
       "source_file": "server/app.py",
       "source_location": "L916",
       "_origin": "ast",
-      "community": 176,
+      "community": 178,
       "community_name": "Community 1",
       "norm_label": "pausa ou despausa varios itens de uma vez, item por item (a api do ifood nao tem",
       "level": 3,
@@ -11362,7 +11407,7 @@
       "source_file": "server/app.py",
       "source_location": "L1007",
       "_origin": "ast",
-      "community": 177,
+      "community": 179,
       "community_name": "Community 1",
       "norm_label": "liga/desliga a flag que forca troca de senha no proximo login. chamado com true",
       "level": 3,
@@ -11377,7 +11422,7 @@
       "source_file": "server/app.py",
       "source_location": "L1023",
       "_origin": "ast",
-      "community": 178,
+      "community": 180,
       "community_name": "Community 1",
       "norm_label": "cria a conta do usuario direto pela admin api do supabase, ja com senha definida",
       "level": 3,
@@ -11393,7 +11438,7 @@
       "source_file": "server/app.py",
       "source_location": "L1065",
       "_origin": "ast",
-      "community": 179,
+      "community": 181,
       "community_name": "Community 1",
       "norm_label": "define uma senha nova pra alguem direto pela admin api do supabase e devolve ela",
       "level": 3,
@@ -11409,7 +11454,7 @@
       "source_file": "server/app.py",
       "source_location": "L1091",
       "_origin": "ast",
-      "community": 180,
+      "community": 182,
       "community_name": "Community 1",
       "norm_label": "chamado pelo front logo depois que o proprio usuario troca a senha (direto no su",
       "level": 3,
@@ -11424,7 +11469,7 @@
       "source_file": "server/app.py",
       "source_location": "L1143",
       "_origin": "ast",
-      "community": 181,
+      "community": 183,
       "community_name": "Community 1",
       "norm_label": "order/events api: implementado a partir da doc publica, ainda nao disparado cont",
       "level": 3,
@@ -11439,7 +11484,7 @@
       "source_file": "server/app.py",
       "source_location": "L1165",
       "_origin": "ast",
-      "community": 182,
+      "community": 184,
       "community_name": "Community 4",
       "norm_label": "busca os detalhes completos do pedido na order api e materializa localmente em",
       "level": 3,
@@ -11454,7 +11499,7 @@
       "source_file": "server/app.py",
       "source_location": "L1219",
       "_origin": "ast",
-      "community": 183,
+      "community": 185,
       "community_name": "Community 4",
       "norm_label": "um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no",
       "level": 3,
@@ -11469,7 +11514,7 @@
       "source_file": "server/app.py",
       "source_location": "L1344",
       "_origin": "ast",
-      "community": 184,
+      "community": 186,
       "community_name": "Community 1",
       "norm_label": "limpar\" no kds: some do quadro sem apagar o pedido (continua em pedidos/auditori",
       "level": 3,
@@ -11484,7 +11529,7 @@
       "source_file": "server/app.py",
       "source_location": "L1362",
       "_origin": "ast",
-      "community": 185,
+      "community": 187,
       "community_name": "Community 4",
       "norm_label": "consulta agora os eventos pendentes no ifood (events api) pra loja informada. ch",
       "level": 3,
@@ -11499,12 +11544,12 @@
       "source_file": "src/ifood_automacao/auth.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 186,
+      "community": 188,
       "community_name": "Community 0",
       "norm_label": "autenticacao oauth2 (client_credentials) com a merchant api do ifood.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "sensitivity": "HIGH",
       "id": "src_ifood_automacao_auth_rationale_1"
@@ -11515,12 +11560,12 @@
       "source_file": "src/ifood_automacao/auth.py",
       "source_location": "L17",
       "_origin": "ast",
-      "community": 187,
+      "community": 189,
       "community_name": "Community 0",
       "norm_label": "retorna um access token valido, reaproveitando o cache em memoria enquanto nao e",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "sensitivity": "HIGH",
       "id": "src_ifood_automacao_auth_rationale_17"
@@ -11531,12 +11576,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 188,
+      "community": 190,
       "community_name": "Community 0",
       "norm_label": "cliente fino para os endpoints da merchant api / catalog api do ifood usados na",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_1"
     },
@@ -11546,12 +11591,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 189,
+      "community": 191,
       "community_name": "Community 0",
       "norm_label": "lista as lojas (merchants) associadas as credenciais configuradas.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_11"
     },
@@ -11561,12 +11606,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L18",
       "_origin": "ast",
-      "community": 190,
+      "community": 192,
       "community_name": "Community 0",
       "norm_label": "detalhes completos da loja: nome, razao social, tipo, status e operacoes/canais",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_18"
     },
@@ -11576,12 +11621,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 191,
+      "community": 193,
       "community_name": "Community 0",
       "norm_label": "disponibilidade da loja por operacao/canal de venda: se esta apta a receber pedi",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_26"
     },
@@ -11591,12 +11636,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L77",
       "_origin": "ast",
-      "community": 192,
+      "community": 194,
       "community_name": "Community 0",
       "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_77"
     },
@@ -11606,12 +11651,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L140",
       "_origin": "ast",
-      "community": 193,
+      "community": 195,
       "community_name": "Community 0",
       "norm_label": "cria um item do tipo combo_v2 (ex: \"combo hamburguer e refrigerante\").      `g",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_140"
     },
@@ -11621,12 +11666,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L195",
       "_origin": "ast",
-      "community": 194,
+      "community": 196,
       "community_name": "Community 0",
       "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_195"
     },
@@ -11636,12 +11681,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L206",
       "_origin": "ast",
-      "community": 195,
+      "community": 197,
       "community_name": "Community 0",
       "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_206"
     },
@@ -11651,12 +11696,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L217",
       "_origin": "ast",
-      "community": 196,
+      "community": 198,
       "community_name": "Community 0",
       "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_217"
     },
@@ -11666,12 +11711,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L242",
       "_origin": "ast",
-      "community": 197,
+      "community": 199,
       "community_name": "Community 0",
       "norm_label": "edita nome/status/sequencia de uma categoria. ex: edit_category(m, c, cid, statu",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_242"
     },
@@ -11681,12 +11726,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L272",
       "_origin": "ast",
-      "community": 198,
+      "community": 200,
       "community_name": "Community 0",
       "norm_label": "define os turnos de disponibilidade de um item (ex: item que so vende no almoco)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_272"
     },
@@ -11696,12 +11741,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L326",
       "_origin": "ast",
-      "community": 199,
+      "community": 201,
       "community_name": "Community 0",
       "norm_label": "fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_326"
     },
@@ -11711,12 +11756,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L361",
       "_origin": "ast",
-      "community": 200,
+      "community": 202,
       "community_name": "Community 0",
       "norm_label": "cria um grupo de complemento vazio (ex: \"escolha sua bebida\"). depois associe",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_361"
     },
@@ -11726,12 +11771,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L394",
       "_origin": "ast",
-      "community": 201,
+      "community": 203,
       "community_name": "Community 0",
       "norm_label": "cria uma opcao nova (ex: \"coca-cola\") dentro de um grupo de complemento ja exist",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_394"
     },
@@ -11741,12 +11786,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L415",
       "_origin": "ast",
-      "community": 202,
+      "community": 204,
       "community_name": "Community 0",
       "norm_label": "`option_product_id` e o `productid` devolvido por `create_option` (nao o `id` da",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_415"
     },
@@ -11756,12 +11801,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L430",
       "_origin": "ast",
-      "community": 203,
+      "community": 205,
       "community_name": "Community 0",
       "norm_label": "edita nome e foto de uma opcao (complemento) ja existente. `product_id` e o",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_430"
     },
@@ -11771,12 +11816,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L444",
       "_origin": "ast",
-      "community": 204,
+      "community": 206,
       "community_name": "Community 0",
       "norm_label": "atualiza o preco de uma opcao (complemento) ja existente. endpoint em lote (acei",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_444"
     },
@@ -11786,12 +11831,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L458",
       "_origin": "ast",
-      "community": 205,
+      "community": 207,
       "community_name": "Community 0",
       "norm_label": "pausa/despausa uma opcao (complemento) sem exclui-la. `option_id` e o `id` da op",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_458"
     },
@@ -11801,12 +11846,12 @@
       "source_file": "src/ifood_automacao/client.py",
       "source_location": "L474",
       "_origin": "ast",
-      "community": 206,
+      "community": 208,
       "community_name": "Community 0",
       "norm_label": "envia uma imagem (jpg/jpeg/png, ate 5mb) e devolve o `imagepath` a usar em",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_474"
     },
@@ -11816,12 +11861,12 @@
       "source_file": "src/ifood_automacao/pedidos.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 207,
+      "community": 209,
       "community_name": "Community 4",
       "norm_label": "cliente fino para a order api e a events api (polling) do ifood \u2014 mesmo padrao d",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "src_ifood_automacao_pedidos_rationale_1"
     },
@@ -11831,12 +11876,12 @@
       "source_file": "src/ifood_automacao/pedidos.py",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 208,
+      "community": 210,
       "community_name": "Community 4",
       "norm_label": "busca eventos pendentes (novos pedidos, mudancas de status) da loja. cada evento",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "src_ifood_automacao_pedidos_rationale_26"
     },
@@ -11846,12 +11891,12 @@
       "source_file": "src/ifood_automacao/pedidos.py",
       "source_location": "L41",
       "_origin": "ast",
-      "community": 209,
+      "community": 211,
       "community_name": "Community 4",
       "norm_label": "confirma o recebimento dos eventos \u2014 obrigatorio, senao o ifood reenvia os mesmo",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "src_ifood_automacao_pedidos_rationale_41"
     },
@@ -11861,12 +11906,12 @@
       "source_file": "src/ifood_automacao/pedidos.py",
       "source_location": "L55",
       "_origin": "ast",
-      "community": 210,
+      "community": 212,
       "community_name": "Community 4",
       "norm_label": "payload completo do pedido: cliente, itens com complementos, pagamento, entrega,",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "sensitivity": "HIGH",
       "id": "src_ifood_automacao_pedidos_rationale_55"
@@ -11877,12 +11922,12 @@
       "source_file": "src/ifood_automacao/planilha.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 211,
+      "community": 213,
       "community_name": "Community 9",
       "norm_label": "leitura da planilha de itens/pdv.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "src_ifood_automacao_planilha_rationale_1"
     },
@@ -11892,12 +11937,12 @@
       "source_file": "src/ifood_automacao/rate_limit.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 212,
+      "community": 214,
       "community_name": "Community 9",
       "norm_label": "wrapper simples de retry/backoff para chamadas http sujeitas a rate limit (429)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "src_ifood_automacao_rate_limit_rationale_1"
     },
@@ -11907,12 +11952,12 @@
       "source_file": "viewer/.oxlintrc.json",
       "source_location": "L3",
       "_origin": "ast",
-      "community": 213,
+      "community": 215,
       "community_name": "Community 2",
       "norm_label": "react",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "ref_react"
     },
@@ -11922,12 +11967,12 @@
       "source_file": "viewer/.oxlintrc.json",
       "source_location": "L3",
       "_origin": "ast",
-      "community": 214,
+      "community": 216,
       "community_name": "Community 12",
       "norm_label": "oxc",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "ref_oxc"
     },
@@ -11937,12 +11982,12 @@
       "source_file": "viewer/.oxlintrc.json",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 215,
+      "community": 217,
       "community_name": "Community 12",
       "norm_label": "warn",
       "level": 3,
       "granularity": "low",
-      "heat": 0.042,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "ref_warn"
     },
@@ -11957,7 +12002,7 @@
       "norm_label": "lucide-react",
       "level": 0,
       "granularity": "low",
-      "heat": 0.139,
+      "heat": 0.126,
       "owner": "unowned",
       "id": "lucide_react"
     },
@@ -11972,7 +12017,7 @@
       "norm_label": "react",
       "level": 0,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.121,
       "owner": "unowned",
       "id": "react"
     },
@@ -11982,12 +12027,12 @@
       "source_file": "viewer/package.json",
       "source_location": "L15",
       "_origin": "ast",
-      "community": 216,
+      "community": 218,
       "community_name": "devDependencies",
       "norm_label": "react-dom",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "react_dom"
     },
@@ -12002,7 +12047,7 @@
       "norm_label": "recharts",
       "level": 3,
       "granularity": "low",
-      "heat": 0.084,
+      "heat": 0.071,
       "owner": "unowned",
       "id": "recharts"
     },
@@ -12012,12 +12057,12 @@
       "source_file": "viewer/package.json",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 217,
+      "community": 219,
       "community_name": "devDependencies",
       "norm_label": "@types/react",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "types_react"
     },
@@ -12027,12 +12072,12 @@
       "source_file": "viewer/package.json",
       "source_location": "L20",
       "_origin": "ast",
-      "community": 218,
+      "community": 220,
       "community_name": "devDependencies",
       "norm_label": "@types/react-dom",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "types_react_dom"
     },
@@ -12042,12 +12087,12 @@
       "source_file": "viewer/package.json",
       "source_location": "L21",
       "_origin": "ast",
-      "community": 219,
+      "community": 221,
       "community_name": "devDependencies",
       "norm_label": "@vitejs/plugin-react",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "vitejs_plugin_react"
     },
@@ -12057,12 +12102,12 @@
       "source_file": "viewer/package.json",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 220,
+      "community": 222,
       "community_name": "devDependencies",
       "norm_label": "autoprefixer",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "autoprefixer"
     },
@@ -12072,12 +12117,12 @@
       "source_file": "viewer/package.json",
       "source_location": "L23",
       "_origin": "ast",
-      "community": 221,
+      "community": 223,
       "community_name": "devDependencies",
       "norm_label": "oxlint",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "oxlint"
     },
@@ -12087,12 +12132,12 @@
       "source_file": "viewer/package.json",
       "source_location": "L24",
       "_origin": "ast",
-      "community": 222,
+      "community": 224,
       "community_name": "devDependencies",
       "norm_label": "postcss",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "postcss"
     },
@@ -12102,12 +12147,12 @@
       "source_file": "viewer/package.json",
       "source_location": "L25",
       "_origin": "ast",
-      "community": 223,
+      "community": 225,
       "community_name": "devDependencies",
       "norm_label": "tailwindcss",
       "level": 3,
       "granularity": "low",
-      "heat": 0.082,
+      "heat": 0.068,
       "owner": "unowned",
       "id": "tailwindcss"
     },
@@ -12122,7 +12167,7 @@
       "norm_label": "vite",
       "level": 2,
       "granularity": "low",
-      "heat": 0.089,
+      "heat": 0.075,
       "owner": "unowned",
       "id": "vite"
     },
@@ -12132,12 +12177,12 @@
       "source_file": "CLAUDE.md",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 27,
+      "community": 28,
       "community_name": "CLAUDE.md",
       "norm_label": "claude.md",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "claude"
     },
@@ -12147,12 +12192,12 @@
       "source_file": "CLAUDE.md",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 27,
+      "community": 28,
       "community_name": "CLAUDE.md",
       "norm_label": "graphify",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "claude_graphify"
     },
@@ -12167,7 +12212,7 @@
       "norm_label": "homologacao.md",
       "level": 3,
       "granularity": "low",
-      "heat": 0.084,
+      "heat": 0.071,
       "owner": "unowned",
       "id": "homologacao"
     },
@@ -12182,7 +12227,7 @@
       "norm_label": "mapa de homologacao \u2014 modulos de catalogo e merchant ifood",
       "level": 1,
       "granularity": "low",
-      "heat": 0.094,
+      "heat": 0.08,
       "owner": "unowned",
       "id": "homologacao_mapa_de_homologa\u00e7\u00e3o_m\u00f3dulos_de_cat\u00e1logo_e_merchant_ifood"
     },
@@ -12197,7 +12242,7 @@
       "norm_label": "tabela geral",
       "level": 3,
       "granularity": "low",
-      "heat": 0.084,
+      "heat": 0.071,
       "owner": "unowned",
       "id": "homologacao_tabela_geral"
     },
@@ -12212,7 +12257,7 @@
       "norm_label": "o que esta 100% pronto e testado",
       "level": 3,
       "granularity": "low",
-      "heat": 0.084,
+      "heat": 0.071,
       "owner": "unowned",
       "id": "homologacao_o_que_est\u00e1_100_pronto_e_testado"
     },
@@ -12227,7 +12272,7 @@
       "norm_label": "o que esta bloqueado, e por que",
       "level": 2,
       "granularity": "low",
-      "heat": 0.089,
+      "heat": 0.075,
       "owner": "unowned",
       "id": "homologacao_o_que_est\u00e1_bloqueado_e_por_qu\u00ea"
     },
@@ -12242,7 +12287,7 @@
       "norm_label": "\ud83d\udd34 promocao (duracao de desconto)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.084,
+      "heat": 0.071,
       "owner": "unowned",
       "id": "homologacao_promo\u00e7\u00e3o_dura\u00e7\u00e3o_de_desconto"
     },
@@ -12257,7 +12302,7 @@
       "norm_label": "\ud83d\udd34 tags do item (vegan, organic...)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.084,
+      "heat": 0.071,
       "owner": "unowned",
       "id": "homologacao_tags_do_item_vegan_organic"
     },
@@ -12272,7 +12317,7 @@
       "norm_label": "o que ainda nao esta na interface (`viewer/`)",
       "level": 2,
       "granularity": "low",
-      "heat": 0.086,
+      "heat": 0.073,
       "owner": "unowned",
       "id": "homologacao_o_que_ainda_n\u00e3o_est\u00e1_na_interface_viewer"
     },
@@ -12287,7 +12332,7 @@
       "norm_label": "limitacao conhecida: opcoes (complementos) somem da tela apos recarregar",
       "level": 3,
       "granularity": "low",
-      "heat": 0.084,
+      "heat": 0.071,
       "owner": "unowned",
       "id": "homologacao_limita\u00e7\u00e3o_conhecida_op\u00e7\u00f5es_complementos_somem_da_tela_ap\u00f3s_recarregar"
     },
@@ -12302,7 +12347,7 @@
       "norm_label": "readme.md",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme"
     },
@@ -12317,7 +12362,7 @@
       "norm_label": "automacao de catalogo ifood \u2014 cajupar",
       "level": 0,
       "granularity": "low",
-      "heat": 0.148,
+      "heat": 0.128,
       "owner": "unowned",
       "id": "readme_automa\u00e7\u00e3o_de_cat\u00e1logo_ifood_cajupar"
     },
@@ -12332,7 +12377,7 @@
       "norm_label": "arquitetura",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_arquitetura"
     },
@@ -12347,7 +12392,7 @@
       "norm_label": "subindo o projeto",
       "level": 2,
       "granularity": "low",
-      "heat": 0.129,
+      "heat": 0.109,
       "owner": "unowned",
       "id": "readme_subindo_o_projeto"
     },
@@ -12362,7 +12407,7 @@
       "norm_label": "opcao rapida (windows)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_op\u00e7\u00e3o_r\u00e1pida_windows"
     },
@@ -12377,7 +12422,7 @@
       "norm_label": "manual",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_manual"
     },
@@ -12392,7 +12437,7 @@
       "norm_label": "variaveis de ambiente (`.env`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_vari\u00e1veis_de_ambiente_env"
     },
@@ -12407,7 +12452,7 @@
       "norm_label": "api local (`server/app.py`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_api_local_server_app_py"
     },
@@ -12422,7 +12467,7 @@
       "norm_label": "pausar / despausar itens",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_pausar_despausar_itens"
     },
@@ -12437,7 +12482,7 @@
       "norm_label": "auditoria e logs",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_auditoria_e_logs"
     },
@@ -12452,7 +12497,7 @@
       "norm_label": "login, papeis e convites",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_login_pap\u00e9is_e_convites"
     },
@@ -12467,7 +12512,7 @@
       "norm_label": "scripts (`scripts/`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_scripts_scripts"
     },
@@ -12482,7 +12527,7 @@
       "norm_label": "deploy no vercel",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_deploy_no_vercel"
     },
@@ -12497,7 +12542,7 @@
       "norm_label": "sandbox vs. producao",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "readme_sandbox_vs_produ\u00e7\u00e3o"
     },
@@ -12512,7 +12557,7 @@
       "norm_label": "briefing_redesign.md",
       "level": 2,
       "granularity": "low",
-      "heat": 0.046,
+      "heat": 0.04,
       "owner": "unowned",
       "id": "viewer_briefing_redesign"
     },
@@ -12527,7 +12572,7 @@
       "norm_label": "briefing do sistema \u2014 pra quem for redesenhar",
       "level": 0,
       "granularity": "low",
-      "heat": 0.066,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_briefing_do_sistema_pra_quem_for_redesenhar"
     },
@@ -12542,7 +12587,7 @@
       "norm_label": "o que e",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_o_que_\u00e9"
     },
@@ -12557,7 +12602,7 @@
       "norm_label": "stack tecnica",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_stack_t\u00e9cnica"
     },
@@ -12572,7 +12617,7 @@
       "norm_label": "papeis e permissoes",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_pap\u00e9is_e_permiss\u00f5es"
     },
@@ -12587,7 +12632,7 @@
       "norm_label": "telas (fora do painel logado)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_telas_fora_do_painel_logado"
     },
@@ -12602,7 +12647,7 @@
       "norm_label": "o painel logado \u2014 layout de cima pra baixo",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_o_painel_logado_layout_de_cima_pra_baixo"
     },
@@ -12617,7 +12662,7 @@
       "norm_label": "modais",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_modais"
     },
@@ -12632,7 +12677,7 @@
       "norm_label": "toasts (avisos temporarios)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_toasts_avisos_tempor\u00e1rios"
     },
@@ -12647,7 +12692,7 @@
       "norm_label": "dados que a tela consome (via api do backend flask)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_dados_que_a_tela_consome_via_api_do_backend_flask"
     },
@@ -12662,7 +12707,7 @@
       "norm_label": "o que precisa continuar existindo num redesign",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_o_que_precisa_continuar_existindo_num_redesign"
     },
@@ -12677,7 +12722,7 @@
       "norm_label": "claude.md",
       "level": 2,
       "granularity": "low",
-      "heat": 0.046,
+      "heat": 0.04,
       "owner": "unowned",
       "id": "viewer_claude"
     },
@@ -12692,7 +12737,7 @@
       "norm_label": "design deste painel",
       "level": 1,
       "granularity": "low",
-      "heat": 0.056,
+      "heat": 0.049,
       "owner": "unowned",
       "id": "viewer_claude_design_deste_painel"
     },
@@ -12707,7 +12752,7 @@
       "norm_label": "regras principais",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_claude_regras_principais"
     },
@@ -12722,7 +12767,7 @@
       "norm_label": "classes reutilizaveis (`index.css`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_claude_classes_reutiliz\u00e1veis_index_css"
     },
@@ -12737,7 +12782,7 @@
       "norm_label": "cores de status (ja usadas em `paletas` no `app.jsx`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_claude_cores_de_status_j\u00e1_usadas_em_paletas_no_app_jsx"
     },
@@ -12752,7 +12797,7 @@
       "norm_label": "graficos",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_claude_gr\u00e1ficos"
     },
@@ -12767,7 +12812,7 @@
       "norm_label": "antes de considerar terminado",
       "level": 3,
       "granularity": "low",
-      "heat": 0.044,
+      "heat": 0.037,
       "owner": "unowned",
       "id": "viewer_claude_antes_de_considerar_terminado"
     },
@@ -12782,7 +12827,7 @@
       "norm_label": "readme.md",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "viewer_readme"
     },
@@ -12797,7 +12842,7 @@
       "norm_label": "react + vite",
       "level": 2,
       "granularity": "low",
-      "heat": 0.129,
+      "heat": 0.109,
       "owner": "unowned",
       "id": "viewer_readme_react_vite"
     },
@@ -12812,7 +12857,7 @@
       "norm_label": "react compiler",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "viewer_readme_react_compiler"
     },
@@ -12827,7 +12872,7 @@
       "norm_label": "expanding the oxlint configuration",
       "level": 3,
       "granularity": "low",
-      "heat": 0.124,
+      "heat": 0.104,
       "owner": "unowned",
       "id": "viewer_readme_expanding_the_oxlint_configuration"
     },
@@ -12840,7 +12885,7 @@
       "granularity": "low",
       "heat": 0.202,
       "owner": "unowned",
-      "community": 224,
+      "community": 226,
       "norm_label": "falha de login/permissao \u2014 sessao ausente/expirada (401) ou papel sem acesso (40",
       "community_name": "Community 10",
       "id": "app_rationale_106"
@@ -12855,7 +12900,7 @@
       "heat": 0.202,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 225,
+      "community": 227,
       "norm_label": "valida a sessao (header authorization: bearer <token>, emitido pelo supabase aut",
       "community_name": "Community 10",
       "id": "app_rationale_114"
@@ -12869,7 +12914,7 @@
       "granularity": "low",
       "heat": 0.202,
       "owner": "unowned",
-      "community": 226,
+      "community": 228,
       "norm_label": "loja alvo da requisicao: vem de ?loja=<id> na query string, ou a padrao do .env.",
       "community_name": "Community 1",
       "id": "app_rationale_179"
@@ -12883,7 +12928,7 @@
       "granularity": "low",
       "heat": 0.202,
       "owner": "unowned",
-      "community": 227,
+      "community": 229,
       "norm_label": "grava uma linha na tabela `auditoria` do supabase para toda acao que altera o ca",
       "community_name": "Community 1",
       "id": "app_rationale_199"
@@ -12897,7 +12942,7 @@
       "granularity": "low",
       "heat": 0.202,
       "owner": "unowned",
-      "community": 228,
+      "community": 230,
       "norm_label": "converte qualquer falha (login, rede, api do ifood/supabase, validacao) numa res",
       "community_name": "Community 10",
       "id": "app_rationale_234"
@@ -12911,7 +12956,7 @@
       "granularity": "low",
       "heat": 0.202,
       "owner": "unowned",
-      "community": 229,
+      "community": 231,
       "norm_label": "devolve quem e o usuario logado (id, email, nome, papel) \u2014 o front usa isso depo",
       "community_name": "Community 1",
       "id": "app_rationale_271"
@@ -12925,7 +12970,7 @@
       "granularity": "low",
       "heat": 0.202,
       "owner": "unowned",
-      "community": 230,
+      "community": 232,
       "norm_label": "lojas cadastradas em `public.lojas` no supabase (nao e mais list_merchants() do",
       "community_name": "Community 1",
       "id": "app_rationale_279"
@@ -12940,7 +12985,7 @@
       "heat": 0.202,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 231,
+      "community": 233,
       "norm_label": "cria um item novo. so administrador/gerente pode \u2014 e agora isso e checado de ver",
       "community_name": "Community 1",
       "id": "app_rationale_477"
@@ -12954,7 +12999,7 @@
       "granularity": "low",
       "heat": 0.202,
       "owner": "unowned",
-      "community": 232,
+      "community": 234,
       "norm_label": "pausa ou despausa varios itens de uma vez, item por item (a api do ifood nao tem",
       "community_name": "Community 1",
       "id": "app_rationale_751"
@@ -12969,7 +13014,7 @@
       "heat": 0.202,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "community": 233,
+      "community": 235,
       "norm_label": "define uma senha nova pra alguem direto pela admin api do supabase e devolve ela",
       "community_name": "Community 1",
       "id": "app_rationale_900"
@@ -12981,9 +13026,9 @@
       "source_location": "L60",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
-      "community": 234,
+      "community": 236,
       "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est",
       "community_name": "Community 0",
       "id": "client_rationale_60"
@@ -12995,9 +13040,9 @@
       "source_location": "L175",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
-      "community": 235,
+      "community": 237,
       "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata",
       "community_name": "Community 0",
       "id": "client_rationale_175"
@@ -13009,9 +13054,9 @@
       "source_location": "L186",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
-      "community": 236,
+      "community": 238,
       "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente.",
       "community_name": "Community 0",
       "id": "client_rationale_186"
@@ -13023,15 +13068,27 @@
       "source_location": "L197",
       "level": 3,
       "granularity": "low",
-      "heat": 0.162,
+      "heat": 0.135,
       "owner": "unowned",
-      "community": 237,
+      "community": 239,
       "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo.",
       "community_name": "Community 0",
       "id": "client_rationale_197"
     }
   ],
   "links": [
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Gustavo\\Desktop\\automa\u00e7\u00e3o ifood\\api\\index.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_src": "index_rationale_1",
+      "_tgt": "c_users_gustavo_desktop_automa_o_ifood_api_index_py",
+      "source": "c_users_gustavo_desktop_automa_o_ifood_api_index_py",
+      "target": "index_rationale_1",
+      "confidence_score": 1.0
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",

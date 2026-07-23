@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1430) (0 connections)
+- [Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1913) (0 connections)
 
 ## Relationships
 

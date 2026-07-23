@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Define em quais dias/horários um item fica disponível (ex: um prato que só vende](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L875) (0 connections)
+- [Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L719) (0 connections)
 
 ## Relationships
 

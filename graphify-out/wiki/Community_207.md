@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cliente fino para a Order API e a Events API (polling) do iFood — mesmo padrão d](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L1) (0 connections)
+- [Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` é o `id` da op](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L458) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [src/ifood_automacao/pedidos.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py)
+- [src/ifood_automacao/client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py)
 
 ## Audit Trail
 

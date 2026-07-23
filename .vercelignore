@@ -1,0 +1,17 @@
+# Só o backend Python vai pra Vercel. Fica de fora tudo que não é runtime da API.
+viewer/
+.venv/
+venv/
+node_modules/
+graphify-out/
+cerebro-sistema/
+data/
+sistema-pedidos/
+automa-o-apis-delivery/
+_handoff_extraido/
+scripts/
+sql/
+.claude/
+*.md
+*.bat
+.cerebro-pause

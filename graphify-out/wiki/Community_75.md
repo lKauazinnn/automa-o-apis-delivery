@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1566) (0 connections)
+- [Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1842) (0 connections)
 
 ## Relationships
 

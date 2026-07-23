@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [@vitejs/plugin-react](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L21) (0 connections)
+- [@types/react](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L19) (0 connections)
 
 ## Relationships
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L358) (0 connections)
+- [Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L297) (0 connections)
 
 ## Relationships
 

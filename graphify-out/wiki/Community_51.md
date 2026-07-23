@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1588) (0 connections)
+- [O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1527) (0 connections)
 
 ## Relationships
 

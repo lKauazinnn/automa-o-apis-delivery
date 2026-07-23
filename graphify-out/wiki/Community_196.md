@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Atualiza globalmente o preço de um item já existente no catálogo.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L217) (0 connections)
+- [Atualiza globalmente o código PDV (externalCode) de um item já existente no catá](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L195) (0 connections)
 
 ## Relationships
 

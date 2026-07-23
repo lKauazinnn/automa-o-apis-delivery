@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Busca eventos pendentes (novos pedidos, mudanças de status) da loja. Cada evento](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L26) (0 connections)
+- [Envia uma imagem (jpg/jpeg/png, até 5MB) e devolve o `imagePath` a usar em](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L474) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [src/ifood_automacao/pedidos.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py)
+- [src/ifood_automacao/client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py)
 
 ## Audit Trail
 

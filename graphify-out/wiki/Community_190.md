@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Detalhes completos da loja: nome, razão social, tipo, status e operações/canais](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L18) (0 connections)
+- [Cliente fino para os endpoints da Merchant API / Catalog API do iFood usados na](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L1) (0 connections)
 
 ## Relationships
 

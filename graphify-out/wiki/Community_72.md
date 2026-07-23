@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1757) (0 connections)
+- [Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1580) (0 connections)
 
 ## Relationships
 

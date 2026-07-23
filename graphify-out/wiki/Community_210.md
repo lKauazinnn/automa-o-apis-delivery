@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Payload completo do pedido: cliente, itens com complementos, pagamento, entrega,](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L55) (0 connections)
+- [Busca eventos pendentes (novos pedidos, mudanças de status) da loja. Cada evento](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L26) (0 connections)
 
 ## Relationships
 

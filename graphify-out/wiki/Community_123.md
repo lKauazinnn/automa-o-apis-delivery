@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1045) (0 connections)
+- [Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L931) (0 connections)
 
 ## Relationships
 

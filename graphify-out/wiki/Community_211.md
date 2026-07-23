@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Leitura da planilha de itens/PDV.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py#L1) (0 connections)
+- [Confirma o recebimento dos eventos — obrigatório, senão o iFood reenvia os mesmo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L41) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [src/ifood_automacao/planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py)
+- [src/ifood_automacao/pedidos.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py)
 
 ## Audit Trail
 

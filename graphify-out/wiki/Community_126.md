@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Order/Events API: implementado a partir da doc pública, ainda não disparado cont](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1165) (0 connections)
+- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1087) (0 connections)
 
 ## Relationships
 

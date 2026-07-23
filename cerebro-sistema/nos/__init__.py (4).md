@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 26
-heat: 0.004
+comunidade: 33
+heat: 0.002
 complexidade: 1
-arquivo: "src/food99_automacao/__init__.py"
+arquivo: "sistema-pedidos/backend/app/routers/__init__.py"
 local: L1
-tags: [c/26, tipo/função]
+tags: [c/33, tipo/função]
 ---
 
 # __init__.py

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Lista as lojas (merchants) vinculadas às credenciais do .env.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py#L1) (0 connections)
+- [Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1643) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [scripts/descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 
 ## Audit Trail
 

@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 4
+comunidade: 0
 heat: 0.021
 complexidade: 6
 arquivo: "server/app.py"
 local: L1764
-tags: [c/4, tipo/função]
+tags: [c/0, tipo/função]
 ---
 
 # alterar_status_99food()

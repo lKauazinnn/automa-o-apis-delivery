@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L477) (0 connections)
+- [Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L271) (0 connections)
 
 ## Relationships
 

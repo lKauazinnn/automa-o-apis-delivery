@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L770) (0 connections)
+- [Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L655) (0 connections)
 
 ## Relationships
 

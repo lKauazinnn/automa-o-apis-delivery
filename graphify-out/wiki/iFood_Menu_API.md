@@ -1,6 +1,6 @@
 # iFood Menu API
 
-> 132 nodes · cohesion 0.04
+> 136 nodes · cohesion 0.04
 
 ## Key Concepts
 
@@ -29,11 +29,11 @@
 - [criar_categoria_dedicada()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L720) (6 connections)
 - [criar_interrupcao()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L455) (6 connections)
 - [_criar_pedido_local()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1206) (6 connections)
-- *... and 107 more nodes in this community*
+- *... and 111 more nodes in this community*
 
 ## Relationships
 
-- [[Community 56]] (1 shared connections)
+- No strong cross-community connections detected
 
 ## Source Files
 
@@ -46,8 +46,8 @@
 
 ## Audit Trail
 
-- EXTRACTED: 549 (78%)
-- INFERRED: 152 (22%)
+- EXTRACTED: 559 (78%)
+- INFERRED: 154 (22%)
 - AMBIGUOUS: 0 (0%)
 
 ---

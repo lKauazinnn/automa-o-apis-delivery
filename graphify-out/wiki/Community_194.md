@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Atualiza globalmente o código PDV (externalCode) de um item já existente no catá](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L195) (0 connections)
+- [Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L77) (0 connections)
 
 ## Relationships
 

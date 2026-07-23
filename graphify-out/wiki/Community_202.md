@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [`option_product_id` é o `productId` devolvido por `create_option` (não o `id` da](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L415) (0 connections)
+- [Cria um grupo de complemento vazio (ex: "Escolha sua bebida"). Depois associe](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L361) (0 connections)
 
 ## Relationships
 

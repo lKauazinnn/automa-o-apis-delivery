@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Lista catálogos e categorias da loja configurada no .env, para inspeção manual.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/ver_catalogo.py#L1) (0 connections)
+- [Puxa o catálogo atual (categorias + itens) direto da API do iFood e exporta pra](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/exportar_catalogo.py#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [scripts/ver_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/ver_catalogo.py)
+- [scripts/exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/exportar_catalogo.py)
 
 ## Audit Trail
 

@@ -238,7 +238,9 @@
     "234": "Community 234",
     "235": "Community 235",
     "236": "Community 236",
-    "237": "Community 237"
+    "237": "Community 237",
+    "238": "Community 238",
+    "239": "Community 239"
   },
   "communitySummaries": {
     "0": "Handles OAuth2 authentication and CRUD operations for categories, combos, options, and interruptions in the iFood merchant catalog.",
@@ -478,10 +480,12 @@
     "234": "",
     "235": "",
     "236": "",
-    "237": ""
+    "237": "",
+    "238": "",
+    "239": ""
   },
   "communityLinks": {
-    "14": {
+    "13": {
       "2": 2,
       "0": 2
     },
@@ -489,18 +493,18 @@
       "4": 6
     },
     "0": {
-      "13": 4,
-      "4": 10,
+      "14": 2,
+      "4": 8,
       "3": 2
     },
-    "13": {
+    "14": {
       "0": 4,
       "4": 1
     },
     "4": {
       "2": 3,
       "0": 2,
-      "13": 1
+      "14": 1
     },
     "7": {
       "1": 4,

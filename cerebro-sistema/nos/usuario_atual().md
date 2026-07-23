@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 13
+comunidade: 0
 heat: 0.03
 complexidade: 8
 arquivo: "server/app.py"
 local: L134
-tags: [c/13, tipo/função]
+tags: [c/0, tipo/função]
 ---
 
 # usuario_atual()

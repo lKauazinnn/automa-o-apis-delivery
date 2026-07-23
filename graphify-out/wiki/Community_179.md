@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1065) (0 connections)
+- [Liga/desliga a flag que força troca de senha no próximo login. Chamado com True](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1007) (0 connections)
 
 ## Relationships
 

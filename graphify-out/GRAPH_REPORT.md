@@ -1,11 +1,11 @@
 # Graph Report - C:\Users\Gustavo\Desktop\automação ifood  (2026-07-23)
 
 ## Corpus Check
-- 85 files · ~216,110 words
+- 87 files · ~218,265 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 864 nodes · 1169 edges · 238 communities detected
+- 867 nodes · 1170 edges · 240 communities detected
 - Extraction: 80% EXTRACTED · 20% INFERRED · 0% AMBIGUOUS · INFERRED: 233 edges (avg confidence: 0.72)
 - Token cost: 0 input · 0 output
 
@@ -248,6 +248,8 @@
 - [[_COMMUNITY_Community 235|Community 235]]
 - [[_COMMUNITY_Community 236|Community 236]]
 - [[_COMMUNITY_Community 237|Community 237]]
+- [[_COMMUNITY_Community 238|Community 238]]
+- [[_COMMUNITY_Community 239|Community 239]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `auth_headers()` - 41 edges
@@ -278,7 +280,7 @@
 ### Community 0 - "Community 0"
 _Handles OAuth2 authentication and CRUD operations for categories, combos, options, and interruptions in the iFood merchant catalog._
 Cohesion: 0.04
-Nodes (127): _agora_iso(), alterar_codigo_pdv(), alterar_codigo_pdv_99food(), alterar_nome_descricao_99food(), alterar_papel_usuario(), alterar_preco(), alterar_preco_99food(), alterar_status() (+119 more)
+Nodes (131): _agora_iso(), alterar_codigo_pdv(), alterar_codigo_pdv_99food(), alterar_nome_descricao_99food(), alterar_papel_usuario(), alterar_preco(), alterar_preco_99food(), alterar_status() (+123 more)
 
 ### Community 1 - "Community 1"
 
@@ -297,8 +299,8 @@ Nodes (56): Base, BaseModel, create_order(), gerar_codigo(), get_order(), list_o
 
 ### Community 4 - "Community 4"
 _Manages user authentication, session handling, password setup, login/logout, URL-based invite handling, and error processing via Supabase._
-Cohesion: 0.07
-Nodes (50): alterar_status_99food(), _app_id(), _app_secret(), _buscar_token(), checar(), gerar_sign(), get_auth_token(), get_authorization_url() (+42 more)
+Cohesion: 0.08
+Nodes (49): _app_id(), _app_secret(), _buscar_token(), checar(), gerar_sign(), get_auth_token(), get_authorization_url(), POST auth/authorizationpage/getUrl — devolve a página de auto-vínculo pro lojist (+41 more)
 
 ### Community 5 - "Community 5"
 
@@ -342,13 +344,13 @@ Nodes (13): API local (`server/app.py`), Arquitetura, Auditoria e logs, Automaç
 
 ### Community 13 - "Community 13"
 
-Cohesion: 0.15
-Nodes (12): ErroAutenticacao, Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40, Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut, Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res, Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res, Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40, Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut, tratar_erro() (+4 more)
+Cohesion: 0.33
+Nodes (6): carregar_ja_processados(), main(), Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo, registrar(), carregar_itens(), Leitura da planilha de itens/PDV.
 
 ### Community 14 - "Community 14"
 
-Cohesion: 0.33
-Nodes (6): carregar_ja_processados(), main(), Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo, registrar(), carregar_itens(), Leitura da planilha de itens/PDV.
+Cohesion: 0.2
+Nodes (9): ErroAutenticacao, Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40, Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res, Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res, Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40, tratar_erro(), Food99Error, Erro de negócio devolvido pela API (errno != 0). (+1 more)
 
 ### Community 15 - "Community 15"
 
@@ -403,22 +405,22 @@ Nodes (1): Lista catálogos e categorias da loja configurada no .env, para inspe
 ### Community 25 - "Community 25"
 _Unable to determine domain due to missing code entities._
 Cohesion: 1.0
-Nodes (0): 
+Nodes (1): Entrypoint da Vercel: expõe o app Flask (server/app.py) como função serverless.
 
 ### Community 26 - "Community 26"
 _Unable to determine domain due to missing code entities._
 Cohesion: 1.0
-Nodes (1): Cliente da API do 99Food / DiDi Food (openapi.didi-food.com).  Estrutura espelha
+Nodes (0): 
 
 ### Community 27 - "Community 27"
 _Unable to determine domain due to missing code entities._
 Cohesion: 1.0
-Nodes (1): graphify
+Nodes (1): Cliente da API do 99Food / DiDi Food (openapi.didi-food.com).  Estrutura espelha
 
 ### Community 28 - "Community 28"
 _Unable to determine domain due to missing code entities._
 Cohesion: 1.0
-Nodes (0): 
+Nodes (1): graphify
 
 ### Community 29 - "Community 29"
 _Unable to determine domain due to missing code entities._
@@ -473,1424 +475,1438 @@ Nodes (0):
 ### Community 39 - "Community 39"
 _Unable to determine domain due to missing code entities._
 Cohesion: 1.0
-Nodes (1): O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.
+Nodes (0): 
 
 ### Community 40 - "Community 40"
 
 Cohesion: 1.0
-Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
+Nodes (0): 
 
 ### Community 41 - "Community 41"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.
 
 ### Community 42 - "Community 42"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
 
 ### Community 43 - "Community 43"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 44 - "Community 44"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 45 - "Community 45"
 
 Cohesion: 1.0
-Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 46 - "Community 46"
 
 Cohesion: 1.0
-Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 47 - "Community 47"
 
 Cohesion: 1.0
-Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
+Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
 
 ### Community 48 - "Community 48"
 
 Cohesion: 1.0
-Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
+Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
 
 ### Community 49 - "Community 49"
 
 Cohesion: 1.0
-Nodes (1): O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.
+Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
 
 ### Community 50 - "Community 50"
 
 Cohesion: 1.0
-Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
+Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
 
 ### Community 51 - "Community 51"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.
 
 ### Community 52 - "Community 52"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
 
 ### Community 53 - "Community 53"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 54 - "Community 54"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 55 - "Community 55"
 
 Cohesion: 1.0
-Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 56 - "Community 56"
 
 Cohesion: 1.0
-Nodes (1): Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 57 - "Community 57"
 
 Cohesion: 1.0
-Nodes (1): Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non
+Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
 
 ### Community 58 - "Community 58"
 
 Cohesion: 1.0
-Nodes (1): Converte o caminho absoluto (com mojibake) num caminho relativo à raiz.
+Nodes (1): Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non
 
 ### Community 59 - "Community 59"
 
 Cohesion: 1.0
-Nodes (1): Nome-base da nota: label em minúsculas, saneado pro sistema de arquivos.
+Nodes (1): Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non
 
 ### Community 60 - "Community 60"
 
 Cohesion: 1.0
-Nodes (1): id -> nome único da nota (com sufixo (2), (3)... em colisões).
+Nodes (1): Converte o caminho absoluto (com mojibake) num caminho relativo à raiz.
 
 ### Community 61 - "Community 61"
 
 Cohesion: 1.0
-Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
+Nodes (1): Nome-base da nota: label em minúsculas, saneado pro sistema de arquivos.
 
 ### Community 62 - "Community 62"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): id -> nome único da nota (com sufixo (2), (3)... em colisões).
 
 ### Community 63 - "Community 63"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
 
 ### Community 64 - "Community 64"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 65 - "Community 65"
 
 Cohesion: 1.0
-Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 66 - "Community 66"
 
 Cohesion: 1.0
-Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 67 - "Community 67"
 
 Cohesion: 1.0
-Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
+Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
 
 ### Community 68 - "Community 68"
 
 Cohesion: 1.0
-Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
+Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
 
 ### Community 69 - "Community 69"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
 
 ### Community 70 - "Community 70"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
 
 ### Community 71 - "Community 71"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 72 - "Community 72"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 73 - "Community 73"
 
 Cohesion: 1.0
-Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 74 - "Community 74"
 
 Cohesion: 1.0
-Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 75 - "Community 75"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
 
 ### Community 76 - "Community 76"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
 
 ### Community 77 - "Community 77"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 78 - "Community 78"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 79 - "Community 79"
 
 Cohesion: 1.0
-Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 80 - "Community 80"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 81 - "Community 81"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
 
 ### Community 82 - "Community 82"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 83 - "Community 83"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 84 - "Community 84"
 
 Cohesion: 1.0
-Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 85 - "Community 85"
 
 Cohesion: 1.0
-Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 86 - "Community 86"
 
 Cohesion: 1.0
-Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
+Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
 
 ### Community 87 - "Community 87"
 
 Cohesion: 1.0
-Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
+Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
 
 ### Community 88 - "Community 88"
 
 Cohesion: 1.0
-Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
+Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
 
 ### Community 89 - "Community 89"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
 
 ### Community 90 - "Community 90"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
 
 ### Community 91 - "Community 91"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 92 - "Community 92"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 93 - "Community 93"
 
 Cohesion: 1.0
-Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 94 - "Community 94"
 
 Cohesion: 1.0
-Nodes (1): Busca os detalhes completos do pedido na Order API e materializa localmente em
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 95 - "Community 95"
 
 Cohesion: 1.0
-Nodes (1): Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no
+Nodes (1): Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa
 
 ### Community 96 - "Community 96"
 
 Cohesion: 1.0
-Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
+Nodes (1): Busca os detalhes completos do pedido na Order API e materializa localmente em
 
 ### Community 97 - "Community 97"
 
 Cohesion: 1.0
-Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
+Nodes (1): Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no
 
 ### Community 98 - "Community 98"
 
 Cohesion: 1.0
-Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
+Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
 
 ### Community 99 - "Community 99"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
 
 ### Community 100 - "Community 100"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
 
 ### Community 101 - "Community 101"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 102 - "Community 102"
 _Unable to determine domain due to missing code entities._
 Cohesion: 1.0
-Nodes (1): Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 103 - "Community 103"
 
 Cohesion: 1.0
-Nodes (1): Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 104 - "Community 104"
 _Handles warning-level logging for application diagnostics._
 Cohesion: 1.0
-Nodes (1): Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.
+Nodes (1): Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40
 
 ### Community 105 - "Community 105"
 _Provides the interface for rendering React components to the browser's DOM, handling mounting, updating, and unmounting logic._
 Cohesion: 1.0
-Nodes (1): Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca
+Nodes (1): Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut
 
 ### Community 106 - "Community 106"
 _Provides TypeScript type definitions for the React library, enabling static type checking and IntelliSense for React components._
 Cohesion: 1.0
-Nodes (1): Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res
+Nodes (1): Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.
 
 ### Community 107 - "Community 107"
 _Provides TypeScript type definitions for React's DOM rendering API, enabling type safety and editor IntelliSense in React applications._
 Cohesion: 1.0
-Nodes (1): Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo
+Nodes (1): Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca
 
 ### Community 108 - "Community 108"
 _Enables seamless integration of React into Vite projects, handling JSX compilation and hot module replacement._
 Cohesion: 1.0
-Nodes (1): Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do
+Nodes (1): Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res
 
 ### Community 109 - "Community 109"
 _Adds vendor prefixes to CSS rules for cross-browser compatibility._
 Cohesion: 1.0
-Nodes (1): Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status
+Nodes (1): Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo
 
 ### Community 110 - "Community 110"
 
 Cohesion: 1.0
-Nodes (1): Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n
+Nodes (1): Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do
 
 ### Community 111 - "Community 111"
 
 Cohesion: 1.0
-Nodes (1): Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa
+Nodes (1): Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status
 
 ### Community 112 - "Community 112"
 _Provides low-level utility classes for styling UI elements in web applications._
 Cohesion: 1.0
-Nodes (1): Substitui a semana inteira de horário de funcionamento da loja de uma vez.
+Nodes (1): Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n
 
 ### Community 113 - "Community 113"
 
 Cohesion: 1.0
-Nodes (1): Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).
+Nodes (1): Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa
 
 ### Community 114 - "Community 114"
 
 Cohesion: 1.0
-Nodes (1): Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id`
+Nodes (1): Substitui a semana inteira de horário de funcionamento da loja de uma vez.
 
 ### Community 115 - "Community 115"
 
 Cohesion: 1.0
-Nodes (1): Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id
+Nodes (1): Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).
 
 ### Community 116 - "Community 116"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver
+Nodes (1): Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id`
 
 ### Community 117 - "Community 117"
 
 Cohesion: 1.0
-Nodes (1): Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit
+Nodes (1): Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id
 
 ### Community 118 - "Community 118"
 
 Cohesion: 1.0
-Nodes (1): Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,
+Nodes (1): Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver
 
 ### Community 119 - "Community 119"
 
 Cohesion: 1.0
-Nodes (1): Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog
+Nodes (1): Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit
 
 ### Community 120 - "Community 120"
 
 Cohesion: 1.0
-Nodes (1): Define em quais dias/horários um item fica disponível (ex: um prato que só vende
+Nodes (1): Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,
 
 ### Community 121 - "Community 121"
 
 Cohesion: 1.0
-Nodes (1): Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem
+Nodes (1): Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog
 
 ### Community 122 - "Community 122"
 
 Cohesion: 1.0
-Nodes (1): Liga/desliga a flag que força troca de senha no próximo login. Chamado com True
+Nodes (1): Define em quais dias/horários um item fica disponível (ex: um prato que só vende
 
 ### Community 123 - "Community 123"
 
 Cohesion: 1.0
-Nodes (1): Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida
+Nodes (1): Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem
 
 ### Community 124 - "Community 124"
 
 Cohesion: 1.0
-Nodes (1): Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela
+Nodes (1): Liga/desliga a flag que força troca de senha no próximo login. Chamado com True
 
 ### Community 125 - "Community 125"
 
 Cohesion: 1.0
-Nodes (1): Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su
+Nodes (1): Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida
 
 ### Community 126 - "Community 126"
 
 Cohesion: 1.0
-Nodes (1): Order/Events API: implementado a partir da doc pública, ainda não disparado cont
+Nodes (1): Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela
 
 ### Community 127 - "Community 127"
 
 Cohesion: 1.0
-Nodes (1): Busca os detalhes completos do pedido na Order API e materializa localmente em
+Nodes (1): Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su
 
 ### Community 128 - "Community 128"
 
 Cohesion: 1.0
-Nodes (1): Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no
+Nodes (1): Order/Events API: implementado a partir da doc pública, ainda não disparado cont
 
 ### Community 129 - "Community 129"
 
 Cohesion: 1.0
-Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
+Nodes (1): Busca os detalhes completos do pedido na Order API e materializa localmente em
 
 ### Community 130 - "Community 130"
 
 Cohesion: 1.0
-Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
+Nodes (1): Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no
 
 ### Community 131 - "Community 131"
 
 Cohesion: 1.0
-Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
+Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
 
 ### Community 132 - "Community 132"
 
 Cohesion: 1.0
-Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
+Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
 
 ### Community 133 - "Community 133"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.
 
 ### Community 134 - "Community 134"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
 
 ### Community 135 - "Community 135"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 136 - "Community 136"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 137 - "Community 137"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 138 - "Community 138"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 139 - "Community 139"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 140 - "Community 140"
 
 Cohesion: 1.0
-Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 141 - "Community 141"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 142 - "Community 142"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o
 
 ### Community 143 - "Community 143"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 144 - "Community 144"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 145 - "Community 145"
 
 Cohesion: 1.0
-Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 146 - "Community 146"
 
 Cohesion: 1.0
-Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 147 - "Community 147"
 
 Cohesion: 1.0
-Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
+Nodes (1): Converte o payload de pedido do 99 numa linha da tabela `pedidos`.
 
 ### Community 148 - "Community 148"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`
 
 ### Community 149 - "Community 149"
 
 Cohesion: 1.0
-Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
+Nodes (1): Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem
 
 ### Community 150 - "Community 150"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 151 - "Community 151"
 _Unable to determine domain due to missing code entities._
 Cohesion: 1.0
-Nodes (1): Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo
+Nodes (1): Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári
 
 ### Community 152 - "Community 152"
 
 Cohesion: 1.0
-Nodes (1): Lista as lojas (merchants) vinculadas às credenciais do .env.
+Nodes (1): Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut
 
 ### Community 153 - "Community 153"
 _Handles warning-level logging for application diagnostics._
 Cohesion: 1.0
-Nodes (1): Puxa o catálogo atual (categorias + itens) direto da API do iFood e exporta pra
+Nodes (1): Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo
 
 ### Community 154 - "Community 154"
 _Provides the interface for rendering React components to the browser's DOM, handling mounting, updating, and unmounting logic._
 Cohesion: 1.0
-Nodes (1): Cria uma categoria de teste e alguns itens de exemplo da planilha no catálogo sa
+Nodes (1): Lista as lojas (merchants) vinculadas às credenciais do .env.
 
 ### Community 155 - "Community 155"
 _Provides TypeScript type definitions for the React library, enabling static type checking and IntelliSense for React components._
 Cohesion: 1.0
-Nodes (1): Lista catálogos e categorias da loja configurada no .env, para inspeção manual.
+Nodes (1): Puxa o catálogo atual (categorias + itens) direto da API do iFood e exporta pra
 
 ### Community 156 - "Community 156"
 _Provides TypeScript type definitions for React's DOM rendering API, enabling type safety and editor IntelliSense in React applications._
 Cohesion: 1.0
-Nodes (1): API local que serve de ponte entre a interface React e a Merchant/Catalog API do
+Nodes (1): Cria uma categoria de teste e alguns itens de exemplo da planilha no catálogo sa
 
 ### Community 157 - "Community 157"
 _Enables seamless integration of React into Vite projects, handling JSX compilation and hot module replacement._
 Cohesion: 1.0
-Nodes (1): Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40
+Nodes (1): Lista catálogos e categorias da loja configurada no .env, para inspeção manual.
 
 ### Community 158 - "Community 158"
 _Adds vendor prefixes to CSS rules for cross-browser compatibility._
 Cohesion: 1.0
-Nodes (1): Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut
+Nodes (1): API local que serve de ponte entre a interface React e a Merchant/Catalog API do
 
 ### Community 159 - "Community 159"
 
 Cohesion: 1.0
-Nodes (1): Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.
+Nodes (1): Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40
 
 ### Community 160 - "Community 160"
 
 Cohesion: 1.0
-Nodes (1): Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca
+Nodes (1): Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut
 
 ### Community 161 - "Community 161"
 _Provides low-level utility classes for styling UI elements in web applications._
 Cohesion: 1.0
-Nodes (1): Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res
+Nodes (1): Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.
 
 ### Community 162 - "Community 162"
 
 Cohesion: 1.0
-Nodes (1): Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo
+Nodes (1): Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca
 
 ### Community 163 - "Community 163"
 
 Cohesion: 1.0
-Nodes (1): Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do
+Nodes (1): Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res
 
 ### Community 164 - "Community 164"
 
 Cohesion: 1.0
-Nodes (1): Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status
+Nodes (1): Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo
 
 ### Community 165 - "Community 165"
 
 Cohesion: 1.0
-Nodes (1): Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n
+Nodes (1): Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do
 
 ### Community 166 - "Community 166"
 
 Cohesion: 1.0
-Nodes (1): Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa
+Nodes (1): Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status
 
 ### Community 167 - "Community 167"
 
 Cohesion: 1.0
-Nodes (1): Substitui a semana inteira de horário de funcionamento da loja de uma vez.
+Nodes (1): Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n
 
 ### Community 168 - "Community 168"
 
 Cohesion: 1.0
-Nodes (1): Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).
+Nodes (1): Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa
 
 ### Community 169 - "Community 169"
 
 Cohesion: 1.0
-Nodes (1): Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id`
+Nodes (1): Substitui a semana inteira de horário de funcionamento da loja de uma vez.
 
 ### Community 170 - "Community 170"
 
 Cohesion: 1.0
-Nodes (1): Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id
+Nodes (1): Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).
 
 ### Community 171 - "Community 171"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver
+Nodes (1): Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id`
 
 ### Community 172 - "Community 172"
 
 Cohesion: 1.0
-Nodes (1): Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit
+Nodes (1): Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id
 
 ### Community 173 - "Community 173"
 
 Cohesion: 1.0
-Nodes (1): Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,
+Nodes (1): Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver
 
 ### Community 174 - "Community 174"
 
 Cohesion: 1.0
-Nodes (1): Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog
+Nodes (1): Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit
 
 ### Community 175 - "Community 175"
 
 Cohesion: 1.0
-Nodes (1): Define em quais dias/horários um item fica disponível (ex: um prato que só vende
+Nodes (1): Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,
 
 ### Community 176 - "Community 176"
 
 Cohesion: 1.0
-Nodes (1): Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem
+Nodes (1): Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog
 
 ### Community 177 - "Community 177"
 
 Cohesion: 1.0
-Nodes (1): Liga/desliga a flag que força troca de senha no próximo login. Chamado com True
+Nodes (1): Define em quais dias/horários um item fica disponível (ex: um prato que só vende
 
 ### Community 178 - "Community 178"
 
 Cohesion: 1.0
-Nodes (1): Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida
+Nodes (1): Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem
 
 ### Community 179 - "Community 179"
 
 Cohesion: 1.0
-Nodes (1): Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela
+Nodes (1): Liga/desliga a flag que força troca de senha no próximo login. Chamado com True
 
 ### Community 180 - "Community 180"
 
 Cohesion: 1.0
-Nodes (1): Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su
+Nodes (1): Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida
 
 ### Community 181 - "Community 181"
 
 Cohesion: 1.0
-Nodes (1): Order/Events API: implementado a partir da doc pública, ainda não disparado cont
+Nodes (1): Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela
 
 ### Community 182 - "Community 182"
 
 Cohesion: 1.0
-Nodes (1): Busca os detalhes completos do pedido na Order API e materializa localmente em
+Nodes (1): Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su
 
 ### Community 183 - "Community 183"
 
 Cohesion: 1.0
-Nodes (1): Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no
+Nodes (1): Order/Events API: implementado a partir da doc pública, ainda não disparado cont
 
 ### Community 184 - "Community 184"
 
 Cohesion: 1.0
-Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
+Nodes (1): Busca os detalhes completos do pedido na Order API e materializa localmente em
 
 ### Community 185 - "Community 185"
 
 Cohesion: 1.0
-Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
+Nodes (1): Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no
 
 ### Community 186 - "Community 186"
 
 Cohesion: 1.0
-Nodes (1): Autenticação OAuth2 (client_credentials) com a Merchant API do iFood.
+Nodes (1): Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori
 
 ### Community 187 - "Community 187"
 
 Cohesion: 1.0
-Nodes (1): Retorna um access token válido, reaproveitando o cache em memória enquanto não e
+Nodes (1): Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch
 
 ### Community 188 - "Community 188"
 
 Cohesion: 1.0
-Nodes (1): Cliente fino para os endpoints da Merchant API / Catalog API do iFood usados na
+Nodes (1): Autenticação OAuth2 (client_credentials) com a Merchant API do iFood.
 
 ### Community 189 - "Community 189"
 
 Cohesion: 1.0
-Nodes (1): Lista as lojas (merchants) associadas às credenciais configuradas.
+Nodes (1): Retorna um access token válido, reaproveitando o cache em memória enquanto não e
 
 ### Community 190 - "Community 190"
 
 Cohesion: 1.0
-Nodes (1): Detalhes completos da loja: nome, razão social, tipo, status e operações/canais
+Nodes (1): Cliente fino para os endpoints da Merchant API / Catalog API do iFood usados na
 
 ### Community 191 - "Community 191"
 
 Cohesion: 1.0
-Nodes (1): Disponibilidade da loja por operação/canal de venda: se está apta a receber pedi
+Nodes (1): Lista as lojas (merchants) associadas às credenciais configuradas.
 
 ### Community 192 - "Community 192"
 
 Cohesion: 1.0
-Nodes (1): Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est
+Nodes (1): Detalhes completos da loja: nome, razão social, tipo, status e operações/canais
 
 ### Community 193 - "Community 193"
 
 Cohesion: 1.0
-Nodes (1): Cria um item do tipo COMBO_V2 (ex: "Combo hambúrguer e refrigerante").      `g
+Nodes (1): Disponibilidade da loja por operação/canal de venda: se está apta a receber pedi
 
 ### Community 194 - "Community 194"
 
 Cohesion: 1.0
-Nodes (1): Atualiza globalmente o código PDV (externalCode) de um item já existente no catá
+Nodes (1): Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est
 
 ### Community 195 - "Community 195"
 
 Cohesion: 1.0
-Nodes (1): Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.
+Nodes (1): Cria um item do tipo COMBO_V2 (ex: "Combo hambúrguer e refrigerante").      `g
 
 ### Community 196 - "Community 196"
 
 Cohesion: 1.0
-Nodes (1): Atualiza globalmente o preço de um item já existente no catálogo.
+Nodes (1): Atualiza globalmente o código PDV (externalCode) de um item já existente no catá
 
 ### Community 197 - "Community 197"
 
 Cohesion: 1.0
-Nodes (1): Edita nome/status/sequência de uma categoria. Ex: edit_category(m, c, cid, statu
+Nodes (1): Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.
 
 ### Community 198 - "Community 198"
 
 Cohesion: 1.0
-Nodes (1): Define os turnos de disponibilidade de um item (ex: item que só vende no almoço)
+Nodes (1): Atualiza globalmente o preço de um item já existente no catálogo.
 
 ### Community 199 - "Community 199"
 
 Cohesion: 1.0
-Nodes (1): Fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).
+Nodes (1): Edita nome/status/sequência de uma categoria. Ex: edit_category(m, c, cid, statu
 
 ### Community 200 - "Community 200"
 
 Cohesion: 1.0
-Nodes (1): Cria um grupo de complemento vazio (ex: "Escolha sua bebida"). Depois associe
+Nodes (1): Define os turnos de disponibilidade de um item (ex: item que só vende no almoço)
 
 ### Community 201 - "Community 201"
 
 Cohesion: 1.0
-Nodes (1): Cria uma opção nova (ex: "Coca-Cola") dentro de um grupo de complemento já exist
+Nodes (1): Fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).
 
 ### Community 202 - "Community 202"
 
 Cohesion: 1.0
-Nodes (1): `option_product_id` é o `productId` devolvido por `create_option` (não o `id` da
+Nodes (1): Cria um grupo de complemento vazio (ex: "Escolha sua bebida"). Depois associe
 
 ### Community 203 - "Community 203"
 
 Cohesion: 1.0
-Nodes (1): Edita nome e foto de uma opção (complemento) já existente. `product_id` é o
+Nodes (1): Cria uma opção nova (ex: "Coca-Cola") dentro de um grupo de complemento já exist
 
 ### Community 204 - "Community 204"
 
 Cohesion: 1.0
-Nodes (1): Atualiza o preço de uma opção (complemento) já existente. Endpoint em lote (acei
+Nodes (1): `option_product_id` é o `productId` devolvido por `create_option` (não o `id` da
 
 ### Community 205 - "Community 205"
 
 Cohesion: 1.0
-Nodes (1): Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` é o `id` da op
+Nodes (1): Edita nome e foto de uma opção (complemento) já existente. `product_id` é o
 
 ### Community 206 - "Community 206"
 
 Cohesion: 1.0
-Nodes (1): Envia uma imagem (jpg/jpeg/png, até 5MB) e devolve o `imagePath` a usar em
+Nodes (1): Atualiza o preço de uma opção (complemento) já existente. Endpoint em lote (acei
 
 ### Community 207 - "Community 207"
 
 Cohesion: 1.0
-Nodes (1): Cliente fino para a Order API e a Events API (polling) do iFood — mesmo padrão d
+Nodes (1): Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` é o `id` da op
 
 ### Community 208 - "Community 208"
 
 Cohesion: 1.0
-Nodes (1): Busca eventos pendentes (novos pedidos, mudanças de status) da loja. Cada evento
+Nodes (1): Envia uma imagem (jpg/jpeg/png, até 5MB) e devolve o `imagePath` a usar em
 
 ### Community 209 - "Community 209"
 
 Cohesion: 1.0
-Nodes (1): Confirma o recebimento dos eventos — obrigatório, senão o iFood reenvia os mesmo
+Nodes (1): Cliente fino para a Order API e a Events API (polling) do iFood — mesmo padrão d
 
 ### Community 210 - "Community 210"
 
 Cohesion: 1.0
-Nodes (1): Payload completo do pedido: cliente, itens com complementos, pagamento, entrega,
+Nodes (1): Busca eventos pendentes (novos pedidos, mudanças de status) da loja. Cada evento
 
 ### Community 211 - "Community 211"
 
 Cohesion: 1.0
-Nodes (1): Leitura da planilha de itens/PDV.
+Nodes (1): Confirma o recebimento dos eventos — obrigatório, senão o iFood reenvia os mesmo
 
 ### Community 212 - "Community 212"
 
 Cohesion: 1.0
-Nodes (1): Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)
+Nodes (1): Payload completo do pedido: cliente, itens com complementos, pagamento, entrega,
 
 ### Community 213 - "Community 213"
 
 Cohesion: 1.0
-Nodes (0): 
+Nodes (1): Leitura da planilha de itens/PDV.
 
 ### Community 214 - "Community 214"
 
 Cohesion: 1.0
-Nodes (1): oxc
+Nodes (1): Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)
 
 ### Community 215 - "Community 215"
 
 Cohesion: 1.0
-Nodes (1): warn
+Nodes (0): 
 
 ### Community 216 - "Community 216"
 
 Cohesion: 1.0
-Nodes (1): react-dom
+Nodes (1): oxc
 
 ### Community 217 - "Community 217"
 
 Cohesion: 1.0
-Nodes (1): @types/react
+Nodes (1): warn
 
 ### Community 218 - "Community 218"
 
 Cohesion: 1.0
-Nodes (1): @types/react-dom
+Nodes (1): react-dom
 
 ### Community 219 - "Community 219"
 
 Cohesion: 1.0
-Nodes (1): @vitejs/plugin-react
+Nodes (1): @types/react
 
 ### Community 220 - "Community 220"
 
 Cohesion: 1.0
-Nodes (1): autoprefixer
+Nodes (1): @types/react-dom
 
 ### Community 221 - "Community 221"
 
 Cohesion: 1.0
-Nodes (1): oxlint
+Nodes (1): @vitejs/plugin-react
 
 ### Community 222 - "Community 222"
 
 Cohesion: 1.0
-Nodes (1): postcss
+Nodes (1): autoprefixer
 
 ### Community 223 - "Community 223"
 
 Cohesion: 1.0
-Nodes (1): tailwindcss
+Nodes (1): oxlint
 
 ### Community 224 - "Community 224"
 
 Cohesion: 1.0
-Nodes (1): Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40
+Nodes (1): postcss
 
 ### Community 225 - "Community 225"
 
 Cohesion: 1.0
-Nodes (1): Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut
+Nodes (1): tailwindcss
 
 ### Community 226 - "Community 226"
 
 Cohesion: 1.0
-Nodes (1): Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.
+Nodes (1): Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40
 
 ### Community 227 - "Community 227"
 
 Cohesion: 1.0
-Nodes (1): Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca
+Nodes (1): Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut
 
 ### Community 228 - "Community 228"
 
 Cohesion: 1.0
-Nodes (1): Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res
+Nodes (1): Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.
 
 ### Community 229 - "Community 229"
 
 Cohesion: 1.0
-Nodes (1): Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo
+Nodes (1): Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca
 
 ### Community 230 - "Community 230"
 
 Cohesion: 1.0
-Nodes (1): Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do
+Nodes (1): Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res
 
 ### Community 231 - "Community 231"
 
 Cohesion: 1.0
-Nodes (1): Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver
+Nodes (1): Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo
 
 ### Community 232 - "Community 232"
 
 Cohesion: 1.0
-Nodes (1): Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem
+Nodes (1): Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do
 
 ### Community 233 - "Community 233"
 
 Cohesion: 1.0
-Nodes (1): Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela
+Nodes (1): Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver
 
 ### Community 234 - "Community 234"
 
 Cohesion: 1.0
-Nodes (1): Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est
+Nodes (1): Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem
 
 ### Community 235 - "Community 235"
 
 Cohesion: 1.0
-Nodes (1): Atualiza globalmente o código PDV (externalCode) de um item já existente no catá
+Nodes (1): Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela
 
 ### Community 236 - "Community 236"
 
 Cohesion: 1.0
-Nodes (1): Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.
+Nodes (1): Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est
 
 ### Community 237 - "Community 237"
+
+Cohesion: 1.0
+Nodes (1): Atualiza globalmente o código PDV (externalCode) de um item já existente no catá
+
+### Community 238 - "Community 238"
+
+Cohesion: 1.0
+Nodes (1): Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.
+
+### Community 239 - "Community 239"
 
 Cohesion: 1.0
 Nodes (1): Atualiza globalmente o preço de um item já existente no catálogo.
 
 ## Knowledge Gaps
-- **418 isolated node(s):** `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`, `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`, `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`, `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`, `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res` (+413 more)
+- **419 isolated node(s):** `Entrypoint da Vercel: expõe o app Flask (server/app.py) como função serverless.`, `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`, `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`, `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`, `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca` (+414 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 25`** (2 nodes): `StatusBadge.tsx`, `StatusBadge()`
+- **Thin community `Community 25`** (2 nodes): `index.py`, `Entrypoint da Vercel: expõe o app Flask (server/app.py) como função serverless.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 26`** (2 nodes): `__init__.py`, `Cliente da API do 99Food / DiDi Food (openapi.didi-food.com).  Estrutura espelha`
+- **Thin community `Community 26`** (2 nodes): `StatusBadge.tsx`, `StatusBadge()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 27`** (2 nodes): `CLAUDE.md`, `graphify`
+- **Thin community `Community 27`** (2 nodes): `__init__.py`, `Cliente da API do 99Food / DiDi Food (openapi.didi-food.com).  Estrutura espelha`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 28`** (1 nodes): `__init__.py`
+- **Thin community `Community 28`** (2 nodes): `CLAUDE.md`, `graphify`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 29`** (1 nodes): `postcss.config.js`
+- **Thin community `Community 29`** (1 nodes): `__init__.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 30`** (1 nodes): `tailwind.config.js`
+- **Thin community `Community 30`** (1 nodes): `postcss.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 31`** (1 nodes): `__init__.py`
+- **Thin community `Community 31`** (1 nodes): `tailwind.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 32`** (1 nodes): `postcss.config.js`
+- **Thin community `Community 32`** (1 nodes): `__init__.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (1 nodes): `tailwind.config.js`
+- **Thin community `Community 33`** (1 nodes): `__init__.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 34`** (1 nodes): `types.ts`
+- **Thin community `Community 34`** (1 nodes): `postcss.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (1 nodes): `vite-env.d.ts`
+- **Thin community `Community 35`** (1 nodes): `tailwind.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 36`** (1 nodes): `__init__.py`
+- **Thin community `Community 36`** (1 nodes): `types.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 37`** (1 nodes): `postcss.config.js`
+- **Thin community `Community 37`** (1 nodes): `vite-env.d.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 38`** (1 nodes): `tailwind.config.js`
+- **Thin community `Community 38`** (1 nodes): `__init__.py`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 39`** (1 nodes): `O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.`
+- **Thin community `Community 39`** (1 nodes): `postcss.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 40`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
+- **Thin community `Community 40`** (1 nodes): `tailwind.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 41`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 41`** (1 nodes): `O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 42`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 42`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 43`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 43`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 44`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 44`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 45`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
+- **Thin community `Community 45`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 46`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
+- **Thin community `Community 46`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 47`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
+- **Thin community `Community 47`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 48`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
+- **Thin community `Community 48`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 49`** (1 nodes): `O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.`
+- **Thin community `Community 49`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 50`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
+- **Thin community `Community 50`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 51`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 51`** (1 nodes): `O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 52`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 52`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 53`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 53`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 54`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 54`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 55`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
+- **Thin community `Community 55`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 56`** (1 nodes): `Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non`
+- **Thin community `Community 56`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 57`** (1 nodes): `Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non`
+- **Thin community `Community 57`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 58`** (1 nodes): `Converte o caminho absoluto (com mojibake) num caminho relativo à raiz.`
+- **Thin community `Community 58`** (1 nodes): `Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 59`** (1 nodes): `Nome-base da nota: label em minúsculas, saneado pro sistema de arquivos.`
+- **Thin community `Community 59`** (1 nodes): `Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=Non`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 60`** (1 nodes): `id -> nome único da nota (com sufixo (2), (3)... em colisões).`
+- **Thin community `Community 60`** (1 nodes): `Converte o caminho absoluto (com mojibake) num caminho relativo à raiz.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 61`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
+- **Thin community `Community 61`** (1 nodes): `Nome-base da nota: label em minúsculas, saneado pro sistema de arquivos.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 62`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 62`** (1 nodes): `id -> nome único da nota (com sufixo (2), (3)... em colisões).`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 63`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 63`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 64`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 64`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 65`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
+- **Thin community `Community 65`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 66`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
+- **Thin community `Community 66`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 67`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
+- **Thin community `Community 67`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 68`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
+- **Thin community `Community 68`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 69`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 69`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 70`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 70`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 71`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 71`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 72`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 72`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 73`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
+- **Thin community `Community 73`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 74`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
+- **Thin community `Community 74`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 75`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 75`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 76`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 76`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 77`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 77`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 78`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 78`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 79`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
+- **Thin community `Community 79`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 80`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 80`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 81`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 81`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 82`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 82`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 83`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 83`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 84`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
+- **Thin community `Community 84`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 85`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
+- **Thin community `Community 85`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 86`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
+- **Thin community `Community 86`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 87`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
+- **Thin community `Community 87`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 88`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
+- **Thin community `Community 88`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 89`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 89`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 90`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 90`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 91`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 91`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 92`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 92`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 93`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
+- **Thin community `Community 93`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 94`** (1 nodes): `Busca os detalhes completos do pedido na Order API e materializa localmente em`
+- **Thin community `Community 94`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 95`** (1 nodes): `Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no`
+- **Thin community `Community 95`** (1 nodes): `Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 96`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
+- **Thin community `Community 96`** (1 nodes): `Busca os detalhes completos do pedido na Order API e materializa localmente em`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 97`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
+- **Thin community `Community 97`** (1 nodes): `Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 98`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
+- **Thin community `Community 98`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 99`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 99`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 100`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 100`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 101`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 101`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 102`** (1 nodes): `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`
+- **Thin community `Community 102`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 103`** (1 nodes): `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`
+- **Thin community `Community 103`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 104`** (1 nodes): `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`
+- **Thin community `Community 104`** (1 nodes): `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 105`** (1 nodes): `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`
+- **Thin community `Community 105`** (1 nodes): `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 106`** (1 nodes): `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res`
+- **Thin community `Community 106`** (1 nodes): `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 107`** (1 nodes): `Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo`
+- **Thin community `Community 107`** (1 nodes): `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 108`** (1 nodes): `Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do`
+- **Thin community `Community 108`** (1 nodes): `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 109`** (1 nodes): `Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status`
+- **Thin community `Community 109`** (1 nodes): `Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 110`** (1 nodes): `Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n`
+- **Thin community `Community 110`** (1 nodes): `Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 111`** (1 nodes): `Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa`
+- **Thin community `Community 111`** (1 nodes): `Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 112`** (1 nodes): `Substitui a semana inteira de horário de funcionamento da loja de uma vez.`
+- **Thin community `Community 112`** (1 nodes): `Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 113`** (1 nodes): `Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).`
+- **Thin community `Community 113`** (1 nodes): `Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 114`** (1 nodes): `Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id``
+- **Thin community `Community 114`** (1 nodes): `Substitui a semana inteira de horário de funcionamento da loja de uma vez.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 115`** (1 nodes): `Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id`
+- **Thin community `Community 115`** (1 nodes): `Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 116`** (1 nodes): `Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver`
+- **Thin community `Community 116`** (1 nodes): `Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 117`** (1 nodes): `Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit`
+- **Thin community `Community 117`** (1 nodes): `Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 118`** (1 nodes): `Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,`
+- **Thin community `Community 118`** (1 nodes): `Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 119`** (1 nodes): `Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog`
+- **Thin community `Community 119`** (1 nodes): `Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 120`** (1 nodes): `Define em quais dias/horários um item fica disponível (ex: um prato que só vende`
+- **Thin community `Community 120`** (1 nodes): `Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 121`** (1 nodes): `Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem`
+- **Thin community `Community 121`** (1 nodes): `Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 122`** (1 nodes): `Liga/desliga a flag que força troca de senha no próximo login. Chamado com True`
+- **Thin community `Community 122`** (1 nodes): `Define em quais dias/horários um item fica disponível (ex: um prato que só vende`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 123`** (1 nodes): `Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida`
+- **Thin community `Community 123`** (1 nodes): `Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 124`** (1 nodes): `Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela`
+- **Thin community `Community 124`** (1 nodes): `Liga/desliga a flag que força troca de senha no próximo login. Chamado com True`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 125`** (1 nodes): `Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su`
+- **Thin community `Community 125`** (1 nodes): `Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 126`** (1 nodes): `Order/Events API: implementado a partir da doc pública, ainda não disparado cont`
+- **Thin community `Community 126`** (1 nodes): `Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 127`** (1 nodes): `Busca os detalhes completos do pedido na Order API e materializa localmente em`
+- **Thin community `Community 127`** (1 nodes): `Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 128`** (1 nodes): `Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no`
+- **Thin community `Community 128`** (1 nodes): `Order/Events API: implementado a partir da doc pública, ainda não disparado cont`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 129`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
+- **Thin community `Community 129`** (1 nodes): `Busca os detalhes completos do pedido na Order API e materializa localmente em`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 130`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
+- **Thin community `Community 130`** (1 nodes): `Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 131`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
+- **Thin community `Community 131`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 132`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
+- **Thin community `Community 132`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 133`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 133`** (1 nodes): `Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 134`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 134`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 135`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 135`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 136`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 136`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 137`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 137`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 138`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 138`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 139`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 139`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 140`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
+- **Thin community `Community 140`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 141`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 141`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 142`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 142`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 143`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 143`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 144`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 144`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 145`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.`
+- **Thin community `Community 145`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 146`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
+- **Thin community `Community 146`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 147`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
+- **Thin community `Community 147`** (1 nodes): `Converte o payload de pedido do 99 numa linha da tabela `pedidos`.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 148`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 148`** (1 nodes): `Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 149`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
+- **Thin community `Community 149`** (1 nodes): `Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 150`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
+- **Thin community `Community 150`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 151`** (1 nodes): `Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo`
+- **Thin community `Community 151`** (1 nodes): `Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 152`** (1 nodes): `Lista as lojas (merchants) vinculadas às credenciais do .env.`
+- **Thin community `Community 152`** (1 nodes): `Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 153`** (1 nodes): `Puxa o catálogo atual (categorias + itens) direto da API do iFood e exporta pra`
+- **Thin community `Community 153`** (1 nodes): `Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 154`** (1 nodes): `Cria uma categoria de teste e alguns itens de exemplo da planilha no catálogo sa`
+- **Thin community `Community 154`** (1 nodes): `Lista as lojas (merchants) vinculadas às credenciais do .env.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 155`** (1 nodes): `Lista catálogos e categorias da loja configurada no .env, para inspeção manual.`
+- **Thin community `Community 155`** (1 nodes): `Puxa o catálogo atual (categorias + itens) direto da API do iFood e exporta pra`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 156`** (1 nodes): `API local que serve de ponte entre a interface React e a Merchant/Catalog API do`
+- **Thin community `Community 156`** (1 nodes): `Cria uma categoria de teste e alguns itens de exemplo da planilha no catálogo sa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 157`** (1 nodes): `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`
+- **Thin community `Community 157`** (1 nodes): `Lista catálogos e categorias da loja configurada no .env, para inspeção manual.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 158`** (1 nodes): `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`
+- **Thin community `Community 158`** (1 nodes): `API local que serve de ponte entre a interface React e a Merchant/Catalog API do`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 159`** (1 nodes): `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`
+- **Thin community `Community 159`** (1 nodes): `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 160`** (1 nodes): `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`
+- **Thin community `Community 160`** (1 nodes): `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 161`** (1 nodes): `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res`
+- **Thin community `Community 161`** (1 nodes): `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 162`** (1 nodes): `Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo`
+- **Thin community `Community 162`** (1 nodes): `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 163`** (1 nodes): `Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do`
+- **Thin community `Community 163`** (1 nodes): `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 164`** (1 nodes): `Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status`
+- **Thin community `Community 164`** (1 nodes): `Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 165`** (1 nodes): `Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n`
+- **Thin community `Community 165`** (1 nodes): `Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 166`** (1 nodes): `Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa`
+- **Thin community `Community 166`** (1 nodes): `Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 167`** (1 nodes): `Substitui a semana inteira de horário de funcionamento da loja de uma vez.`
+- **Thin community `Community 167`** (1 nodes): `Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 168`** (1 nodes): `Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).`
+- **Thin community `Community 168`** (1 nodes): `Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 169`** (1 nodes): `Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id``
+- **Thin community `Community 169`** (1 nodes): `Substitui a semana inteira de horário de funcionamento da loja de uma vez.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 170`** (1 nodes): `Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id`
+- **Thin community `Community 170`** (1 nodes): `Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 171`** (1 nodes): `Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver`
+- **Thin community `Community 171`** (1 nodes): `Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id``
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 172`** (1 nodes): `Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit`
+- **Thin community `Community 172`** (1 nodes): `Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 173`** (1 nodes): `Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,`
+- **Thin community `Community 173`** (1 nodes): `Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 174`** (1 nodes): `Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog`
+- **Thin community `Community 174`** (1 nodes): `Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 175`** (1 nodes): `Define em quais dias/horários um item fica disponível (ex: um prato que só vende`
+- **Thin community `Community 175`** (1 nodes): `Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 176`** (1 nodes): `Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem`
+- **Thin community `Community 176`** (1 nodes): `Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 177`** (1 nodes): `Liga/desliga a flag que força troca de senha no próximo login. Chamado com True`
+- **Thin community `Community 177`** (1 nodes): `Define em quais dias/horários um item fica disponível (ex: um prato que só vende`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 178`** (1 nodes): `Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida`
+- **Thin community `Community 178`** (1 nodes): `Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 179`** (1 nodes): `Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela`
+- **Thin community `Community 179`** (1 nodes): `Liga/desliga a flag que força troca de senha no próximo login. Chamado com True`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 180`** (1 nodes): `Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su`
+- **Thin community `Community 180`** (1 nodes): `Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 181`** (1 nodes): `Order/Events API: implementado a partir da doc pública, ainda não disparado cont`
+- **Thin community `Community 181`** (1 nodes): `Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 182`** (1 nodes): `Busca os detalhes completos do pedido na Order API e materializa localmente em`
+- **Thin community `Community 182`** (1 nodes): `Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 183`** (1 nodes): `Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no`
+- **Thin community `Community 183`** (1 nodes): `Order/Events API: implementado a partir da doc pública, ainda não disparado cont`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 184`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
+- **Thin community `Community 184`** (1 nodes): `Busca os detalhes completos do pedido na Order API e materializa localmente em`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 185`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
+- **Thin community `Community 185`** (1 nodes): `Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 186`** (1 nodes): `Autenticação OAuth2 (client_credentials) com a Merchant API do iFood.`
+- **Thin community `Community 186`** (1 nodes): `Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 187`** (1 nodes): `Retorna um access token válido, reaproveitando o cache em memória enquanto não e`
+- **Thin community `Community 187`** (1 nodes): `Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 188`** (1 nodes): `Cliente fino para os endpoints da Merchant API / Catalog API do iFood usados na`
+- **Thin community `Community 188`** (1 nodes): `Autenticação OAuth2 (client_credentials) com a Merchant API do iFood.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 189`** (1 nodes): `Lista as lojas (merchants) associadas às credenciais configuradas.`
+- **Thin community `Community 189`** (1 nodes): `Retorna um access token válido, reaproveitando o cache em memória enquanto não e`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 190`** (1 nodes): `Detalhes completos da loja: nome, razão social, tipo, status e operações/canais`
+- **Thin community `Community 190`** (1 nodes): `Cliente fino para os endpoints da Merchant API / Catalog API do iFood usados na`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 191`** (1 nodes): `Disponibilidade da loja por operação/canal de venda: se está apta a receber pedi`
+- **Thin community `Community 191`** (1 nodes): `Lista as lojas (merchants) associadas às credenciais configuradas.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 192`** (1 nodes): `Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est`
+- **Thin community `Community 192`** (1 nodes): `Detalhes completos da loja: nome, razão social, tipo, status e operações/canais`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 193`** (1 nodes): `Cria um item do tipo COMBO_V2 (ex: "Combo hambúrguer e refrigerante").      `g`
+- **Thin community `Community 193`** (1 nodes): `Disponibilidade da loja por operação/canal de venda: se está apta a receber pedi`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 194`** (1 nodes): `Atualiza globalmente o código PDV (externalCode) de um item já existente no catá`
+- **Thin community `Community 194`** (1 nodes): `Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 195`** (1 nodes): `Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.`
+- **Thin community `Community 195`** (1 nodes): `Cria um item do tipo COMBO_V2 (ex: "Combo hambúrguer e refrigerante").      `g`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 196`** (1 nodes): `Atualiza globalmente o preço de um item já existente no catálogo.`
+- **Thin community `Community 196`** (1 nodes): `Atualiza globalmente o código PDV (externalCode) de um item já existente no catá`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 197`** (1 nodes): `Edita nome/status/sequência de uma categoria. Ex: edit_category(m, c, cid, statu`
+- **Thin community `Community 197`** (1 nodes): `Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 198`** (1 nodes): `Define os turnos de disponibilidade de um item (ex: item que só vende no almoço)`
+- **Thin community `Community 198`** (1 nodes): `Atualiza globalmente o preço de um item já existente no catálogo.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 199`** (1 nodes): `Fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).`
+- **Thin community `Community 199`** (1 nodes): `Edita nome/status/sequência de uma categoria. Ex: edit_category(m, c, cid, statu`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 200`** (1 nodes): `Cria um grupo de complemento vazio (ex: "Escolha sua bebida"). Depois associe`
+- **Thin community `Community 200`** (1 nodes): `Define os turnos de disponibilidade de um item (ex: item que só vende no almoço)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 201`** (1 nodes): `Cria uma opção nova (ex: "Coca-Cola") dentro de um grupo de complemento já exist`
+- **Thin community `Community 201`** (1 nodes): `Fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 202`** (1 nodes): ``option_product_id` é o `productId` devolvido por `create_option` (não o `id` da`
+- **Thin community `Community 202`** (1 nodes): `Cria um grupo de complemento vazio (ex: "Escolha sua bebida"). Depois associe`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 203`** (1 nodes): `Edita nome e foto de uma opção (complemento) já existente. `product_id` é o`
+- **Thin community `Community 203`** (1 nodes): `Cria uma opção nova (ex: "Coca-Cola") dentro de um grupo de complemento já exist`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 204`** (1 nodes): `Atualiza o preço de uma opção (complemento) já existente. Endpoint em lote (acei`
+- **Thin community `Community 204`** (1 nodes): ``option_product_id` é o `productId` devolvido por `create_option` (não o `id` da`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 205`** (1 nodes): `Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` é o `id` da op`
+- **Thin community `Community 205`** (1 nodes): `Edita nome e foto de uma opção (complemento) já existente. `product_id` é o`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 206`** (1 nodes): `Envia uma imagem (jpg/jpeg/png, até 5MB) e devolve o `imagePath` a usar em`
+- **Thin community `Community 206`** (1 nodes): `Atualiza o preço de uma opção (complemento) já existente. Endpoint em lote (acei`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 207`** (1 nodes): `Cliente fino para a Order API e a Events API (polling) do iFood — mesmo padrão d`
+- **Thin community `Community 207`** (1 nodes): `Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` é o `id` da op`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 208`** (1 nodes): `Busca eventos pendentes (novos pedidos, mudanças de status) da loja. Cada evento`
+- **Thin community `Community 208`** (1 nodes): `Envia uma imagem (jpg/jpeg/png, até 5MB) e devolve o `imagePath` a usar em`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 209`** (1 nodes): `Confirma o recebimento dos eventos — obrigatório, senão o iFood reenvia os mesmo`
+- **Thin community `Community 209`** (1 nodes): `Cliente fino para a Order API e a Events API (polling) do iFood — mesmo padrão d`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 210`** (1 nodes): `Payload completo do pedido: cliente, itens com complementos, pagamento, entrega,`
+- **Thin community `Community 210`** (1 nodes): `Busca eventos pendentes (novos pedidos, mudanças de status) da loja. Cada evento`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 211`** (1 nodes): `Leitura da planilha de itens/PDV.`
+- **Thin community `Community 211`** (1 nodes): `Confirma o recebimento dos eventos — obrigatório, senão o iFood reenvia os mesmo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 212`** (1 nodes): `Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)`
+- **Thin community `Community 212`** (1 nodes): `Payload completo do pedido: cliente, itens com complementos, pagamento, entrega,`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 213`** (1 nodes): `react`
+- **Thin community `Community 213`** (1 nodes): `Leitura da planilha de itens/PDV.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 214`** (1 nodes): `oxc`
+- **Thin community `Community 214`** (1 nodes): `Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 215`** (1 nodes): `warn`
+- **Thin community `Community 215`** (1 nodes): `react`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 216`** (1 nodes): `react-dom`
+- **Thin community `Community 216`** (1 nodes): `oxc`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 217`** (1 nodes): `@types/react`
+- **Thin community `Community 217`** (1 nodes): `warn`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 218`** (1 nodes): `@types/react-dom`
+- **Thin community `Community 218`** (1 nodes): `react-dom`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 219`** (1 nodes): `@vitejs/plugin-react`
+- **Thin community `Community 219`** (1 nodes): `@types/react`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 220`** (1 nodes): `autoprefixer`
+- **Thin community `Community 220`** (1 nodes): `@types/react-dom`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 221`** (1 nodes): `oxlint`
+- **Thin community `Community 221`** (1 nodes): `@vitejs/plugin-react`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 222`** (1 nodes): `postcss`
+- **Thin community `Community 222`** (1 nodes): `autoprefixer`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 223`** (1 nodes): `tailwindcss`
+- **Thin community `Community 223`** (1 nodes): `oxlint`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 224`** (1 nodes): `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`
+- **Thin community `Community 224`** (1 nodes): `postcss`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 225`** (1 nodes): `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`
+- **Thin community `Community 225`** (1 nodes): `tailwindcss`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 226`** (1 nodes): `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`
+- **Thin community `Community 226`** (1 nodes): `Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 227`** (1 nodes): `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`
+- **Thin community `Community 227`** (1 nodes): `Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 228`** (1 nodes): `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res`
+- **Thin community `Community 228`** (1 nodes): `Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 229`** (1 nodes): `Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo`
+- **Thin community `Community 229`** (1 nodes): `Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 230`** (1 nodes): `Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do`
+- **Thin community `Community 230`** (1 nodes): `Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 231`** (1 nodes): `Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver`
+- **Thin community `Community 231`** (1 nodes): `Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 232`** (1 nodes): `Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem`
+- **Thin community `Community 232`** (1 nodes): `Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 233`** (1 nodes): `Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela`
+- **Thin community `Community 233`** (1 nodes): `Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 234`** (1 nodes): `Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est`
+- **Thin community `Community 234`** (1 nodes): `Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 235`** (1 nodes): `Atualiza globalmente o código PDV (externalCode) de um item já existente no catá`
+- **Thin community `Community 235`** (1 nodes): `Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 236`** (1 nodes): `Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.`
+- **Thin community `Community 236`** (1 nodes): `Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 237`** (1 nodes): `Atualiza globalmente o preço de um item já existente no catálogo.`
+- **Thin community `Community 237`** (1 nodes): `Atualiza globalmente o código PDV (externalCode) de um item já existente no catá`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 238`** (1 nodes): `Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 239`** (1 nodes): `Atualiza globalmente o preço de um item já existente no catálogo.`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.

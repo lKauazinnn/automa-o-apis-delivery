@@ -85,7 +85,7 @@
       }
     },
     {
-      "query": "tag:#c/14",
+      "query": "tag:#c/13",
       "color": {
         "a": 1,
         "rgb": 13073919
@@ -106,14 +106,14 @@
       }
     },
     {
-      "query": "tag:#c/13",
+      "query": "tag:#c/18",
       "color": {
         "a": 1,
         "rgb": 16032353
       }
     },
     {
-      "query": "tag:#c/18",
+      "query": "tag:#c/14",
       "color": {
         "a": 1,
         "rgb": 11868062

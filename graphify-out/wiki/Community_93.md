@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1860) (0 connections)
+- [Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita vári](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1719) (0 connections)
 
 ## Relationships
 

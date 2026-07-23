@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Wrapper simples de retry/backoff para chamadas HTTP sujeitas a rate limit (429)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/rate_limit.py#L1) (0 connections)
+- [Payload completo do pedido: cliente, itens com complementos, pagamento, entrega,](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L55) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [src/ifood_automacao/rate_limit.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/rate_limit.py)
+- [src/ifood_automacao/pedidos.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py)
 
 ## Audit Trail
 

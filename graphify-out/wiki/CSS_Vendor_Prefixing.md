@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L132) (0 connections)
+- [API local que serve de ponte entre a interface React e a Merchant/Catalog API do](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1) (0 connections)
 
 ## Relationships
 

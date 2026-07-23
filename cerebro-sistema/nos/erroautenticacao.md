@@ -1,11 +1,11 @@
 ---
 tipo: classe
-comunidade: 13
+comunidade: 14
 heat: 0.019
 complexidade: 1
 arquivo: "server/app.py"
 local: L126
-tags: [c/13, tipo/classe]
+tags: [c/14, tipo/classe]
 ---
 
 # ErroAutenticacao

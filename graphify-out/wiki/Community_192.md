@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L77) (0 connections)
+- [Detalhes completos da loja: nome, razão social, tipo, status e operações/canais](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L18) (0 connections)
 
 ## Relationships
 

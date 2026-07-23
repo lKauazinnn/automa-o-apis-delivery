@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Pausa (UNAVAILABLE) ou despausa (AVAILABLE) um item globalmente.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L206) (0 connections)
+- [Cria um item do tipo COMBO_V2 (ex: "Combo hambúrguer e refrigerante").      `g](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L140) (0 connections)
 
 ## Relationships
 

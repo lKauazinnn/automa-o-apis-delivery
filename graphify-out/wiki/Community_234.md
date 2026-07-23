@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria ou substitui por completo um item (PUT é idempotente e sempre reenvia a est](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L60) (0 connections)
+- [Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L751) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [C:/Users/Gustavo/Desktop/automação ifood/src/ifood_automacao/client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py)
+- [C:/Users/Gustavo/Desktop/automação ifood/server/app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
 
 ## Audit Trail
 

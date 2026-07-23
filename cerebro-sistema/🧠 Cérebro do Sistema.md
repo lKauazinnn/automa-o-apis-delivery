@@ -6,7 +6,7 @@ tags: [home]
 
 Mapa vivo do projeto **Automação iFood**, gerado a partir do grafo de
 conhecimento do [graphify](../graphify-out/) (`graph.json`). Cada nota é uma
-função, arquivo ou classe real do código — 504 nós ao todo,
+função, arquivo ou classe real do código — 506 nós ao todo,
 conectados pelas relações reais (**chama**, **contém**, **herda**...).
 
 > [!tip] Abra o Graph View
@@ -20,13 +20,13 @@ conectados pelas relações reais (**chama**, **contém**, **herda**...).
 - [[kdsview()]] — função, comunidade 1
 - [[lucide-react]] — classe, comunidade 1
 - [[react]] — classe, comunidade 1
+- [[catalogoview()]] — função, comunidade 1
+- [[gruposopcaomodal()]] — função, comunidade 1
+- [[registrar_auditoria()]] — função, comunidade 0
 - [[readme.md]] — classe, comunidade 12
 - [[arquitetura]] — classe, comunidade 12
 - [[manual]] — classe, comunidade 12
 - [[readme.md (2)]] — classe, comunidade 20
-- [[catalogoview()]] — função, comunidade 1
-- [[gruposopcaomodal()]] — função, comunidade 1
-- [[registrar_auditoria()]] — função, comunidade 0
 
 ## Como foi feito
 

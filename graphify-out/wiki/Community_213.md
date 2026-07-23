@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [react](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/.oxlintrc.json#L3) (0 connections)
+- [Leitura da planilha de itens/PDV.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [viewer/.oxlintrc.json](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/.oxlintrc.json)
+- [src/ifood_automacao/planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py)
 
 ## Audit Trail
 

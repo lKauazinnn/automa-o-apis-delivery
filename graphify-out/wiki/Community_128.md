@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido no](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1241) (0 connections)
+- [Order/Events API: implementado a partir da doc pública, ainda não disparado cont](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1165) (0 connections)
 
 ## Relationships
 

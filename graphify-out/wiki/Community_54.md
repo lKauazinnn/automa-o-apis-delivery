@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1850) (0 connections)
+- [Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1620) (0 connections)
 
 ## Relationships
 

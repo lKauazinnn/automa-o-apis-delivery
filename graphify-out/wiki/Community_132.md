@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Converte o payload de pedido do 99 numa linha da tabela `pedidos`.     Aceita o](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1485) (0 connections)
+- [Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1384) (0 connections)
 
 ## Relationships
 

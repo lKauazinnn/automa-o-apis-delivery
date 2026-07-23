@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L271) (0 connections)
+- [Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L199) (0 connections)
 
 ## Relationships
 
