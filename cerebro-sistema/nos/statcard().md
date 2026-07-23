@@ -1,0 +1,14 @@
+---
+tipo: função
+comunidade: 7
+heat: 0.008
+complexidade: 2
+arquivo: "automa-o-apis-delivery/viewer/src/App.jsx"
+local: L135
+tags: [c/7, tipo/função]
+---
+
+# StatCard()
+
+## Contido em
+- [[app.jsx]]

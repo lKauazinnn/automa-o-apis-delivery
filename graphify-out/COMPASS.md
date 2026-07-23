@@ -1,19 +1,19 @@
-# Architectural Compass - C:\Users\Gustavo\Desktop\automação ifood (2026-07-20)
+# Architectural Compass - C:\Users\Gustavo\Desktop\automação ifood (2026-07-23)
 
 > [!NOTE]
 > This is a token-optimized summary. For deep logic, see GRAPH_REPORT.md.
 
 ## Core Abstractions (God Nodes)
-1. `com_retry()` (29 edges)
-2. `_merchant_id()` (28 edges)
-3. `registrar_auditoria()` (28 edges)
-4. `auth_headers()` (27 edges)
-5. `_supabase_headers()` (13 edges)
-6. `_catalog_id()` (10 edges)
-7. `criar_item()` (9 edges)
-8. `main()` (8 edges)
-9. `convidar_usuario()` (8 edges)
-10. `resetar_senha_usuario()` (8 edges)
+1. `auth_headers()` (41 edges)
+2. `registrar_auditoria()` (39 edges)
+3. `com_retry()` (38 edges)
+4. `_merchant_id()` (37 edges)
+5. `OrderStatus` (30 edges)
+6. `OrderType` (27 edges)
+7. `_supabase_headers()` (24 edges)
+8. `lucide-react` (24 edges)
+9. `get_auth_token()` (15 edges)
+10. `criar_item()` (11 edges)
 
 ## System Layers
 - **L0: Global/Entry**: 

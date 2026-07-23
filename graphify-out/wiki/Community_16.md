@@ -1,13 +1,16 @@
 # Community 16
 
-> 4 nodes · cohesion 0.50
+> 7 nodes · cohesion 0.43
 
 ## Key Concepts
 
-- [Sidebar.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L1) (3 connections)
-- [ItemNav()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L11) (1 connections)
-- [Sidebar()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L38) (1 connections)
-- [VIEWS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx#L5) (1 connections)
+- [api.ts](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/api.ts#L1) (6 connections)
+- [req()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/api.ts#L6) (4 connections)
+- [getOrder()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/api.ts#L56) (2 connections)
+- [listOrders()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/api.ts#L39) (2 connections)
+- [transitionOrder()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/api.ts#L60) (2 connections)
+- [BASE](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/api.ts#L3) (1 connections)
+- [WS_URL](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/api.ts#L4) (1 connections)
 
 ## Relationships
 
@@ -15,11 +18,11 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\Sidebar.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Sidebar.jsx)
+- [C:\Users\Gustavo\Desktop\automação ifood\sistema-pedidos\frontend\src\api.ts](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/api.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 6 (100%)
+- EXTRACTED: 18 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

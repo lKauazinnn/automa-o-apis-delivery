@@ -1,25 +1,27 @@
 # Community 17
 
-> 3 nodes · cohesion 0.67
+> 6 nodes · cohesion 0.33
 
 ## Key Concepts
 
-- [Lista as lojas (merchants) vinculadas às credenciais do .env.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py#L1) (2 connections)
-- [descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/descobrir_lojas.py#L1) (1 connections)
-- [descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py#L1) (1 connections)
+- [CerebroGraphify.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L1) (5 connections)
+- [ARESTAS_BASE](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L24) (1 connections)
+- [ARESTAS_SINAL](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L30) (1 connections)
+- [CerebroGraphify()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L43) (1 connections)
+- [CORES](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L38) (1 connections)
+- [NOS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L5) (1 connections)
 
 ## Relationships
 
-- [[Community 15]] (2 shared connections)
+- No strong cross-community connections detected
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\scripts\descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/descobrir_lojas.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\scripts\descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\components\CerebroGraphify.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx)
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 10 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

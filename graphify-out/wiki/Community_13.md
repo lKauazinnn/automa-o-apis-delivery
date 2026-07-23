@@ -1,28 +1,53 @@
 # Community 13
 
-> 6 nodes · cohesion 0.33
+> 13 nodes · cohesion 0.15
 
 ## Key Concepts
 
-- [CerebroGraphify.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L1) (5 connections)
-- [ARESTAS_BASE](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L24) (1 connections)
-- [ARESTAS_SINAL](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L30) (1 connections)
-- [CerebroGraphify()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L43) (1 connections)
-- [CORES](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L38) (1 connections)
-- [NOS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx#L5) (1 connections)
+- [ErroAutenticacao](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L126) (7 connections)
+- [tratar_erro()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L261) (6 connections)
+- [usuario_atual()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L134) (6 connections)
+- [Food99Error](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/auth.py#L25) (4 connections)
+- **Exception** (3 connections)
+- [.__init__()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L129) (1 connections)
+- [Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L127) (1 connections)
+- [Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L135) (1 connections)
+- [Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L210) (1 connections)
+- [Converte qualquer falha (login, rede, API do iFood/Supabase, validação) numa res](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L262) (1 connections)
+- [Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L85) (1 connections)
+- [Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Aut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L93) (1 connections)
+- [Erro de negócio devolvido pela API (errno != 0).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/auth.py#L26) (1 connections)
+
+## Class Diagram
+
+```mermaid
+classDiagram
+    class ErroAutenticacao {
+        +app.py()
+        +.__init__()
+        +app.py()
+    }
+    class Food99Error {
+        +auth.py()
+    }
+```
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 16]] (4 shared connections)
+- [[iFood Menu API]] (2 shared connections)
+- [[Auth Service]] (1 shared connections)
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\components\CerebroGraphify.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/components/CerebroGraphify.jsx)
+- [C:/Users/Gustavo/Desktop/automação ifood/automa-o-apis-delivery/server/app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\src\food99_automacao\auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/auth.py)
 
 ## Audit Trail
 
-- EXTRACTED: 10 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 33 (97%)
+- INFERRED: 1 (3%)
 - AMBIGUOUS: 0 (0%)
 
 ---

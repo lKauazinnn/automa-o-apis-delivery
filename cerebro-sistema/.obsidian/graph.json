@@ -1,0 +1,135 @@
+{
+  "collapse-filter": true,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "tag:#c/1",
+      "color": {
+        "a": 1,
+        "rgb": 16726843
+      }
+    },
+    {
+      "query": "tag:#c/0",
+      "color": {
+        "a": 1,
+        "rgb": 16752412
+      }
+    },
+    {
+      "query": "tag:#c/3",
+      "color": {
+        "a": 1,
+        "rgb": 16766474
+      }
+    },
+    {
+      "query": "tag:#c/2",
+      "color": {
+        "a": 1,
+        "rgb": 448160
+      }
+    },
+    {
+      "query": "tag:#c/5",
+      "color": {
+        "a": 1,
+        "rgb": 46296
+      }
+    },
+    {
+      "query": "tag:#c/6",
+      "color": {
+        "a": 1,
+        "rgb": 4415982
+      }
+    },
+    {
+      "query": "tag:#c/4",
+      "color": {
+        "a": 1,
+        "rgb": 10182117
+      }
+    },
+    {
+      "query": "tag:#c/7",
+      "color": {
+        "a": 1,
+        "rgb": 15817653
+      }
+    },
+    {
+      "query": "tag:#c/9",
+      "color": {
+        "a": 1,
+        "rgb": 15681391
+      }
+    },
+    {
+      "query": "tag:#c/10",
+      "color": {
+        "a": 1,
+        "rgb": 9095462
+      }
+    },
+    {
+      "query": "tag:#c/11",
+      "color": {
+        "a": 1,
+        "rgb": 1671876
+      }
+    },
+    {
+      "query": "tag:#c/14",
+      "color": {
+        "a": 1,
+        "rgb": 13073919
+      }
+    },
+    {
+      "query": "tag:#c/16",
+      "color": {
+        "a": 1,
+        "rgb": 16739179
+      }
+    },
+    {
+      "query": "tag:#c/17",
+      "color": {
+        "a": 1,
+        "rgb": 3065014
+      }
+    },
+    {
+      "query": "tag:#c/13",
+      "color": {
+        "a": 1,
+        "rgb": 16032353
+      }
+    },
+    {
+      "query": "tag:#c/18",
+      "color": {
+        "a": 1,
+        "rgb": 11868062
+      }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": false,
+  "textFadeMultiplier": -1.2,
+  "nodeSizeMultiplier": 0.62,
+  "lineSizeMultiplier": 0.2,
+  "collapse-forces": false,
+  "centerStrength": 0.8,
+  "repelStrength": 6,
+  "linkStrength": 0.7,
+  "linkDistance": 45,
+  "scale": 0.45,
+  "close": true
+}

@@ -2,35 +2,35 @@
   "hotspots": [
     {
       "label": "Painel()",
-      "risk": 0.617,
+      "risk": 0.61,
       "type": "FUNCTION"
     },
     {
-      "label": "app.py",
-      "risk": 0.202,
-      "type": "FUNCTION"
+      "label": "Falha de login/permiss\u00e3o \u2014 sess\u00e3o ausente/expirada (401) ou papel sem acesso (40",
+      "risk": 0.204,
+      "type": "UNKNOWN"
     },
     {
-      "label": "CatalogoView()",
-      "risk": 0.137,
-      "type": "FUNCTION"
+      "label": "Valida a sess\u00e3o (header Authorization: Bearer <token>, emitido pelo Supabase Aut",
+      "risk": 0.204,
+      "type": "UNKNOWN"
     },
     {
-      "label": "com_retry()",
-      "risk": 0.131,
-      "type": "FUNCTION"
+      "label": "Loja alvo da requisi\u00e7\u00e3o: vem de ?loja=<id> na query string, ou a padr\u00e3o do .env.",
+      "risk": 0.204,
+      "type": "UNKNOWN"
     },
     {
-      "label": "registrar_auditoria()",
-      "risk": 0.126,
-      "type": "FUNCTION"
+      "label": "Grava uma linha na tabela `auditoria` do Supabase para toda a\u00e7\u00e3o que altera o ca",
+      "risk": 0.204,
+      "type": "UNKNOWN"
     }
   ],
   "blast_radius": {
-    "com_retry()": 29,
-    "_merchant_id()": 28,
-    "registrar_auditoria()": 28,
-    "auth_headers()": 27,
-    "_supabase_headers()": 13
+    "auth_headers()": 41,
+    "registrar_auditoria()": 39,
+    "com_retry()": 38,
+    "_merchant_id()": 37,
+    "OrderStatus": 30
   }
 }

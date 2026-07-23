@@ -16,6 +16,8 @@ alter table public.lojas enable row level security;
 
 -- Mantém cadastrada a loja que já estava em uso (IFOOD_MERCHANT_ID do .env), pra não sumir
 -- do seletor quando a tabela for criada.
+-- merchant_id = o mesmo do IFOOD_MERCHANT_ID do .env (o merchant que as credenciais
+-- realmente acessam). Usar um id que as credenciais NÃO acessam gera 403 ao abrir a loja.
 insert into public.lojas (nome, merchant_id)
-values ('Teste - Caju Integração', 'a1136885-5932-417c-bbac-86b184752495')
+values ('Teste - Caju Integração', '0a9da4ae-905f-4f30-9527-36eba266dfc0')
 on conflict (merchant_id) do nothing;

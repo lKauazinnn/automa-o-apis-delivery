@@ -1,0 +1,15 @@
+---
+tipo: função
+comunidade: 1
+heat: 0.006
+complexidade: 1
+arquivo: "viewer/src/views/DashboardView.jsx"
+local: L1
+tags: [c/1, tipo/função]
+---
+
+# DashboardView.jsx
+
+## Conexões de saída
+- **Contém:** [[dashboardview()]]
+- **Importa de:** [[lucide-react]]

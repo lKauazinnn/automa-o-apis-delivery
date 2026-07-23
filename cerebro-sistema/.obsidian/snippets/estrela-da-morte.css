@@ -1,0 +1,21 @@
+/* ===== Cérebro "Estrela da Morte" — gerado por scripts/gerar_cerebro.py =====
+   NÃO edite à mão: é regenerado a cada atualização do cérebro. */
+
+/* fundo espacial, só no grafo */
+.workspace-leaf-content[data-type="graph"] .view-content,
+.workspace-leaf-content[data-type="localgraph"] .view-content {
+  --background-primary: #04050a;
+  background-color: #04050a;
+}
+
+/* casca cinza da estação + linhas discretas; as cores vêm dos color groups */
+.workspace-leaf-content[data-type="graph"],
+.workspace-leaf-content[data-type="localgraph"] {
+  --graph-node: #b9bec8;
+  --graph-node-unresolved: #4f545f;
+  --graph-node-tag: #8b909b;
+  --graph-node-attachment: #8b909b;
+  --graph-line: rgba(150, 165, 190, 0.16);
+  --graph-node-focused: #ffffff;
+  --graph-node-hover: #ffffff;
+}

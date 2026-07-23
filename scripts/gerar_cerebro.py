@@ -13,6 +13,7 @@ wikilinks para as relacoes reais (contem, chama, herda...). Nos de "rationale"
 O script e deterministico: rodar de novo com o mesmo grafo produz exatamente os
 mesmos arquivos, entao pode ser chamado por um hook a cada edicao sem churn.
 """
+import collections
 import json
 import re
 import sys
@@ -22,6 +23,38 @@ RAIZ = Path(__file__).resolve().parent.parent
 GRAFO = RAIZ / "graphify-out" / "graph.json"
 VAULT = RAIZ / "cerebro-sistema"
 NOS = VAULT / "nos"
+OBS = VAULT / ".obsidian"
+
+# Paleta viva pros núcleos coloridos. Ideia da "Estrela da Morte": a esfera é uma
+# casca cinza (CSS) e cada comunidade grande acende como uma luz colorida.
+PALETA = [
+    "ff3b3b", "ff9f1c", "ffd60a", "06d6a0", "00b4d8", "4361ee", "9b5de5", "f15bb5",
+    "ef476f", "8ac926", "1982c4", "c77dff", "ff6b6b", "2ec4b6", "f4a261", "b5179e",
+]
+
+# Snippet CSS aplicado só ao Graph View (não mexe no resto do Obsidian).
+CSS_ESTRELA = """/* ===== Cérebro "Estrela da Morte" — gerado por scripts/gerar_cerebro.py =====
+   NÃO edite à mão: é regenerado a cada atualização do cérebro. */
+
+/* fundo espacial, só no grafo */
+.workspace-leaf-content[data-type="graph"] .view-content,
+.workspace-leaf-content[data-type="localgraph"] .view-content {
+  --background-primary: #04050a;
+  background-color: #04050a;
+}
+
+/* casca cinza da estação + linhas discretas; as cores vêm dos color groups */
+.workspace-leaf-content[data-type="graph"],
+.workspace-leaf-content[data-type="localgraph"] {
+  --graph-node: #b9bec8;
+  --graph-node-unresolved: #4f545f;
+  --graph-node-tag: #8b909b;
+  --graph-node-attachment: #8b909b;
+  --graph-line: rgba(150, 165, 190, 0.16);
+  --graph-node-focused: #ffffff;
+  --graph-node-hover: #ffffff;
+}
+"""
 
 # type do graphify -> rotulo em portugues
 TIPOS = {
@@ -41,6 +74,52 @@ RELACOES = {
 
 # caracteres proibidos em nome de arquivo no Windows
 PROIBIDOS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+EXT_CODIGO = re.compile(r"\.(py|jsx?|tsx?|mjs|cjs|html|vue|sql)$", re.I)
+
+
+def classificar_tipo(n: dict) -> str | None:
+    """Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=None`.
+    Devolve None se o nó NÃO for código (ex: "rationale" = frase solta sem arquivo)."""
+    t = n.get("type")
+    if t in TIPOS:
+        return TIPOS[t]
+    if t is not None:
+        return None  # tipo conhecido mas não-código
+    # type=None: só é código se tiver arquivo de origem e um label com cara de código
+    lbl = (n.get("label") or "").strip()
+    if not lbl or not n.get("source_file"):
+        return None
+    if lbl.endswith("()"):
+        return "função"
+    if EXT_CODIGO.search(lbl):
+        return "arquivo"
+    if " " not in lbl and len(lbl) <= 60:  # identificador/classe; frase com espaço = rationale
+        return "classe"
+    return None
+
+EXT_CODIGO = re.compile(r"\.(py|jsx?|tsx?|mjs|cjs|html|vue|sql)$", re.I)
+
+
+def classificar_tipo(n: dict) -> str | None:
+    """Rótulo PT do nó. Infere o tipo quando o graphify (modo AST-only) deixa `type=None`.
+    Devolve None se o nó NÃO for código (ex: "rationale" = frase solta sem arquivo)."""
+    t = n.get("type")
+    if t in TIPOS:
+        return TIPOS[t]
+    if t is not None:
+        return None  # tipo conhecido mas não-código
+    # type=None: só é código se tiver arquivo de origem e um label com cara de código
+    lbl = (n.get("label") or "").strip()
+    if not lbl or not n.get("source_file"):
+        return None
+    if lbl.endswith("()"):
+        return "função"
+    if EXT_CODIGO.search(lbl):
+        return "arquivo"
+    if " " not in lbl and len(lbl) <= 60:  # identificador/classe; frase com espaço = rationale
+        return "classe"
+    return None
 
 
 def caminho_relativo(source_file: str) -> str:
@@ -86,7 +165,7 @@ def gerar():
     links = g.get("links", [])
 
     # só nós reais de código (rationale/descrição têm type nulo)
-    nos_cod = [n for n in nos if n.get("type") in TIPOS]
+    nos_cod = [n for n in nos if classificar_tipo(n) is not None]
     ids_cod = {n["id"] for n in nos_cod}
     mapa = construir_mapa_nomes(nos_cod)
 
@@ -114,7 +193,7 @@ def gerar():
     for n in nos_cod:
         nid = n["id"]
         label = n["label"]
-        tipo = TIPOS[n["type"]]
+        tipo = classificar_tipo(n)
         comunidade = n.get("community", 0)
         heat = round(float(n.get("heat", 0)), 3)
         complexidade = int(n.get("complexity", 0) or 0)
@@ -165,8 +244,68 @@ def gerar():
         (NOS / f"{mapa[nid]}.md").write_text("\n".join(linhas).rstrip() + "\n", encoding="utf-8")
 
     gerar_home(nos_cod, mapa)
+    escrever_visual_obsidian(nos_cod)
     print(f"[cerebro] {len(nos_cod)} notas geradas em {NOS}")
     return 0
+
+
+def escrever_visual_obsidian(nos_cod):
+    """Configura o Graph View com cara de 'Estrela da Morte': esfera densa (forças)
+    + casca cinza (CSS) + núcleos coloridos por comunidade. Idempotente."""
+    OBS.mkdir(parents=True, exist_ok=True)
+
+    # comunidades por tamanho — as maiores ganham as cores mais vivas da paleta
+    tamanho = collections.Counter(n.get("community", 0) for n in nos_cod)
+    principais = [cid for cid, _ in tamanho.most_common(len(PALETA))]
+    color_groups = [
+        {"query": f"tag:#c/{cid}", "color": {"a": 1, "rgb": int(PALETA[i], 16)}}
+        for i, cid in enumerate(principais)
+    ]
+
+    # graph.json — preserva chaves existentes, cravando cores + forças da esfera densa
+    gj_path = OBS / "graph.json"
+    try:
+        gj = json.loads(gj_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        gj = {}
+    gj.update({
+        "colorGroups": color_groups,
+        "showArrow": False,
+        "showOrphans": True,
+        "showTags": False,
+        "showAttachments": False,
+        # forças: puxa tudo pro centro numa bola densa (a "estação")
+        "centerStrength": 0.8,
+        "repelStrength": 6,
+        "linkStrength": 0.7,
+        "linkDistance": 45,
+        "nodeSizeMultiplier": 0.62,
+        "lineSizeMultiplier": 0.2,
+        "textFadeMultiplier": -1.2,   # esconde os rótulos com zoom-out => casca limpa
+        "scale": 0.45,
+        "collapse-color-groups": False,
+        "collapse-forces": False,
+    })
+    gj_path.write_text(json.dumps(gj, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # snippet CSS (casca cinza + fundo espacial)
+    snip = OBS / "snippets"
+    snip.mkdir(parents=True, exist_ok=True)
+    (snip / "estrela-da-morte.css").write_text(CSS_ESTRELA, encoding="utf-8")
+
+    # appearance.json — tema escuro + habilita o snippet (preserva o resto)
+    ap_path = OBS / "appearance.json"
+    try:
+        ap = json.loads(ap_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        ap = {}
+    ap["theme"] = "obsidian"
+    snippets = set(ap.get("enabledCssSnippets", []))
+    snippets.add("estrela-da-morte")
+    ap["enabledCssSnippets"] = sorted(snippets)
+    ap_path.write_text(json.dumps(ap, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    print(f"[cerebro] visual Estrela da Morte: {len(color_groups)} núcleos coloridos + esfera densa")
 
 
 def gerar_home(nos_cod, mapa):
@@ -191,7 +330,7 @@ def gerar_home(nos_cod, mapa):
         "",
     ]
     for n in quentes:
-        linhas.append(f"- [[{mapa[n['id']]}]] — {TIPOS[n['type']]}, comunidade {n.get('community', 0)}")
+        linhas.append(f"- [[{mapa[n['id']]}]] — {classificar_tipo(n) or 'nó'}, comunidade {n.get('community', 0)}")
     linhas += [
         "",
         "## Como foi feito",

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [main.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/main.jsx#L1) (0 connections)
+- [Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\main.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/main.jsx)
+- [scripts/carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py)
 
 ## Audit Trail
 

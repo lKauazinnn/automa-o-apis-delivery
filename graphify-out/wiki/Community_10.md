@@ -1,35 +1,52 @@
 # Community 10
 
-> 10 nodes · cohesion 0.33
+> 16 nodes · cohesion 0.16
 
 ## Key Concepts
 
-- [main()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L51) (8 connections)
-- [carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/carga_massa.py#L1) (4 connections)
-- [carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L1) (4 connections)
-- [carregar_ja_processados()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L32) (3 connections)
-- [registrar()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L39) (3 connections)
-- [carregar_itens()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py#L18) (3 connections)
-- [planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/planilha.py#L1) (2 connections)
-- [planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py#L1) (2 connections)
-- [Carga em massa: cria/atualiza todos os itens ATIVOS da planilha no catálogo iFoo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py#L1) (2 connections)
-- [Leitura da planilha de itens/PDV.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py#L1) (2 connections)
+- [main.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L1) (9 connections)
+- [ConnectionManager](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/ws.py#L8) (5 connections)
+- [ws.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/ws.py#L1) (4 connections)
+- [.broadcast()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/ws.py#L20) (4 connections)
+- [webhook_99food()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L67) (3 connections)
+- [ws_endpoint()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L80) (3 connections)
+- [.disconnect()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/ws.py#L16) (3 connections)
+- [_registrar_evento_99()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L50) (2 connections)
+- [webhook_99food_check()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L61) (2 connections)
+- [.connect()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/ws.py#L12) (2 connections)
+- [health()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L41) (1 connections)
+- [App FastAPI: REST de pedidos + WebSocket para push em tempo real.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L1) (1 connections)
+- [Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L62) (1 connections)
+- [Recebe os eventos que o 99Food empurra. Responde errno:0 pra confirmar.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py#L68) (1 connections)
+- [.__init__()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/ws.py#L9) (1 connections)
+- [Push de eventos em tempo real para o frontend (novo pedido, mudança de status).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/ws.py#L1) (1 connections)
+
+## Class Diagram
+
+```mermaid
+classDiagram
+    class ConnectionManager {
+        +ws.py()
+        +.__init__()
+        +.connect()
+        +.disconnect()
+        +.broadcast()
+    }
+```
 
 ## Relationships
 
-- [[Community 9]] (4 shared connections)
+- No strong cross-community connections detected
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\scripts\carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/carga_massa.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\src\ifood_automacao\planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/planilha.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\scripts\carga_massa.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/carga_massa.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\planilha.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/planilha.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\sistema-pedidos\backend\app\main.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/main.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\sistema-pedidos\backend\app\ws.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/backend/app/ws.py)
 
 ## Audit Trail
 
-- EXTRACTED: 28 (85%)
-- INFERRED: 5 (15%)
+- EXTRACTED: 37 (86%)
+- INFERRED: 6 (14%)
 - AMBIGUOUS: 0 (0%)
 
 ---

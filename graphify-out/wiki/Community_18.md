@@ -1,25 +1,26 @@
 # Community 18
 
-> 3 nodes · cohesion 0.67
+> 5 nodes · cohesion 0.40
 
 ## Key Concepts
 
-- [Puxa o catálogo atual (categorias + itens) direto da API do iFood e exporta pra](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/exportar_catalogo.py#L1) (2 connections)
-- [exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/exportar_catalogo.py#L1) (1 connections)
-- [exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/exportar_catalogo.py#L1) (1 connections)
+- [format.ts](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/lib/format.ts#L1) (4 connections)
+- [brl()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/lib/format.ts#L3) (1 connections)
+- [dataHora()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/lib/format.ts#L7) (1 connections)
+- [decorrido()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/lib/format.ts#L19) (1 connections)
+- [STATUS_COR](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/lib/format.ts#L39) (1 connections)
 
 ## Relationships
 
-- [[Community 16]] (2 shared connections)
+- No strong cross-community connections detected
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\scripts\exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/scripts/exportar_catalogo.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\scripts\exportar_catalogo.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/exportar_catalogo.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\sistema-pedidos\frontend\src\lib\format.ts](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/sistema-pedidos/frontend/src/lib/format.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 8 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

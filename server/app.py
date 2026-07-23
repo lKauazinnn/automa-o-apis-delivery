@@ -2,8 +2,11 @@
 Existe pra manter o clientSecret longe do navegador, validar os dados antes de gravar de
 verdade, tentar de novo automaticamente quando o iFood devolve rate limit/erro transiente,
 e registrar em log/auditoria tudo que é alterado no catálogo real."""
+import json
 import logging
 import os
+import random
+import random
 import secrets
 import string
 import sys
@@ -226,6 +229,12 @@ def registrar_auditoria(operador, acao, item_id="", codigo_pdv="", nome="", deta
         logger.warning("SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY não configurados — auditoria não gravada.")
         return
 
+    # Loja atual, pra a auditoria poder ser filtrada por loja no dashboard (best-effort).
+    try:
+        loja_atual = request.args.get("loja") or MERCHANT_ID_PADRAO
+    except Exception:
+        loja_atual = MERCHANT_ID_PADRAO
+
     try:
         resp = requests.post(
             f"{SUPABASE_URL}/rest/v1/auditoria",
@@ -239,6 +248,7 @@ def registrar_auditoria(operador, acao, item_id="", codigo_pdv="", nome="", deta
                 "detalhe": detalhe,
                 "valor_de": valor_de,
                 "valor_para": valor_para,
+                "merchant_id": loja_atual,
             },
             timeout=10,
         )
@@ -297,14 +307,17 @@ def get_lojas():
     """Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do iFood
     ao vivo — assim dá pra cadastrar uma loja nova sem depender do que a API do iFood já
     reconhece pras credenciais atuais)."""
+    # select=* pra trazer `plataforma` quando a migration 007 já rodou, sem quebrar antes dela.
     resp = requests.get(
         f"{SUPABASE_URL}/rest/v1/lojas",
         headers=_supabase_headers(),
-        params={"select": "id,nome,merchant_id", "order": "criado_em.asc"},
+        params={"select": "*", "order": "criado_em.asc"},
         timeout=10,
     )
     resp.raise_for_status()
-    return jsonify(resp.json())
+    # Garante o campo plataforma no retorno (default ifood) mesmo antes da migration.
+    lojas = [{**loja, "plataforma": loja.get("plataforma") or "ifood"} for loja in resp.json()]
+    return jsonify(lojas)
 
 
 @app.post("/api/lojas")
@@ -313,17 +326,21 @@ def criar_loja():
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get("nome", "")).strip()
     merchant_id = str(dados.get("merchant_id", "")).strip()
+    plataforma = (str(dados.get("plataforma", "ifood")).strip().lower() or "ifood")
+    if plataforma not in ("ifood", "99food"):
+        raise ValueError("plataforma deve ser 'ifood' ou '99food'.")
     if not nome or not merchant_id:
-        raise ValueError("Informe nome e merchant_id da loja.")
+        # merchant_id = merchant UUID (iFood) OU app_shop_id (99Food)
+        raise ValueError("Informe o nome e o identificador da loja.")
 
     resp = requests.post(
         f"{SUPABASE_URL}/rest/v1/lojas",
         headers={**_supabase_headers(), "Prefer": "return=representation"},
-        json={"nome": nome, "merchant_id": merchant_id},
+        json={"nome": nome, "merchant_id": merchant_id, "plataforma": plataforma},
         timeout=10,
     )
     resp.raise_for_status()
-    registrar_auditoria(g.usuario["nome"], "criar_loja", detalhe=f"{nome} ({merchant_id})")
+    registrar_auditoria(g.usuario["nome"], "criar_loja", detalhe=f"{nome} ({merchant_id}) [{plataforma}]")
     return jsonify(resp.json()[0]), 201
 
 
@@ -956,11 +973,18 @@ def get_auditoria():
     if not SUPABASE_CONFIGURADO:
         return jsonify([])
 
+    # Filtra por loja (o front manda ?loja=<merchant_id>), pra o dashboard não misturar
+    # o histórico de lojas/plataformas diferentes. Sem loja, traz tudo.
+    loja = request.args.get("loja")
+    params = {"select": "*", "order": "criado_em.desc", "limit": limite}
+    if loja:
+        params["merchant_id"] = f"eq.{loja}"
+
     try:
         resp = requests.get(
             f"{SUPABASE_URL}/rest/v1/auditoria",
             headers=_supabase_headers(),
-            params={"select": "*", "order": "criado_em.desc", "limit": limite},
+            params=params,
             timeout=10,
         )
         resp.raise_for_status()
@@ -1144,20 +1168,38 @@ def _atualizar_status_pedido(pedido_id, ifood_order_id, novo_status, operador):
     pedido real do sandbox (mesmo nível de confiança 🟡 documentado em HOMOLOGACAO.md pras
     demais capacidades novas). CONCLUIDO não chama o iFood: pedidos de entrega são concluídos
     pelo próprio iFood (chega um evento CONCLUDED); aqui só refletimos o status local."""
-    if novo_status == "CANCELADO":
-        com_retry(cancel_order, ifood_order_id)
-    elif novo_status in ACAO_POR_STATUS_PEDIDO:
-        com_retry(ACAO_POR_STATUS_PEDIDO[novo_status], ifood_order_id)
+    # Pedidos do 99Food (ifood_order_id "99-...") NÃO falam com a Order API do iFood — o 99
+    # tem outro fluxo (webhook). Só o iFood empurra a ação pra API dele.
+    eh_99 = str(ifood_order_id or "").startswith("99-")
+    if not eh_99:
+        if novo_status == "CANCELADO":
+            com_retry(cancel_order, ifood_order_id)
+        elif novo_status in ACAO_POR_STATUS_PEDIDO:
+            com_retry(ACAO_POR_STATUS_PEDIDO[novo_status], ifood_order_id)
+
+    # Acrescenta na linha do tempo (detalhes_brutos.timeline) — precisa reler pra não perder o resto.
+    atual = requests.get(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers=_supabase_headers(),
+        params={"select": "detalhes_brutos", "id": f"eq.{pedido_id}"},
+        timeout=10,
+    )
+    db = (atual.json()[0].get("detalhes_brutos") if atual.ok and atual.json() else None) or {}
+    if not isinstance(db, dict):
+        db = {}
+    timeline = list(db.get("timeline") or [])
+    timeline.append({"status": novo_status, "em": _agora_iso()})
+    db["timeline"] = timeline
 
     resp = requests.patch(
         f"{SUPABASE_URL}/rest/v1/pedidos",
         headers={**_supabase_headers(), "Prefer": "return=representation"},
         params={"id": f"eq.{pedido_id}"},
-        json={"status": novo_status, "atualizado_em": _agora_iso()},
+        json={"status": novo_status, "atualizado_em": _agora_iso(), "detalhes_brutos": db},
         timeout=10,
     )
     resp.raise_for_status()
-    registrar_auditoria(operador, "alterar_status_pedido", item_id=pedido_id, detalhe=f"novo status: {novo_status}")
+    registrar_auditoria(operador, "alterar_status_pedido", item_id=pedido_id, detalhe=f"novo status: {novo_status}{' (99Food)' if eh_99 else ''}")
     return resp.json()[0]
 
 
@@ -1215,10 +1257,39 @@ def _criar_pedido_local(merchant_id, order_id) -> bool:
     return True
 
 
+def _registrar_e_materializar_evento(merchant_id, evento, origem, ack_enviado=False):
+    """Processa UM evento de pedido do iFood — vindo do polling OU do webhook. Monta a linha de
+    log, materializa pedido novo (PLACED) ou atualiza o status de um existente. Devolve
+    (linha_de_log, entrou_pedido_novo)."""
+    codigo = evento.get("code") or evento.get("fullCode") or "DESCONHECIDO"
+    order_id = evento.get("orderId")
+    linha = {
+        "merchant_id": merchant_id,
+        "pedido_ifood_id": order_id,
+        "tipo": CODIGO_EVENTO_LABEL.get(codigo, codigo),
+        "origem": origem,
+        "tratado": True,
+        "ack_enviado": ack_enviado,
+        "payload": evento,
+    }
+    novo = False
+    if codigo == "PLACED" and order_id:
+        novo = _criar_pedido_local(merchant_id, order_id)
+    elif order_id and codigo in STATUS_POR_CODIGO_EVENTO:
+        requests.patch(
+            f"{SUPABASE_URL}/rest/v1/pedidos",
+            headers=_supabase_headers(),
+            params={"ifood_order_id": f"eq.{order_id}"},
+            json={"status": STATUS_POR_CODIGO_EVENTO[codigo], "atualizado_em": _agora_iso()},
+            timeout=10,
+        )
+    return linha, novo
+
+
 def _processar_eventos_da_loja(merchant_id) -> int:
-    """Um ciclo de polling pra uma loja: busca eventos pendentes, materializa pedido novo
-    (PLACED), atualiza status de pedidos existentes, grava o log em `eventos_ifood` e confirma
-    o recebimento no iFood. Devolve quantos pedidos novos entraram."""
+    """Um ciclo de polling pra uma loja: busca eventos pendentes, materializa/atualiza pelos
+    MESMOS helpers do webhook, grava o log em `eventos_ifood` e confirma (ack) no iFood.
+    Devolve quantos pedidos novos entraram."""
     eventos = com_retry(poll_events, merchant_id)
     if not eventos:
         return 0
@@ -1226,34 +1297,12 @@ def _processar_eventos_da_loja(merchant_id) -> int:
     novos_pedidos = 0
     ids_para_confirmar = []
     linhas_evento = []
-
     for evento in eventos:
-        codigo = evento.get("code") or evento.get("fullCode") or "DESCONHECIDO"
-        order_id = evento.get("orderId")
         ids_para_confirmar.append(evento["id"])
-        linhas_evento.append(
-            {
-                "merchant_id": merchant_id,
-                "pedido_ifood_id": order_id,
-                "tipo": CODIGO_EVENTO_LABEL.get(codigo, codigo),
-                "origem": "Consulta automática",
-                "tratado": True,
-                "ack_enviado": False,
-                "payload": evento,
-            }
-        )
-
-        if codigo == "PLACED" and order_id:
-            if _criar_pedido_local(merchant_id, order_id):
-                novos_pedidos += 1
-        elif order_id and codigo in STATUS_POR_CODIGO_EVENTO:
-            requests.patch(
-                f"{SUPABASE_URL}/rest/v1/pedidos",
-                headers=_supabase_headers(),
-                params={"ifood_order_id": f"eq.{order_id}"},
-                json={"status": STATUS_POR_CODIGO_EVENTO[codigo], "atualizado_em": _agora_iso()},
-                timeout=10,
-            )
+        linha, novo = _registrar_e_materializar_evento(merchant_id, evento, "Consulta automática")
+        linhas_evento.append(linha)
+        if novo:
+            novos_pedidos += 1
 
     if linhas_evento:
         resp = requests.post(f"{SUPABASE_URL}/rest/v1/eventos_ifood", headers=_supabase_headers(), json=linhas_evento, timeout=10)
@@ -1312,6 +1361,32 @@ def get_pedido_detalhe(pedido_id):
     )
     resp_eventos.raise_for_status()
     pedido["linha_do_tempo"] = resp_eventos.json()
+
+    # Fallback 99Food: itens e linha do tempo vivem em detalhes_brutos (não nas tabelas iFood).
+    db = pedido.get("detalhes_brutos") or {}
+    if isinstance(db, dict):
+        if not pedido["itens"] and db.get("itens"):
+            pedido["itens"] = [
+                {
+                    "id": i,
+                    "quantidade": it.get("qtd", 1),
+                    "nome": it.get("nome"),
+                    "preco": it.get("preco"),
+                    "complementos": it.get("complementos") or [],
+                    "obs": it.get("obs") or "",
+                }
+                for i, it in enumerate(db["itens"])
+            ]
+        if not pedido["linha_do_tempo"] and db.get("timeline"):
+            rot = {
+                "NOVO": "Novo pedido recebido", "CONFIRMADO": "Pedido confirmado",
+                "DESPACHADO": "Saiu para entrega / despachado", "CONCLUIDO": "Pedido concluído",
+                "CANCELADO": "Pedido cancelado",
+            }
+            pedido["linha_do_tempo"] = [
+                {"id": i, "tipo": rot.get(t.get("status"), t.get("status")), "recebido_em": t.get("em")}
+                for i, t in enumerate(db["timeline"])
+            ]
     return jsonify(pedido)
 
 
@@ -1381,6 +1456,584 @@ def get_eventos():
     )
     resp.raise_for_status()
     return jsonify(resp.json())
+
+
+# ---- Webhook 99Food (DiDi) ----
+# O 99Food não tem polling: ele faz POST aqui a cada evento (pedido novo, cancelamento,
+# status de upload de cardápio). Rota PÚBLICA (sem @requer_login) — o 99 chama de fora.
+# Registra o payload cru pra inspeção/automação e responde errno:0 (a confirmação que o
+# 99 espera). Cadastre a URL pública desta rota no campo "Endereço do webhook" do portal.
+EVENTOS_99_LOG = None if RODANDO_NO_VERCEL else (DATA_DIR / "eventos_99food.jsonl")
+
+
+@app.get("/webhook/99food")
+def webhook_99food_check():
+    """Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook."""
+    return jsonify({"errno": 0, "errmsg": "ok"})
+
+
+@app.post("/webhook/99food")
+def webhook_99food():
+    payload = request.get_json(silent=True)
+    if payload is None:
+        payload = request.get_data(as_text=True)
+    logger.info("99Food webhook recebido: %s", payload)
+    if EVENTOS_99_LOG is not None:
+        try:
+            with open(EVENTOS_99_LOG, "a", encoding="utf-8") as f:
+                f.write(
+                    json.dumps(
+                        {"recebido_em": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "payload": payload},
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
+        except Exception as exc:  # nunca deixa o log derrubar a resposta ao 99
+            logger.warning("Falha ao gravar evento 99Food: %s", exc)
+    # Materializa o pedido no KDS a partir do evento (best-effort — nunca derruba o 200 pro 99).
+    try:
+        _processar_evento_99(payload)
+    except Exception as exc:
+        logger.warning("Falha ao processar evento 99Food: %s", exc)
+    return jsonify({"errno": 0, "errmsg": "ok"})
+
+
+# O iFood também pode entregar eventos de PEDIDO por WEBHOOK (push) em vez de polling. Esta rota
+# pública recebe o POST do iFood e materializa no KDS pelo MESMO pipeline do polling. No modo
+# webhook o próprio 200 desta resposta É a confirmação (não se chama events/acknowledgment).
+# Cadastre a URL pública desta rota no webhook da aplicação (Portal do Desenvolvedor iFood).
+@app.get("/webhook/ifood")
+def webhook_ifood_check():
+    """Health check que o portal do iFood pode bater ao cadastrar/validar o webhook."""
+    return jsonify({"status": "ok"})
+
+
+@app.post("/webhook/ifood")
+def webhook_ifood():
+    payload = request.get_json(silent=True)
+    logger.info("iFood webhook recebido: %s", payload)
+    # O iFood pode mandar um evento único (dict), uma lista, ou {"events": [...]}.
+    if isinstance(payload, list):
+        eventos = payload
+    elif isinstance(payload, dict):
+        eventos = payload.get("events") if isinstance(payload.get("events"), list) else [payload]
+    else:
+        eventos = []
+
+    linhas = []
+    for evento in eventos:
+        if not isinstance(evento, dict):
+            continue
+        merchant_id = evento.get("merchantId") or evento.get("merchant_id") or MERCHANT_ID_PADRAO
+        try:
+            linha, _ = _registrar_e_materializar_evento(merchant_id, evento, "Webhook iFood", ack_enviado=True)
+        except Exception as exc:  # nunca vira 5xx: o iFood desativa o webhook se falhar em série
+            logger.warning("Falha ao processar evento iFood: %s", exc)
+            codigo = evento.get("code") or evento.get("fullCode") or "ERRO"
+            linha = {
+                "merchant_id": merchant_id,
+                "pedido_ifood_id": evento.get("orderId"),
+                "tipo": CODIGO_EVENTO_LABEL.get(codigo, codigo),
+                "origem": "Webhook iFood",
+                "tratado": False,
+                "ack_enviado": True,
+                "payload": evento,
+            }
+        linhas.append(linha)
+
+    if linhas:
+        try:
+            requests.post(f"{SUPABASE_URL}/rest/v1/eventos_ifood", headers=_supabase_headers(), json=linhas, timeout=10)
+        except Exception as exc:
+            logger.warning("Falha ao gravar eventos iFood: %s", exc)
+
+    # 200 sempre — no modo webhook o 2xx é o ack; erro interno não pode virar 5xx.
+    return jsonify({"status": "ok", "processados": len(linhas)})
+
+
+# 99 order_status -> status do KDS (aceita código numérico ou texto).
+STATUS_99_KDS = {
+    # códigos numéricos reais do 99 (evento orderNew traz status=100 = novo)
+    "100": "NOVO", "200": "CONFIRMADO", "300": "CONFIRMADO", "400": "DESPACHADO",
+    "500": "DESPACHADO", "600": "DESPACHADO", "700": "CONCLUIDO", "800": "CANCELADO",
+    "900": "CANCELADO", "1000": "CANCELADO",
+    # atalhos numéricos da simulação + textos
+    "1": "NOVO", "2": "CONFIRMADO", "3": "DESPACHADO", "4": "CONCLUIDO", "5": "CANCELADO",
+    "new": "NOVO", "placed": "NOVO", "confirmed": "CONFIRMADO", "preparing": "CONFIRMADO",
+    "ready": "DESPACHADO", "dispatched": "DESPACHADO", "shipping": "DESPACHADO",
+    "completed": "CONCLUIDO", "finished": "CONCLUIDO", "concluded": "CONCLUIDO",
+    "cancelled": "CANCELADO", "canceled": "CANCELADO",
+}
+# delivery_type do 99: 1 = entrega; 2/3 = retirada. + textos da simulação.
+TIPO_99_KDS = {
+    "1": "ENTREGA", "2": "RETIRADA", "3": "RETIRADA",
+    "delivery": "ENTREGA", "pickup": "RETIRADA", "takeout": "RETIRADA", "self_pickup": "RETIRADA",
+}
+PAGAMENTO_99 = {"1": "Online (99)", "2": "Dinheiro", "0": "99Food", "None": "99Food"}
+
+
+def _nome_cliente_99(addr, data):
+    if isinstance(addr, dict):
+        nome = addr.get("name") or (f"{addr.get('first_name', '')} {addr.get('last_name', '')}").strip()
+        if nome:
+            return nome
+    ui = data.get("user_info")
+    if isinstance(ui, dict) and ui.get("name"):
+        return ui["name"]
+    return data.get("customer_name") or "Cliente 99"
+
+
+def _centavos(v):
+    """O 99 manda todo preço em centavos (ex: 300 = R$3,00) → converte pra reais."""
+    return round((v or 0) / 100.0, 2) if isinstance(v, (int, float)) else float(v or 0)
+
+
+def _mapear_pedido_99(app_shop_id, data):
+    """Converte o payload de pedido do 99 numa linha da tabela `pedidos`.
+    Aceita o formato REAL (evento orderNew: data.order_info.*) e o achatado (simulação)."""
+    oi = data.get("order_info") if isinstance(data.get("order_info"), dict) else data
+    order_id = str(oi.get("order_id") or data.get("order_id") or data.get("id") or "").strip()
+    if not order_id:
+        return None
+    st = oi.get("status", data.get("order_status", data.get("status")))
+    status = STATUS_99_KDS.get(str(st).lower(), "NOVO")
+    dt = oi.get("delivery_type", data.get("order_type", data.get("type")))
+    tipo = TIPO_99_KDS.get(str(dt).lower(), "RETIRADA" if str(dt) in ("2", "3") else "ENTREGA")
+    price = oi.get("price") if isinstance(oi.get("price"), dict) else {}
+    bruto = (price.get("real_pay_price") or price.get("real_price") or price.get("order_price")
+             or data.get("total_amount") or data.get("total") or 0)
+    itens_src = oi.get("order_items") or data.get("items") or []
+    itens = []
+    for it in itens_src:
+        # complementos/adicionais do item (o 99 manda em sub_item_list)
+        subs = it.get("sub_item_list") or it.get("complements") or it.get("complementos") or []
+        complementos = [
+            {
+                "nome": s.get("name") or s.get("nome"),
+                "preco": _centavos(s.get("total_price") or s.get("price") or s.get("preco") or 0),
+                "grupo": s.get("content_name") or s.get("grupo") or "",
+            }
+            for s in subs
+            if (s.get("name") or s.get("nome"))
+        ]
+        itens.append(
+            {
+                "nome": it.get("name") or it.get("item_name"),
+                "qtd": it.get("amount") or it.get("count") or 1,
+                "preco": _centavos(it.get("total_price") or it.get("price") or 0),
+                "obs": it.get("remark") or it.get("obs") or "",
+                "complementos": complementos,
+            }
+        )
+    oid = order_id if order_id.startswith("99-") else f"99-{order_id}"
+    return {
+        "ifood_order_id": oid,
+        "merchant_id": app_shop_id,
+        "status": status,
+        "tipo": tipo,
+        "pagamento": PAGAMENTO_99.get(str(oi.get("pay_type", data.get("pay_type"))), "99Food"),
+        "cliente": {"name": _nome_cliente_99(oi.get("receive_address"), data)},
+        "total": _centavos(bruto),
+        "oculto_kds": False,
+        "detalhes_brutos": {
+            "origem": "99Food (webhook)",
+            "status_99": st,
+            "itens": itens,
+            "timeline": [{"status": status, "em": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime())}],
+        },
+    }
+
+
+def _upsert_pedido_99(pedido):
+    """Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`."""
+    if not SUPABASE_CONFIGURADO:
+        return
+    oid = pedido["ifood_order_id"]
+    agora = time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime())
+    achar = requests.get(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers=_supabase_headers(),
+        params={"select": "id", "ifood_order_id": f"eq.{oid}"},
+        timeout=10,
+    )
+    if achar.ok and achar.json():
+        requests.patch(
+            f"{SUPABASE_URL}/rest/v1/pedidos",
+            headers=_supabase_headers(),
+            params={"ifood_order_id": f"eq.{oid}"},
+            json={
+                "status": pedido["status"],
+                "tipo": pedido["tipo"],
+                "pagamento": pedido["pagamento"],
+                "cliente": pedido["cliente"],
+                "total": pedido["total"],
+                "detalhes_brutos": pedido["detalhes_brutos"],
+                "atualizado_em": agora,
+            },
+            timeout=10,
+        )
+    else:
+        requests.post(f"{SUPABASE_URL}/rest/v1/pedidos", headers=_supabase_headers(), json=pedido, timeout=10)
+
+
+def _processar_evento_99(evento):
+    """Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os demais
+    (shopStatus, shopBindStatus, etc.)."""
+    if not isinstance(evento, dict):
+        return
+    tipo_evt = str(evento.get("type", "")).lower()
+    data = evento.get("data") or {}
+    if not isinstance(data, dict):
+        return
+    app_shop_id = str(evento.get("app_shop_id") or data.get("app_shop_id") or "").strip()
+    order_id = data.get("order_id") or data.get("id") or evento.get("order_id")
+    if "order" not in tipo_evt and not order_id:
+        return  # não é evento de pedido
+
+    # Webhook real costuma trazer só o id → busca o detalhe via API. Se já veio inline
+    # (simulação/teste), usa direto.
+    tem_inline = any(k in data for k in ("total_amount", "total", "user_info", "cliente", "order_status", "order_info"))
+    if order_id and not tem_inline and food99 and app_shop_id:
+        try:
+            det = food99.order_detail(app_shop_id, order_id)
+            if isinstance(det, dict):
+                data = {**data, **det}
+        except Exception as exc:
+            logger.warning("order_detail 99 falhou (%s) — sem dados pra materializar", exc)
+            return
+
+    pedido = _mapear_pedido_99(app_shop_id, data)
+    if pedido:
+        _upsert_pedido_99(pedido)
+        logger.info("pedido 99 materializado no KDS: %s (%s)", pedido["ifood_order_id"], pedido["status"])
+
+
+# ---- 99Food (multi-plataforma) ----
+# Endpoints dedicados pro 99Food que devolvem o catálogo no MESMO formato do iFood
+# (/api/catalogo), pra a tela reaproveitar. O front chama estes quando a loja é 99food.
+# `loja` = app_shop_id do 99. Não tocam nos endpoints iFood.
+try:
+    from food99_automacao import client as food99  # noqa: E402
+except Exception:  # pragma: no cover
+    food99 = None
+
+FOOD99_CONFIGURADO = bool(os.environ.get("FOOD99_APP_ID") and os.environ.get("FOOD99_APP_SECRET"))
+
+
+@app.get("/api/99food/catalogo")
+@requer_login
+def catalogo_99food():
+    app_shop_id = str(request.args.get("loja", "")).strip()
+    if not app_shop_id:
+        raise ValueError("Informe a loja (app_shop_id do 99Food).")
+    if not (food99 and FOOD99_CONFIGURADO):
+        return jsonify({"erro": "99Food não configurado no servidor (FOOD99_APP_ID/SECRET)."}), 503
+    try:
+        m = food99.list_items(app_shop_id)
+    except Exception as exc:
+        return jsonify({"erro": f"99Food: {exc}"}), 502
+
+    cat_por_item, catid_por_item, nomes_cat = {}, {}, []
+    for c in m.get("categories", []):
+        nomes_cat.append(c.get("category_name"))
+        for iid in c.get("app_item_ids", []):
+            cat_por_item[iid] = c.get("category_name")
+            catid_por_item[iid] = c.get("app_category_id")
+
+    itens = []
+    for it in m.get("items", []):
+        iid = it.get("app_item_id")
+        itens.append(
+            {
+                "itemId": iid,
+                "productId": iid,
+                "categoria": cat_por_item.get(iid, "Sem categoria"),
+                "categoryId": catid_por_item.get(iid, ""),
+                "nome": it.get("item_name"),
+                "codigo_pdv": it.get("app_external_id") or "",
+                "preco": (it.get("price") or 0) / 100.0,  # 99 manda o preço em centavos
+                "status": "AVAILABLE" if it.get("status") == 1 else "UNAVAILABLE",
+                "foto": it.get("head_img") or None,
+            }
+        )
+    return jsonify({"itens": itens, "categorias": sorted(set(filter(None, nomes_cat)))})
+
+
+@app.patch("/api/99food/itens/<item_id>/status")
+@requer_login
+def alterar_status_99food(item_id):
+    dados = request.get_json(silent=True) or {}
+    status = dados.get("status")
+    nome = str(dados.get("nome", "")).strip()
+    app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
+    if status not in ("AVAILABLE", "UNAVAILABLE"):
+        raise ValueError("status deve ser AVAILABLE ou UNAVAILABLE")
+    if not app_shop_id:
+        raise ValueError("Informe a loja (app_shop_id do 99Food).")
+    if not (food99 and FOOD99_CONFIGURADO):
+        return jsonify({"erro": "99Food não configurado no servidor."}), 503
+    try:
+        food99.update_item_status(app_shop_id, item_id, disponivel=(status == "AVAILABLE"))
+    except Exception as exc:
+        return jsonify({"erro": f"99Food: {exc}"}), 502
+    registrar_auditoria(
+        g.usuario["nome"],
+        "pausar" if status == "UNAVAILABLE" else "despausar",
+        item_id=item_id,
+        nome=nome,
+        detalhe="99Food",
+    )
+    return jsonify({"itemId": item_id, "status": status})
+
+
+@app.patch("/api/99food/itens/<item_id>/preco")
+@requer_login
+def alterar_preco_99food(item_id):
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    preco_anterior = str(dados.get("preco_anterior", "")).strip()
+    app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
+    try:
+        preco = float(str(dados.get("preco", "")).replace(",", "."))
+    except ValueError:
+        raise ValueError("Preço inválido")
+    if preco <= 0:
+        raise ValueError("Preço deve ser maior que zero")
+    if not app_shop_id:
+        raise ValueError("Informe a loja (app_shop_id do 99Food).")
+    if not (food99 and FOOD99_CONFIGURADO):
+        return jsonify({"erro": "99Food não configurado no servidor."}), 503
+    try:
+        food99.update_item_price(app_shop_id, item_id, preco)
+    except Exception as exc:
+        return jsonify({"erro": f"99Food: {exc}"}), 502
+    registrar_auditoria(
+        g.usuario["nome"],
+        "alterar_preco",
+        item_id=item_id,
+        nome=nome,
+        detalhe="99Food",
+        valor_de=preco_anterior,
+        valor_para=f"{preco:.2f}",
+    )
+    return jsonify({"itemId": item_id, "preco": preco})
+
+
+@app.patch("/api/99food/itens/<item_id>")
+@requer_login
+def editar_item_99food(item_id):
+    """Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita várias
+    leituras do cardápio (importante por causa do rate-limit do 99)."""
+    dados = request.get_json(silent=True) or {}
+    app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
+    if not app_shop_id:
+        raise ValueError("Informe a loja (app_shop_id do 99Food).")
+    campos = {}
+    if dados.get("nome"):
+        campos["item_name"] = str(dados["nome"]).strip()[:50]
+    if "descricao" in dados:
+        campos["short_desc"] = str(dados.get("descricao") or "").strip()[:300]
+    if dados.get("codigo_pdv") is not None:
+        campos["app_external_id"] = str(dados.get("codigo_pdv") or "").strip()
+    if dados.get("preco") not in (None, ""):
+        try:
+            preco = float(str(dados["preco"]).replace(",", "."))
+        except ValueError:
+            raise ValueError("Preço inválido")
+        if preco <= 0:
+            raise ValueError("Preço deve ser maior que zero")
+        campos["price"] = int(round(preco * 100))
+    if not campos:
+        raise ValueError("Nada para atualizar.")
+    if not (food99 and FOOD99_CONFIGURADO):
+        return jsonify({"erro": "99Food não configurado no servidor."}), 503
+    try:
+        food99.update_item_campos(app_shop_id, item_id, **campos)
+    except Exception as exc:
+        return jsonify({"erro": f"99Food: {exc}"}), 502
+    registrar_auditoria(g.usuario["nome"], "editar_item", item_id=item_id, nome=campos.get("item_name", ""), detalhe="99Food")
+    return jsonify({"itemId": item_id, "ok": True})
+
+
+@app.patch("/api/99food/itens/<item_id>/codigo-pdv")
+@requer_login
+def alterar_codigo_pdv_99food(item_id):
+    dados = request.get_json(silent=True) or {}
+    codigo = str(dados.get("codigo_pdv", "")).strip()
+    nome = str(dados.get("nome", "")).strip()
+    app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
+    if not app_shop_id:
+        raise ValueError("Informe a loja (app_shop_id do 99Food).")
+    if not (food99 and FOOD99_CONFIGURADO):
+        return jsonify({"erro": "99Food não configurado no servidor."}), 503
+    try:
+        food99.update_item_campos(app_shop_id, item_id, app_external_id=codigo)
+    except Exception as exc:
+        return jsonify({"erro": f"99Food: {exc}"}), 502
+    registrar_auditoria(g.usuario["nome"], "alterar_codigo_pdv", item_id=item_id, nome=nome, detalhe="99Food", valor_para=codigo)
+    return jsonify({"itemId": item_id, "codigo_pdv": codigo})
+
+
+@app.patch("/api/99food/itens/<item_id>/nome-descricao")
+@requer_login
+def alterar_nome_descricao_99food(item_id):
+    dados = request.get_json(silent=True) or {}
+    app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
+    campos = {}
+    if dados.get("nome"):
+        campos["item_name"] = str(dados["nome"]).strip()[:50]
+    if "descricao" in dados:
+        campos["short_desc"] = str(dados.get("descricao") or "").strip()[:300]
+    if not app_shop_id:
+        raise ValueError("Informe a loja (app_shop_id do 99Food).")
+    if not campos:
+        raise ValueError("Nada para atualizar (envie nome e/ou descricao).")
+    if not (food99 and FOOD99_CONFIGURADO):
+        return jsonify({"erro": "99Food não configurado no servidor."}), 503
+    try:
+        food99.update_item_campos(app_shop_id, item_id, **campos)
+    except Exception as exc:
+        return jsonify({"erro": f"99Food: {exc}"}), 502
+    registrar_auditoria(
+        g.usuario["nome"],
+        "editar_item",
+        item_id=item_id,
+        nome=campos.get("item_name") or str(dados.get("nome", "")).strip(),
+        detalhe="99Food",
+    )
+    return jsonify({"itemId": item_id, **campos})
+
+
+@app.post("/api/99food/itens")
+@requer_papel(*PAPEIS_QUE_PODEM_CRIAR_ITEM)
+def criar_item_99food():
+    """Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrutivo."""
+    dados = request.get_json(silent=True) or {}
+    app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
+    nome = str(dados.get("nome", "")).strip()
+    categoria_id = str(dados.get("categoria_id", "") or dados.get("categoryId", "")).strip()
+    pdv = str(dados.get("codigo_pdv", "")).strip()
+    descricao = str(dados.get("descricao", "")).strip()
+    item_id = str(dados.get("item_id", "")).strip() or None
+    try:
+        preco = float(str(dados.get("preco", "")).replace(",", "."))
+    except ValueError:
+        raise ValueError("Preço inválido")
+    if not app_shop_id or not nome or not categoria_id or preco <= 0:
+        raise ValueError("Informe loja, nome, categoria e preço (> 0).")
+    if not (food99 and FOOD99_CONFIGURADO):
+        return jsonify({"erro": "99Food não configurado no servidor."}), 503
+    try:
+        res = food99.criar_item(
+            app_shop_id,
+            categoria_id=categoria_id,
+            nome=nome,
+            preco_reais=preco,
+            item_id=item_id,
+            descricao=descricao,
+            pdv=pdv,
+        )
+    except Exception as exc:
+        return jsonify({"erro": f"99Food: {exc}"}), 502
+    task = res.get("task") or {}
+    if task.get("status") == 2:
+        return jsonify({"erro": f"Upload do cardápio falhou: {task.get('message')}"}), 502
+    registrar_auditoria(
+        g.usuario["nome"], "criar_item", item_id=res["item_id"], nome=nome, detalhe="99Food", valor_para=f"R$ {preco:.2f}"
+    )
+    return jsonify({"itemId": res["item_id"], "task": task}), 201
+
+
+# Pool de itens/clientes pra gerar pedido de teste realista no KDS (formato real do 99).
+_ITENS_TESTE_99 = [
+    ("pizza_margherita_especial_v3", "Pizza Margherita Especial", 4500),
+    ("pizza_calabresa_v3", "Pizza Calabresa", 4700),
+    ("pizza_atum_v3", "Pizza Atum", 4200),
+    ("item_chopp_brahma", "Chopp Caneca Brahma 300ml", 1200),
+    ("item_parmegiana", "Parmegiana 570g", 4380),
+    ("item_carpaccio", "Carpaccio Peixe Branco 5un", 4000),
+    ("item_petit_gateau", "Petit Gateau - 01un", 2200),
+    ("item_caipirinha", "Caipirinha de Gin", 2295),
+    ("item_red_bull", "Red Bull", 1200),
+    ("item_agua", "Água sem Gás 500ml", 600),
+]
+_CLIENTES_TESTE = ["Ana Lima", "Bruno Alves", "Carla Dias", "Diego Rocha", "Elaine Nunes", "Felipe Souza", "Gabriela Melo", "Hugo Costa"]
+
+
+@app.post("/api/99food/pedido-teste")
+@requer_login
+def criar_pedido_teste_99():
+    """Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa no KDS
+    pelo MESMO código do webhook — pra testar em tempo real direto pela interface."""
+    dados = request.get_json(silent=True) or {}
+    app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
+    if not app_shop_id:
+        raise ValueError("Informe a loja (app_shop_id do 99Food).")
+
+    order_id = f"TESTE{int(time.time() * 1000) % 100000000}"
+
+    escolhidos = dados.get("items") or []
+    if escolhidos:
+        # itens escolhidos na tela (preço vem em REAIS -> converte pra centavos)
+        order_items = [
+            {
+                "app_item_id": str(it.get("item_id") or it.get("itemId") or ""),
+                "name": it.get("nome") or it.get("name") or "Item",
+                "amount": int(it.get("qtd") or 1),
+                "total_price": int(round(float(it.get("preco") or 0) * 100)),
+                "sub_item_list": [],
+            }
+            for it in escolhidos
+        ]
+    else:
+        # nenhum item escolhido -> pega itens REAIS do catálogo da loja (preço já em centavos)
+        order_items = []
+        if food99 and FOOD99_CONFIGURADO:
+            try:
+                reais = (food99.list_items(app_shop_id) or {}).get("items", [])
+                if reais:
+                    amostra = random.sample(reais, k=min(len(reais), random.randint(1, 3)))
+                    order_items = [
+                        {
+                            "app_item_id": it.get("app_item_id"),
+                            "name": it.get("item_name"),
+                            "amount": random.randint(1, 2),
+                            "total_price": it.get("price") or 0,
+                            "sub_item_list": [],
+                        }
+                        for it in amostra
+                    ]
+            except Exception as exc:
+                logger.warning("Não consegui puxar catálogo do 99 pro pedido teste: %s", exc)
+        if not order_items:  # fallback se catálogo indisponível
+            escolhidos_pool = random.sample(_ITENS_TESTE_99, k=random.randint(1, 3))
+            order_items = [
+                {"app_item_id": i[0], "name": i[1], "amount": random.randint(1, 2), "total_price": i[2], "sub_item_list": []}
+                for i in escolhidos_pool
+            ]
+    total = sum(it["total_price"] * it["amount"] for it in order_items)
+    evento = {
+        "app_id": int(app_shop_id) if app_shop_id.isdigit() else app_shop_id,
+        "app_shop_id": app_shop_id,
+        "type": "orderNew",
+        "timestamp": int(time.time()),
+        "data": {
+            "order_id": order_id,
+            "order_info": {
+                "order_id": order_id,
+                "status": 100,
+                "delivery_type": random.choice([1, 2]),
+                "pay_type": random.choice([1, 2]),
+                "price": {"order_price": total, "real_price": total, "real_pay_price": total, "refund_price": 0},
+                "receive_address": {"name": random.choice(_CLIENTES_TESTE)},
+                "order_items": order_items,
+                "is_test": 1,
+            },
+        },
+    }
+    _processar_evento_99(evento)  # mesmo caminho de um pedido real do 99
+    registrar_auditoria(g.usuario["nome"], "pedido_teste", item_id=order_id, detalhe="99Food (teste manual)")
+    return jsonify({"ok": True, "order_id": f"99-{order_id}", "total": round(total / 100.0, 2)}), 201
 
 
 if __name__ == "__main__":

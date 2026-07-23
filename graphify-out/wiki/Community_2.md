@@ -1,33 +1,35 @@
 # Community 2
 
-> 24 nodes · cohesion 0.14
+> 68 nodes · cohesion 0.05
 
 ## Key Concepts
 
-- [App.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx#L1) (20 connections)
-- [App.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L1) (15 connections)
-- [Painel()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L176) (4 connections)
-- [palavrasChave()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L56) (4 connections)
-- [campoPreenchido()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L76) (3 connections)
-- [encontrarRelacionados()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L65) (3 connections)
-- [removerAcentos()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L45) (3 connections)
-- [App()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L1769) (2 connections)
-- [CHAVE_SESSAO](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L174) (2 connections)
-- [contadorToast](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L173) (2 connections)
-- [MENSAGEM_ERRO_LINK](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L1764) (2 connections)
-- [PALAVRAS_IGNORADAS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L40) (2 connections)
-- [PAPEIS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L31) (2 connections)
-- [PAPEIS_QUE_PODEM_CRIAR](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L36) (2 connections)
-- [TelaCarregando()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L1753) (2 connections)
-- [ACAO_LABEL](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx#L66) (1 connections)
-- [CoresContext](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx#L64) (1 connections)
-- [formatarTimestamp()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx#L127) (1 connections)
-- [FormDefinirSenha()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L82) (1 connections)
-- [Modal()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx#L168) (1 connections)
-- [PALETAS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx#L29) (1 connections)
-- [Pill()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx#L157) (1 connections)
-- [StatCard()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx#L135) (1 connections)
-- [TITULOS_VIEW](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx#L25) (1 connections)
+- [auth_headers()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py#L45) (41 connections)
+- [client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L1) (32 connections)
+- [client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/client.py#L1) (10 connections)
+- [pedidos.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L1) (10 connections)
+- [auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py#L1) (5 connections)
+- [patch_item_external_code()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L194) (5 connections)
+- [upsert_item()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L65) (5 connections)
+- [get_access_token()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py#L16) (4 connections)
+- [auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/auth.py#L1) (4 connections)
+- [list_catalogs()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L33) (4 connections)
+- [list_categories()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L43) (4 connections)
+- [list_merchants()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L10) (4 connections)
+- [Autenticação OAuth2 (client_credentials) com a Merchant API do iFood.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py#L1) (3 connections)
+- [create_category()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L54) (3 connections)
+- [create_combo()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L130) (3 connections)
+- [create_interruption()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L325) (3 connections)
+- [create_option()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L386) (3 connections)
+- [create_option_group()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L360) (3 connections)
+- [delete_option()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L414) (3 connections)
+- [edit_category()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L241) (3 connections)
+- [edit_option()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L429) (3 connections)
+- [get_merchant_details()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L17) (3 connections)
+- [get_merchant_status()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L25) (3 connections)
+- [Cliente fino para os endpoints da Merchant API / Catalog API do iFood usados na](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L1) (3 connections)
+- [update_item_shifts()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L271) (3 connections)
+- *... and 43 more nodes in this community*
 
 ## Relationships
 
@@ -35,13 +37,17 @@
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\viewer\src\App.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/App.jsx)
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\App.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/App.jsx)
+- [C:/Users/Gustavo/Desktop/automação ifood/automa-o-apis-delivery/src/ifood_automacao/client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/client.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\src\ifood_automacao\auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/auth.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\src\ifood_automacao\client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/client.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\pedidos.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py)
 
 ## Audit Trail
 
-- EXTRACTED: 76 (99%)
-- INFERRED: 1 (1%)
+- EXTRACTED: 161 (68%)
+- INFERRED: 76 (32%)
 - AMBIGUOUS: 0 (0%)
 
 ---

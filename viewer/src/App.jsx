@@ -197,7 +197,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
   const podeCriarItem = PAPEIS_QUE_PODEM_CRIAR.has(sessao.usuario.papel)
 
   const [lojas, setLojas] = useState([])
-  const [lojaForm, setLojaForm] = useState({ nome: '', merchant_id: '' })
+  const [lojaForm, setLojaForm] = useState({ nome: '', merchant_id: '', plataforma: 'ifood' })
   const [criandoLoja, setCriandoLoja] = useState(false)
   const [lojaId, setLojaId] = useState('')
   const [modalLojas, setModalLojas] = useState(false)
@@ -255,7 +255,11 @@ function Painel({ sessao, onSair, tema, setTema }) {
 
   async function apiFetch(caminho, opcoes = {}) {
     const separador = caminho.includes('?') ? '&' : '?'
-    const url = lojaId ? `${API}${caminho}${separador}loja=${encodeURIComponent(lojaId)}` : `${API}${caminho}`
+    // Usa a loja RESOLVIDA (lojaAtual), não o lojaId cru: se o id selecionado não existe
+    // mais na lista (ex: loja corrigida/removida), cai na primeira loja em vez de mandar
+    // um merchant morto que gera 403.
+    const loja = lojaAtual?.merchant_id
+    const url = loja ? `${API}${caminho}${separador}loja=${encodeURIComponent(loja)}` : `${API}${caminho}`
     const resp = await fetch(url, {
       ...opcoes,
       headers: { ...(opcoes.headers || {}), Authorization: `Bearer ${sessao.accessToken}` },
@@ -280,7 +284,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
     setCarregando(true)
     setErroCarregamento('')
     try {
-      const data = await apiFetch('/catalogo')
+      const data = await apiFetch(lojaAtual?.plataforma === '99food' ? '/99food/catalogo' : '/catalogo')
       setItens(data.itens)
       setCategorias(data.categorias)
     } catch (e) {
@@ -332,7 +336,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
         body: JSON.stringify(lojaForm),
       })
       notificar('sucesso', `Loja "${lojaForm.nome}" cadastrada.`)
-      setLojaForm({ nome: '', merchant_id: '' })
+      setLojaForm({ nome: '', merchant_id: '', plataforma: 'ifood' })
       carregarLojas()
     } catch (e) {
       notificar('erro', e.message)
@@ -470,8 +474,20 @@ function Painel({ sessao, onSair, tema, setTema }) {
   }, [])
 
   useEffect(() => {
-    if (lojas.length) carregar()
+    if (lojas.length) {
+      carregar()
+      carregarAuditoria() // recarrega a auditoria por loja ao trocar de loja (senão o dashboard fica com a loja anterior)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lojaId])
+
+  // Se a loja selecionada não existe mais na lista (ex: foi corrigida/removida no banco),
+  // limpa o lojaId pra cair na primeira loja — evita ficar pedindo um merchant morto (403).
+  useEffect(() => {
+    if (lojas.length && lojaId && !lojas.some((l) => l.merchant_id === lojaId)) {
+      setLojaId('')
+    }
+  }, [lojas, lojaId])
 
   const lojaAtual = useMemo(() => lojas.find((l) => l.merchant_id === lojaId) || lojas[0], [lojas, lojaId])
 
@@ -532,11 +548,14 @@ function Painel({ sessao, onSair, tema, setTema }) {
   async function executarAlternarStatus(item, novoStatus) {
     setAlterandoStatus(item.itemId)
     try {
-      await apiFetch(`/itens/${item.itemId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: novoStatus, nome: item.nome }),
-      })
+      await apiFetch(
+        lojaAtual?.plataforma === '99food' ? `/99food/itens/${item.itemId}/status` : `/itens/${item.itemId}/status`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: novoStatus, nome: item.nome }),
+        },
+      )
       setItens((prev) => prev.map((i) => (i.itemId === item.itemId ? { ...i, status: novoStatus } : i)))
       notificar('sucesso', `"${item.nome}" ${novoStatus === 'UNAVAILABLE' ? 'pausado' : 'despausado'}.`)
       carregarAuditoria()
@@ -585,11 +604,14 @@ function Painel({ sessao, onSair, tema, setTema }) {
       for (let i = 0; i < alvos.length; i++) {
         const alvo = alvos[i]
         try {
-          await apiFetch(`/itens/${alvo.item_id}/status`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status, nome: alvo.nome }),
-          })
+          await apiFetch(
+            lojaAtual?.plataforma === '99food' ? `/99food/itens/${alvo.item_id}/status` : `/itens/${alvo.item_id}/status`,
+            {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status, nome: alvo.nome }),
+            },
+          )
           resultados.push({ itemId: alvo.item_id, ok: true })
         } catch (e) {
           resultados.push({ itemId: alvo.item_id, ok: false, erro: e.message })
@@ -767,6 +789,27 @@ function Painel({ sessao, onSair, tema, setTema }) {
     try {
       const nomeMudou = nome.trim() !== item.nome
       const fotoMudou = !!fotoNova
+
+      // 99Food: um único PATCH combinado (nome/preço/PDV) — evita reler o cardápio várias
+      // vezes por causa do rate-limit. Foto ainda não é suportada por aqui no 99.
+      if (lojaAtual?.plataforma === '99food') {
+        if (fotoNova) notificar('info', 'Foto ainda não é suportada no 99Food por aqui — salvando nome/preço/PDV.')
+        await apiFetch(`/99food/itens/${item.itemId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome: nome.trim(), preco: precoNum, codigo_pdv: codigoPdv.trim() }),
+        })
+        setItens((prev) =>
+          prev.map((i) =>
+            i.itemId === item.itemId ? { ...i, nome: nome.trim(), preco: precoNum, codigo_pdv: codigoPdv.trim() } : i
+          )
+        )
+        notificar('sucesso', `"${nome.trim()}" atualizado.`)
+        setModalEdicao(null)
+        carregarAuditoria()
+        return
+      }
+
       if (nomeMudou || fotoMudou) {
         // Nome e foto só existem via PUT completo do item (não tem PATCH dedicado no iFood
         // pra isso) — então reenvia tudo de uma vez, inclusive preço/PDV atuais do form.
@@ -808,7 +851,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
       const tarefas = []
       if (precoNum !== Number(item.preco)) {
         tarefas.push(
-          apiFetch(`/itens/${item.itemId}/preco`, {
+          apiFetch(lojaAtual?.plataforma === '99food' ? `/99food/itens/${item.itemId}/preco` : `/itens/${item.itemId}/preco`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -821,7 +864,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
       }
       if (codigoPdv.trim() !== item.codigo_pdv) {
         tarefas.push(
-          apiFetch(`/itens/${item.itemId}/codigo-pdv`, {
+          apiFetch(lojaAtual?.plataforma === '99food' ? `/99food/itens/${item.itemId}/codigo-pdv` : `/itens/${item.itemId}/codigo-pdv`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ codigo_pdv: codigoPdv.trim(), nome: item.nome, codigo_anterior: item.codigo_pdv }),
@@ -868,7 +911,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
       if (!precoNum || precoNum <= 0 || precoNum === Number(item.preco)) return
       setLinhaSalvando(item.itemId)
       try {
-        await apiFetch(`/itens/${item.itemId}/preco`, {
+        await apiFetch(lojaAtual?.plataforma === '99food' ? `/99food/itens/${item.itemId}/preco` : `/itens/${item.itemId}/preco`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -894,7 +937,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
     if (!codigo || codigo === item.codigo_pdv) return
     setLinhaSalvando(item.itemId)
     try {
-      await apiFetch(`/itens/${item.itemId}/codigo-pdv`, {
+      await apiFetch(lojaAtual?.plataforma === '99food' ? `/99food/itens/${item.itemId}/codigo-pdv` : `/itens/${item.itemId}/codigo-pdv`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ codigo_pdv: codigo, nome: item.nome, codigo_anterior: item.codigo_pdv }),
@@ -1073,6 +1116,12 @@ function Painel({ sessao, onSair, tema, setTema }) {
                       <p className="text-[11px] font-mono truncate" style={{ color: C.text3 }}>
                         {l.merchant_id}
                       </p>
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-wider"
+                        style={{ color: l.plataforma === '99food' ? '#e0a44c' : '#F56C35' }}
+                      >
+                        {l.plataforma === '99food' ? '99Food' : 'iFood'}
+                      </span>
                     </button>
                     {ativa && <Pill color={C.good}>Ativa</Pill>}
                     {ativa && (
@@ -1117,6 +1166,15 @@ function Painel({ sessao, onSair, tema, setTema }) {
                     onChange={(e) => setLojaForm({ ...lojaForm, nome: e.target.value })}
                     placeholder="Nome da loja"
                   />
+                  <select
+                    className={inputCls}
+                    style={inputStyle}
+                    value={lojaForm.plataforma}
+                    onChange={(e) => setLojaForm({ ...lojaForm, plataforma: e.target.value })}
+                  >
+                    <option value="ifood">iFood</option>
+                    <option value="99food">99Food</option>
+                  </select>
                   <input
                     required
                     className={inputCls}
@@ -1124,7 +1182,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                     type="text"
                     value={lojaForm.merchant_id}
                     onChange={(e) => setLojaForm({ ...lojaForm, merchant_id: e.target.value })}
-                    placeholder="Merchant ID do iFood"
+                    placeholder={lojaForm.plataforma === '99food' ? 'App Shop ID do 99Food' : 'Merchant ID do iFood'}
                   />
                   <button
                     type="submit"
@@ -1134,9 +1192,15 @@ function Painel({ sessao, onSair, tema, setTema }) {
                     {criandoLoja && <Loader2 size={12} className="animate-spin" />}
                     {criandoLoja ? 'Cadastrando...' : 'Cadastrar loja'}
                   </button>
-                  <p className="text-[10px]" style={{ color: C.text3 }}>
-                    Não sabe o Merchant ID? Rode <code>python scripts/descobrir_lojas.py</code> no backend.
-                  </p>
+                  {lojaForm.plataforma === 'ifood' ? (
+                    <p className="text-[10px]" style={{ color: C.text3 }}>
+                      Não sabe o Merchant ID? Rode <code>python scripts/descobrir_lojas.py</code> no backend.
+                    </p>
+                  ) : (
+                    <p className="text-[10px]" style={{ color: C.text3 }}>
+                      App Shop ID = o ID que você deu à loja no 99Food (ex: 5764607576333878701).
+                    </p>
+                  )}
                 </form>
               </div>
             )}
@@ -1897,6 +1961,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                   notificar={notificar}
                   setConfirmacao={setConfirmacao}
                   onAbrirHistorico={() => setView('pedidos')}
+                  plataforma={lojaAtual?.plataforma}
                 />
               )}
 

@@ -1,29 +1,36 @@
 # Community 8
 
-> 11 nodes · cohesion 0.20
+> 18 nodes · cohesion 0.11
 
 ## Key Concepts
 
-- [convidar_usuario()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L857) (8 connections)
-- [resetar_senha_usuario()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L899) (8 connections)
-- [_marcar_senha_temporaria()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L841) (6 connections)
-- [_gerar_senha_aleatoria()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L836) (3 connections)
-- [senha_trocada()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L925) (3 connections)
-- [Convida alguém por e-mail (Supabase manda o link de convite). O perfil (nome + p](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L508) (1 connections)
-- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py#L534) (1 connections)
-- [Liga/desliga a flag que força troca de senha no próximo login. Chamado com True](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L842) (1 connections)
-- [Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L858) (1 connections)
-- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L900) (1 connections)
-- [Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L926) (1 connections)
+- [Briefing do sistema — pra quem for redesenhar](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L1) (10 connections)
+- [Design deste painel](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/CLAUDE.md#L1) (6 connections)
+- [BRIEFING_REDESIGN.md](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L1) (2 connections)
+- [CLAUDE.md](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/CLAUDE.md#L1) (2 connections)
+- [Dados que a tela consome (via API do backend Flask)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L118) (1 connections)
+- [Modais](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L89) (1 connections)
+- [O painel logado — layout de cima pra baixo](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L51) (1 connections)
+- [O que precisa continuar existindo num redesign](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L132) (1 connections)
+- [O que é](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L9) (1 connections)
+- [Papéis e permissões](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L30) (1 connections)
+- [Stack técnica](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L17) (1 connections)
+- [Telas (fora do painel logado)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L36) (1 connections)
+- [Toasts (avisos temporários)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md#L113) (1 connections)
+- [Antes de considerar terminado](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/CLAUDE.md#L46) (1 connections)
+- [Classes reutilizáveis (`index.css`)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/CLAUDE.md#L20) (1 connections)
+- [Cores de status (já usadas em `PALETAS` no `App.jsx`)](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/CLAUDE.md#L33) (1 connections)
+- [Gráficos](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/CLAUDE.md#L39) (1 connections)
+- [Regras principais](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/CLAUDE.md#L7) (1 connections)
 
 ## Relationships
 
-- [[Community 7]] (6 shared connections)
+- No strong cross-community connections detected
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/server/app.py)
-- [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
+- [viewer/BRIEFING_REDESIGN.md](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/BRIEFING_REDESIGN.md)
+- [viewer/CLAUDE.md](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/CLAUDE.md)
 
 ## Audit Trail
 
