@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.03
+heat: 0.032
 complexidade: 1
 arquivo: "viewer/src/views/KDSView.jsx"
 local: L1
@@ -15,6 +15,7 @@ tags: [c/1, tipo/função]
 - **Contém:** [[cortempo()]]
 - **Contém:** [[horacurta()]]
 - **Contém:** [[intervalo_atualizacao_ms]]
+- **Contém:** [[itensnormalizados()]]
 - **Contém:** [[kdsview()]]
 - **Contém:** [[status_ativo]]
 - **Contém:** [[status_cor() (2)]]

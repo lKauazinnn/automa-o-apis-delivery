@@ -8,14 +8,14 @@
   "collapse-color-groups": false,
   "colorGroups": [
     {
-      "query": "tag:#c/1",
+      "query": "tag:#c/0",
       "color": {
         "a": 1,
         "rgb": 16726843
       }
     },
     {
-      "query": "tag:#c/0",
+      "query": "tag:#c/1",
       "color": {
         "a": 1,
         "rgb": 16752412
@@ -71,49 +71,49 @@
       }
     },
     {
-      "query": "tag:#c/10",
+      "query": "tag:#c/11",
       "color": {
         "a": 1,
         "rgb": 9095462
       }
     },
     {
-      "query": "tag:#c/11",
+      "query": "tag:#c/10",
       "color": {
         "a": 1,
         "rgb": 1671876
       }
     },
     {
-      "query": "tag:#c/13",
+      "query": "tag:#c/12",
       "color": {
         "a": 1,
         "rgb": 13073919
       }
     },
     {
-      "query": "tag:#c/16",
+      "query": "tag:#c/14",
       "color": {
         "a": 1,
         "rgb": 16739179
       }
     },
     {
-      "query": "tag:#c/17",
+      "query": "tag:#c/16",
       "color": {
         "a": 1,
         "rgb": 3065014
       }
     },
     {
-      "query": "tag:#c/18",
+      "query": "tag:#c/17",
       "color": {
         "a": 1,
         "rgb": 16032353
       }
     },
     {
-      "query": "tag:#c/14",
+      "query": "tag:#c/18",
       "color": {
         "a": 1,
         "rgb": 11868062

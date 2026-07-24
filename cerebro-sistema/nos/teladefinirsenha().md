@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.033
+heat: 0.032
 complexidade: 11
 arquivo: "viewer/src/TelasAuth.jsx"
 local: L202

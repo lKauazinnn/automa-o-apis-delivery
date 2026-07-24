@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1884) (0 connections)
+- [Liga/desliga a flag que força troca de senha no próximo login. Chamado com True](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1032) (0 connections)
 
 ## Relationships
 

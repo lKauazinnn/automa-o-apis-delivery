@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1457) (0 connections)
+- [Se a loja está apta a receber pedido agora (por operação/canal de venda), e se n](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L376) (0 connections)
 
 ## Relationships
 

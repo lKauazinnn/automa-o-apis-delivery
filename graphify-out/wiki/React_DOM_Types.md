@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria uma categoria de teste e alguns itens de exemplo da planilha no catálogo sa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/testar_sandbox.py#L1) (0 connections)
+- [@vitejs/plugin-react](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L21) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [scripts/testar_sandbox.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/testar_sandbox.py)
+- [viewer/package.json](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json)
 
 ## Audit Trail
 

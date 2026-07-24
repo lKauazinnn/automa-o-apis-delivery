@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1898) (0 connections)
+- [Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L658) (0 connections)
 
 ## Relationships
 

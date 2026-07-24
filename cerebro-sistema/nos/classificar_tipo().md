@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 11
+comunidade: 12
 heat: 0.024
 complexidade: 7
 arquivo: "scripts/gerar_cerebro.py"
 local: L81
-tags: [c/11, tipo/função]
+tags: [c/12, tipo/função]
 ---
 
 # classificar_tipo()

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Lista as lojas (merchants) vinculadas às credenciais do .env.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py#L1) (0 connections)
+- [@types/react](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L19) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [scripts/descobrir_lojas.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/scripts/descobrir_lojas.py)
+- [viewer/package.json](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json)
 
 ## Audit Trail
 

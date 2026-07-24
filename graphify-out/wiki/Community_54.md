@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Se o evento do webhook for de PEDIDO, materializa/atualiza no KDS. Ignora os dem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1620) (0 connections)
+- [Order/Events API: implementado a partir da doc pública, ainda não disparado cont](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1188) (0 connections)
 
 ## Relationships
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Pausa/despausa uma opção (complemento) sem excluí-la. `option_id` aqui é o `id`](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L536) (0 connections)
+- [Edita nome/status/sequência de uma categoria (ex: pausar a categoria inteira,](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L736) (0 connections)
 
 ## Relationships
 

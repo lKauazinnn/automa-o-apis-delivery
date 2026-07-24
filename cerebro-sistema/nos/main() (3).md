@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 3
-heat: 0.049
+heat: 0.048
 complexidade: 11
 arquivo: "sistema-pedidos/backend/seed.py"
 local: L105

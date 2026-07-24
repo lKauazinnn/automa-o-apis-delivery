@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 4
-heat: 0.023
+heat: 0.022
 complexidade: 2
 arquivo: "src/food99_automacao/auth.py"
 local: L37

@@ -1,5 +1,10 @@
-import { Check, Layers, Loader2, Pause, Pencil, Play, Plus, RefreshCw, Search, Tag, Trash2, X } from 'lucide-react'
+import { Check, ImageOff, Layers, Loader2, Pause, Pencil, Play, Plus, RefreshCw, Search, Tag, Trash2, X } from 'lucide-react'
 import { Modal, Pill, Toggle } from '../ui'
+
+// Combo desativado: o payload de COMBO_V2 ainda não foi confirmado contra o iFood (dá 409
+// "product already has this option group") e combo não faz parte do checklist de homologação.
+// Voltar pra `true` quando o create_combo for consertado.
+const COMBO_HABILITADO = false
 
 function CelulaEditavel({ valor, texto, editando, salvando, salvo, tipo, onAbrir, onInput, onSalvar, onCancelar, C, inputCls, inputStyle, alinhamento = 'left' }) {
   if (editando) {
@@ -118,7 +123,7 @@ export function CatalogoView({
           >
             {filtrados.length} de {itens.length} itens
           </span>
-          {podeCriarItem && (
+          {COMBO_HABILITADO && podeCriarItem && (
             <button
               type="button"
               onClick={onAbrirCombo}
@@ -272,8 +277,32 @@ export function CatalogoView({
                           aria-label={`Selecionar ${item.nome}`}
                         />
                       </td>
-                      <td className="px-3 py-3 font-semibold truncate" style={{ color: C.text1 }} title={item.nome}>
-                        {item.nome}
+                      <td className="px-3 py-3" title={item.nome}>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {item.foto ? (
+                            <img
+                              src={item.foto}
+                              alt=""
+                              loading="lazy"
+                              className="w-9 h-9 rounded-lg object-cover flex-shrink-0"
+                              style={{ border: `1px solid ${C.cardBorder}`, background: C.inputBg }}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null
+                                e.currentTarget.style.visibility = 'hidden'
+                              }}
+                            />
+                          ) : (
+                            <span
+                              className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                              style={{ border: `1px solid ${C.cardBorder}`, background: C.inputBg, color: C.text3 }}
+                            >
+                              <ImageOff size={14} />
+                            </span>
+                          )}
+                          <span className="font-semibold truncate" style={{ color: C.text1 }}>
+                            {item.nome}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-3 py-3 text-xs truncate" style={{ color: C.text2 }} title={item.categoria}>
                         {item.categoria}
@@ -323,7 +352,7 @@ export function CatalogoView({
                           <button
                             type="button"
                             onClick={() => onAbrirEdicaoModal(item)}
-                            title="Editar preço e código PDV"
+                            title="Editar item (nome, preço, código PDV, foto, turnos)"
                             className="botao-icone-fantasma inline-flex items-center justify-center w-7 h-7 rounded-lg"
                             style={{ color: C.text2 }}
                           >

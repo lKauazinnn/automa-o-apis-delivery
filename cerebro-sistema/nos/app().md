@@ -1,10 +1,10 @@
 ---
 tipo: função
 comunidade: 7
-heat: 0.039
+heat: 0.038
 complexidade: 15
 arquivo: "viewer/src/App.jsx"
-local: L2069
+local: L2112
 tags: [c/7, tipo/função]
 ---
 

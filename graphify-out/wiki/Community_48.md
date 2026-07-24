@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1412) (0 connections)
+- [Define em quais dias/horários um item fica disponível (ex: um prato que só vende](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L913) (0 connections)
 
 ## Relationships
 

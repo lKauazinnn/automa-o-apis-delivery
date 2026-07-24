@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 5
-heat: 0.012
+heat: 0.011
 complexidade: 5
 arquivo: "sistema-pedidos/frontend/src/pages/PedidosPage.tsx"
 local: L66

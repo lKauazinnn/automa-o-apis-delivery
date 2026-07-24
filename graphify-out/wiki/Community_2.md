@@ -1,6 +1,6 @@
 # Community 2
 
-> 68 nodes · cohesion 0.05
+> 73 nodes · cohesion 0.05
 
 ## Key Concepts
 
@@ -8,6 +8,8 @@
 - [client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L1) (32 connections)
 - [client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/client.py#L1) (10 connections)
 - [pedidos.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py#L1) (10 connections)
+- [update_item_price()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L216) (10 connections)
+- [update_item_status()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L205) (9 connections)
 - [auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py#L1) (5 connections)
 - [patch_item_external_code()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L194) (5 connections)
 - [upsert_item()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L65) (5 connections)
@@ -27,27 +29,26 @@
 - [edit_option()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L429) (3 connections)
 - [get_merchant_details()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L17) (3 connections)
 - [get_merchant_status()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L25) (3 connections)
-- [Cliente fino para os endpoints da Merchant API / Catalog API do iFood usados na](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L1) (3 connections)
-- [update_item_shifts()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py#L271) (3 connections)
-- *... and 43 more nodes in this community*
+- *... and 48 more nodes in this community*
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Auth Service]] (2 shared connections)
 
 ## Source Files
 
 - [C:/Users/Gustavo/Desktop/automação ifood/automa-o-apis-delivery/src/ifood_automacao/client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/client.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\src\ifood_automacao\auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/auth.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\src\ifood_automacao\client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/src/ifood_automacao/client.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\src\food99_automacao\client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/food99_automacao/client.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\auth.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/auth.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\client.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/client.py)
 - [C:\Users\Gustavo\Desktop\automação ifood\src\ifood_automacao\pedidos.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/src/ifood_automacao/pedidos.py)
 
 ## Audit Trail
 
-- EXTRACTED: 161 (68%)
-- INFERRED: 76 (32%)
+- EXTRACTED: 177 (69%)
+- INFERRED: 81 (31%)
 - AMBIGUOUS: 0 (0%)
 
 ---

@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 13
+comunidade: 14
 heat: 0.011
 complexidade: 1
 arquivo: "automa-o-apis-delivery/scripts/carga_massa.py"
 local: L1
-tags: [c/13, tipo/função]
+tags: [c/14, tipo/função]
 ---
 
 # carga_massa.py

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Recebe a imagem em base64 (data URL) do front e devolve o imagePath do iFood, pa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L382) (0 connections)
+- [Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L561) (0 connections)
 
 ## Relationships
 

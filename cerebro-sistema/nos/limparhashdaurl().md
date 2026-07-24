@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 9
+comunidade: 11
 heat: 0.008
 complexidade: 2
 arquivo: "viewer/src/auth.js"
 local: L39
-tags: [c/9, tipo/função]
+tags: [c/11, tipo/função]
 ---
 
 # limparHashDaUrl()

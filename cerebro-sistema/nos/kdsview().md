@@ -1,10 +1,10 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.169
-complexidade: 83
+heat: 0.159
+complexidade: 79
 arquivo: "viewer/src/views/KDSView.jsx"
-local: L44
+local: L70
 tags: [c/1, tipo/função]
 ---
 

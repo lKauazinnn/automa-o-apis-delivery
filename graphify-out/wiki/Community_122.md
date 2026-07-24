@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Define em quais dias/horários um item fica disponível (ex: um prato que só vende](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L890) (0 connections)
+- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1089) (0 connections)
 
 ## Relationships
 

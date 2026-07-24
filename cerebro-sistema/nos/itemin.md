@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 3
-heat: 0.017
+heat: 0.016
 complexidade: 1
 arquivo: "sistema-pedidos/backend/app/schemas.py"
 local: L114

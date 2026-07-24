@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 2
-heat: 0.026
+heat: 0.025
 complexidade: 1
 arquivo: "src/ifood_automacao/pedidos.py"
 local: L1

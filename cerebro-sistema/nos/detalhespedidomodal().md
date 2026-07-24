@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 6
-heat: 0.073
+heat: 0.072
 complexidade: 35
 arquivo: "viewer/src/DetalhesPedidoModal.jsx"
 local: L31

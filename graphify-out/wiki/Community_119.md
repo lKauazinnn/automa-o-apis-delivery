@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L655) (0 connections)
+- [Pausa ou despausa vários itens de uma vez, item por item (a API do iFood não tem](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L933) (0 connections)
 
 ## Relationships
 

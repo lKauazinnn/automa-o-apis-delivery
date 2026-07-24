@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 3
-heat: 0.067
+heat: 0.066
 complexidade: 1
 arquivo: "sistema-pedidos/backend/app/enums.py"
 local: L15

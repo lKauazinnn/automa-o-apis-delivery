@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L364) (0 connections)
+- [Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L456) (0 connections)
 
 ## Relationships
 

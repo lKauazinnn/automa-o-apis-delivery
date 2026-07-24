@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 7
-heat: 0.043
+heat: 0.042
 complexidade: 1
 arquivo: "viewer/src/App.jsx"
 local: L1

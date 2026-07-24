@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 2
-heat: 0.079
+heat: 0.078
 complexidade: 1
 arquivo: "src/ifood_automacao/client.py"
 local: L1

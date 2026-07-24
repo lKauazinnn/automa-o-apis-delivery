@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 0
-heat: 0.019
+heat: 0.018
 complexidade: 7
 arquivo: "scripts/hook_cerebro.py"
 local: L22

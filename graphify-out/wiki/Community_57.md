@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Gera um pedido de teste no formato REAL do 99 (evento orderNew) e o materializa](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1906) (0 connections)
+- [Um ciclo de polling pra uma loja: busca eventos pendentes, materializa/atualiza](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1316) (0 connections)
 
 ## Relationships
 

@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 32
+comunidade: 31
 heat: 0.002
 complexidade: 1
 arquivo: "server/__init__.py"
 local: L1
-tags: [c/32, tipo/função]
+tags: [c/31, tipo/função]
 ---
 
 # __init__.py

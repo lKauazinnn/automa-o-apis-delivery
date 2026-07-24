@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.032
+heat: 0.031
 complexidade: 14
 arquivo: "viewer/src/views/AuditoriaView.jsx"
 local: L4

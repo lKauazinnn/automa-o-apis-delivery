@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 9
+comunidade: 11
 heat: 0.019
 complexidade: 1
 arquivo: "viewer/src/auth.js"
 local: L8
-tags: [c/9, tipo/função]
+tags: [c/11, tipo/função]
 ---
 
 # headersSupabase()

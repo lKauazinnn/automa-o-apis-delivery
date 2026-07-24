@@ -1,6 +1,6 @@
 # registrar_auditoria()
 
-> God node · 39 connections · [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L219)
+> God node · 39 connections · [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L220)
 
 ## Call Trace Diagram
 
@@ -28,9 +28,9 @@ sequenceDiagram
     participant P19 as get_auditoria()
     participant P20 as listar_usuarios()
     participant P21 as get_pedidos()
-    participant P22 as get_eventos()
-    participant P23 as webhook_ifood()
-    participant P24 as get_pedido_detalhe()
+    participant P22 as get_pedido_detalhe()
+    participant P23 as get_eventos()
+    participant P24 as webhook_ifood()
     participant P25 as criar_item()
     participant P26 as pausar_em_massa()
     participant P27 as criar_combo()

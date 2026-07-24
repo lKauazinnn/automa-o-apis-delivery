@@ -7,7 +7,7 @@ cada cenário antes de gravar de verdade**.
 ## Pré-requisitos (antes de gravar qualquer coisa)
 
 - Logado como **administrador** ou **gerente** — senão o grupo "Cardápio avançado"
-  (Categorias, Grupos de opção, Horário, Interrupções) nem aparece na barra lateral.
+  (Categorias, Complementos, Horário, Interrupções) nem aparece na barra lateral.
 - Loja selecionada com o **badge iFood** (a "Teste - MULT COMERCIO...", sandbox).
 - **Portal do Parceiro aberto em outra aba** — os cenários de Interrupção e Horário
   pedem "validar que reflete no Portal do Parceiro"; mostre o reflexo na hora.
@@ -76,8 +76,8 @@ cada cenário antes de gravar de verdade**.
    → **Grave o processo completo.**
 
 ## Cenário 2 — Grupo de Complemento e Complementos  ⚠️ NÃO RECARREGUE A PÁGINA
-1. Cardápio avançado → **"Grupos de opção"**.
-2. Em **"Novo grupo de opção"**: nome = ex `Adicionais` → **"Criar"**.
+1. Cardápio avançado → **"Complementos"**.
+2. Em **"Novo grupo de complementos"**: nome = ex `Adicionais` → **"Criar"**.
 3. **Expanda o grupo** (seta/chevron na linha).
 4. **Complemento 1**: Nome = `Bacon`, Preço = `3,00`, suba **foto** → clique **"+"**.
 5. **Complemento 2**: Nome = `Cheddar`, Preço = `2,00`, suba **foto** → clique **"+"**.
@@ -91,7 +91,7 @@ cada cenário antes de gravar de verdade**.
 3. Na linha do item, use o **toggle** pra **pausar** (fica "Pausado").
 
 **Complemento (o segundo, "Cheddar"):**
-4. **"Grupos de opção"** → expanda `Adicionais` → no complemento 2, **lápis "Editar opção"**.
+4. **"Complementos"** → expanda `Adicionais` → no complemento 2, **lápis "Editar complemento"**.
 5. Altere o **nome**, troque a **foto** (obrigatória!), mude o **preço** → **check verde** pra salvar.
 6. Clique **"Pausar opção"** no complemento. → **Grave tudo.**
 

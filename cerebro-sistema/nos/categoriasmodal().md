@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.071
+heat: 0.07
 complexidade: 32
 arquivo: "viewer/src/modals/CategoriasModal.jsx"
 local: L5

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1045) (0 connections)
+- [Busca os detalhes completos do pedido na Order API e materializa localmente em](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1207) (0 connections)
 
 ## Relationships
 

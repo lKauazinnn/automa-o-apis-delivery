@@ -3,11 +3,11 @@ import { ClipboardList, Clock, Columns3, History, KeyRound, LayoutDashboard, Lay
 import { CoresContext } from './ui'
 
 const VIEWS = [
-  { chave: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { chave: 'dashboard', label: 'Painel', Icon: LayoutDashboard },
   { chave: 'pedidos', label: 'Pedidos', Icon: ClipboardList },
-  { chave: 'kds', label: 'KDS', Icon: Columns3 },
-  { chave: 'catalogo', label: 'Catálogo', Icon: LayoutGrid },
-  { chave: 'auditoria', label: 'Auditoria', Icon: History },
+  { chave: 'kds', label: 'Cozinha (KDS)', Icon: Columns3 },
+  { chave: 'catalogo', label: 'Cardápio', Icon: LayoutGrid },
+  { chave: 'auditoria', label: 'Histórico', Icon: History },
 ]
 
 function ItemNav({ Icon, label, ativo, badge, onClick, C }) {
@@ -95,7 +95,7 @@ export function Sidebar({
             Cardápio avançado
           </div>
           <ItemNav Icon={Tags} label="Categorias" ativo={false} onClick={onAbrirCategorias} C={C} />
-          <ItemNav Icon={Layers} label="Grupos de opção" ativo={false} onClick={onAbrirGruposOpcao} C={C} />
+          <ItemNav Icon={Layers} label="Complementos" ativo={false} onClick={onAbrirGruposOpcao} C={C} />
           <ItemNav Icon={Clock} label="Horário de funcionamento" ativo={false} onClick={onAbrirHorario} C={C} />
           <ItemNav Icon={PowerOff} label="Interrupções" ativo={false} onClick={onAbrirInterrupcoes} C={C} />
         </>

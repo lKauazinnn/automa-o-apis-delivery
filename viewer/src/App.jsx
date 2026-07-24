@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, CheckCircle2, Loader2, Moon, Store, Sun, Trash2, X } from 'lucide-react'
+import { AlertTriangle, Check, CheckCircle2, Loader2, Moon, Store, Sun, Trash2, X } from 'lucide-react'
 import {
   API,
   buscarEu,
@@ -25,11 +25,11 @@ import { KDSView } from './views/KDSView'
 import { PedidosView } from './views/PedidosView'
 
 const TITULOS_VIEW = {
-  dashboard: { t: 'Dashboard', sub: 'Visão geral da operação na loja ativa' },
+  dashboard: { t: 'Painel', sub: 'Visão geral da operação na loja ativa' },
   pedidos: { t: 'Pedidos', sub: 'Pedidos da loja ativa, atualizando sozinho' },
-  kds: { t: 'KDS', sub: 'Quadro de preparo em tempo real' },
-  catalogo: { t: 'Catálogo', sub: 'Gestão de itens da loja ativa' },
-  auditoria: { t: 'Central de auditoria', sub: 'Tudo que a equipe alterou, em ordem' },
+  kds: { t: 'Cozinha (KDS)', sub: 'Quadro de preparo em tempo real' },
+  catalogo: { t: 'Cardápio', sub: 'Gestão de itens da loja ativa' },
+  auditoria: { t: 'Histórico', sub: 'Tudo que a equipe alterou, em ordem' },
 }
 
 const PAPEIS = [
@@ -201,6 +201,9 @@ function Painel({ sessao, onSair, tema, setTema }) {
   const [criandoLoja, setCriandoLoja] = useState(false)
   const [lojaId, setLojaId] = useState('')
   const [modalLojas, setModalLojas] = useState(false)
+  // Selo "verificada no iFood": ids que o GET /merchants do iFood reconhece. null = ainda não
+  // consultado; { disponivel:false } = iFood não respondeu (não mostra selo).
+  const [verificacaoIfood, setVerificacaoIfood] = useState(null)
   const [modalDetalhesLoja, setModalDetalhesLoja] = useState(false)
   const [carregandoDetalhesLoja, setCarregandoDetalhesLoja] = useState(false)
   const [detalhesLoja, setDetalhesLoja] = useState(null)
@@ -311,6 +314,25 @@ function Painel({ sessao, onSair, tema, setTema }) {
       // se a listagem de lojas falhar, segue usando a loja padrão do .env
     }
   }
+
+  // Ao abrir "Gerenciar lojas", cruza a lista local com o GET /merchants do iFood pra marcar
+  // quais lojas o iFood reconhece como vinculadas. Não bloqueia nada: se falhar, só não mostra
+  // o selo (o endpoint volta disponivel=false).
+  useEffect(() => {
+    if (!modalLojas) return
+    let cancelado = false
+    apiFetch('/lojas-verificacao-ifood')
+      .then((r) => {
+        if (!cancelado) setVerificacaoIfood({ disponivel: !!r?.disponivel, ids: new Set(r?.merchant_ids || []) })
+      })
+      .catch(() => {
+        if (!cancelado) setVerificacaoIfood({ disponivel: false, ids: new Set() })
+      })
+    return () => {
+      cancelado = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modalLojas])
 
   async function abrirDetalhesLoja() {
     setModalDetalhesLoja(true)
@@ -1116,11 +1138,32 @@ function Painel({ sessao, onSair, tema, setTema }) {
                       <p className="text-[11px] font-mono truncate" style={{ color: C.text3 }}>
                         {l.merchant_id}
                       </p>
-                      <span
-                        className="text-[9px] font-bold uppercase tracking-wider"
-                        style={{ color: l.plataforma === '99food' ? '#e0a44c' : '#F56C35' }}
-                      >
-                        {l.plataforma === '99food' ? '99Food' : 'iFood'}
+                      <span className="flex items-center gap-1.5">
+                        <span
+                          className="text-[9px] font-bold uppercase tracking-wider"
+                          style={{ color: l.plataforma === '99food' ? '#e0a44c' : '#F56C35' }}
+                        >
+                          {l.plataforma === '99food' ? '99Food' : 'iFood'}
+                        </span>
+                        {l.plataforma !== '99food' && verificacaoIfood?.disponivel && (
+                          verificacaoIfood.ids.has(String(l.merchant_id)) ? (
+                            <span
+                              className="text-[9px] font-semibold px-1.5 py-0.5 rounded inline-flex items-center gap-1"
+                              style={{ color: C.good, background: 'rgba(34,197,94,0.12)' }}
+                              title="Loja reconhecida pelo GET /merchants do iFood (vinculada às credenciais)"
+                            >
+                              <Check size={9} /> verificada no iFood
+                            </span>
+                          ) : (
+                            <span
+                              className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                              style={{ color: '#e0a44c', background: 'rgba(224,164,76,0.12)' }}
+                              title="O iFood não retornou essa loja no GET /merchants pras credenciais atuais"
+                            >
+                              não encontrada no iFood
+                            </span>
+                          )
+                        )}
                       </span>
                     </button>
                     {ativa && <Pill color={C.good}>Ativa</Pill>}

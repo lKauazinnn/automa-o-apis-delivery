@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 0
-heat: 0.1
+heat: 0.101
 complexidade: 5
 arquivo: "src/ifood_automacao/rate_limit.py"
 local: L7
@@ -38,6 +38,7 @@ tags: [c/0, tipo/função]
 - **Chama:** [[get_interrupcoes()]]
 - **Chama:** [[get_loja_detalhes()]]
 - **Chama:** [[get_loja_disponibilidade()]]
+- **Chama:** [[verificar_lojas_ifood()]]
 
 ## Contido em
 - [[rate_limit.py]]

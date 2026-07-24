@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria um item novo no cardápio do 99 (reconstrói o menu + upload v3). Não-destrut](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1786) (0 connections)
+- [Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o ca](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L220) (0 connections)
 
 ## Relationships
 

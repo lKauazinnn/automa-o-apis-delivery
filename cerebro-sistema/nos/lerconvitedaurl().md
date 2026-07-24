@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 9
-heat: 0.015
+comunidade: 11
+heat: 0.014
 complexidade: 6
 arquivo: "viewer/src/auth.js"
 local: L17
-tags: [c/9, tipo/função]
+tags: [c/11, tipo/função]
 ---
 
 # lerConviteDaUrl()

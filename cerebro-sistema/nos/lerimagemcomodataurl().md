@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 6
-heat: 0.01
+heat: 0.009
 complexidade: 4
 arquivo: "viewer/src/ui.jsx"
 local: L111

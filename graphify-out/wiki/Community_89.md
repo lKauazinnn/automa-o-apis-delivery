@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Verificação/health que o portal do 99 pode fazer ao cadastrar o webhook.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1438) (0 connections)
+- [Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1453) (0 connections)
 
 ## Relationships
 

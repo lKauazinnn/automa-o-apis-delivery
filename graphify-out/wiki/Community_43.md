@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1595) (0 connections)
+- [Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L582) (0 connections)
 
 ## Relationships
 

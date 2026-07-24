@@ -1,6 +1,6 @@
 # _supabase_headers()
 
-> God node · 24 connections · [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L118)
+> God node · 24 connections · [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L119)
 
 ## Call Trace Diagram
 
@@ -60,9 +60,9 @@ sequenceDiagram
     participant P51 as get_auditoria()
     participant P52 as listar_usuarios()
     participant P53 as get_pedidos()
-    participant P54 as get_eventos()
-    participant P55 as webhook_ifood()
-    participant P56 as get_pedido_detalhe()
+    participant P54 as get_pedido_detalhe()
+    participant P55 as get_eventos()
+    participant P56 as webhook_ifood()
     P0->>+ P1: calls
     P1-->>- P0: return
     P1->>+ P0: calls
@@ -225,7 +225,7 @@ sequenceDiagram
 - [[get_auditoria()]] `EXTRACTED`
 - [[listar_usuarios()]] `EXTRACTED`
 - [[get_pedidos()]] `EXTRACTED`
-- [[get_eventos()]] `EXTRACTED`
+- [[get_pedido_detalhe()]] `EXTRACTED`
 
 ### contains
 - [[app.py]] `EXTRACTED`

@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 18
-heat: 0.017
+heat: 0.016
 complexidade: 9
 arquivo: "sistema-pedidos/frontend/src/lib/format.ts"
 local: L19

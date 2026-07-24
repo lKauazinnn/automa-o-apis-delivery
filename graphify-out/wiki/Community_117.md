@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Edita nome, foto e/ou preço de uma opção (complemento) já existente. `product_id](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L559) (0 connections)
+- [Cria um item do tipo COMBO_V2 compondo grupos de opção que já existem no catálog](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L772) (0 connections)
 
 ## Relationships
 

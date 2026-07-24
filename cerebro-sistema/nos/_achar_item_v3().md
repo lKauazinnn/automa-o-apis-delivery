@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 4
-heat: 0.015
+heat: 0.014
 complexidade: 3
 arquivo: "src/food99_automacao/client.py"
 local: L95

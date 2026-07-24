@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 1
-heat: 0.045
+comunidade: 9
+heat: 0.044
 complexidade: 1
 arquivo: "viewer/src/Graficos.jsx"
 local: L1
-tags: [c/1, tipo/função]
+tags: [c/9, tipo/função]
 ---
 
 # Graficos.jsx

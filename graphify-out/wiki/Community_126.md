@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1087) (0 connections)
+- [Processa UM evento de pedido do iFood — vindo do polling OU do webhook. Monta a](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1264) (0 connections)
 
 ## Relationships
 

@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 3
-heat: 0.029
+heat: 0.028
 complexidade: 11
 arquivo: "sistema-pedidos/backend/app/crud.py"
 local: L25

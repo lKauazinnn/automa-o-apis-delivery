@@ -29,7 +29,7 @@
   "blast_radius": {
     "auth_headers()": 41,
     "registrar_auditoria()": 39,
-    "com_retry()": 38,
+    "com_retry()": 39,
     "_merchant_id()": 37,
     "OrderStatus": 30
   }

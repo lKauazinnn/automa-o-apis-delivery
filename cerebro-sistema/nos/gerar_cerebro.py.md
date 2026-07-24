@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 11
+comunidade: 12
 heat: 0.021
 complexidade: 1
 arquivo: "scripts/gerar_cerebro.py"
 local: L1
-tags: [c/11, tipo/função]
+tags: [c/12, tipo/função]
 ---
 
 # gerar_cerebro.py

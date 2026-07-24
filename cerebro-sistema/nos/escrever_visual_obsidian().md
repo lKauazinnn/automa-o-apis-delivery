@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 11
-heat: 0.018
+comunidade: 12
+heat: 0.017
 complexidade: 3
 arquivo: "scripts/gerar_cerebro.py"
 local: L252
-tags: [c/11, tipo/função]
+tags: [c/12, tipo/função]
 ---
 
 # escrever_visual_obsidian()

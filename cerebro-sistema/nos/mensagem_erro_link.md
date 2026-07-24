@@ -4,7 +4,7 @@ comunidade: 7
 heat: 0.007
 complexidade: 1
 arquivo: "viewer/src/App.jsx"
-local: L2064
+local: L2107
 tags: [c/7, tipo/função]
 ---
 

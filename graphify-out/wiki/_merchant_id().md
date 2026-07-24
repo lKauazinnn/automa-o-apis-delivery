@@ -1,6 +1,6 @@
 # _merchant_id()
 
-> God node · 37 connections · [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L199)
+> God node · 37 connections · [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L200)
 
 ## Call Trace Diagram
 
@@ -41,33 +41,35 @@ sequenceDiagram
     participant P32 as editar_item_99food()
     participant P33 as criar_item_99food()
     participant P34 as transicionar()
-    participant P35 as alterar_status_pedido()
-    participant P36 as alterar_status_99food()
-    participant P37 as alterar_preco_99food()
-    participant P38 as alterar_codigo_pdv_99food()
-    participant P39 as alterar_nome_descricao_99food()
-    participant P40 as catalogo_99food()
-    participant P41 as main()
-    participant P42 as registrar_auditoria()
-    participant P43 as com_retry()
-    participant P44 as _catalog_id()
-    participant P45 as _categoria_id()
-    participant P46 as get_catalogo()
-    participant P47 as definir_horario_funcionamento()
-    participant P48 as get_loja_detalhes()
-    participant P49 as get_loja_disponibilidade()
-    participant P50 as excluir_interrupcao()
-    participant P51 as excluir_grupo_opcao()
-    participant P52 as excluir_opcao()
-    participant P53 as get_categorias()
-    participant P54 as get_categoria()
-    participant P55 as excluir_categoria()
-    participant P56 as buscar_pedidos()
-    participant P57 as get_horario_funcionamento()
-    participant P58 as get_interrupcoes()
-    participant P59 as get_grupos_opcao()
-    participant P60 as get_pedidos()
-    participant P61 as get_eventos()
+    participant P35 as verificar_lojas_ifood()
+    participant P36 as alterar_status_pedido()
+    participant P37 as alterar_status_99food()
+    participant P38 as alterar_preco_99food()
+    participant P39 as alterar_codigo_pdv_99food()
+    participant P40 as alterar_nome_descricao_99food()
+    participant P41 as get_pedido_detalhe()
+    participant P42 as catalogo_99food()
+    participant P43 as main()
+    participant P44 as registrar_auditoria()
+    participant P45 as com_retry()
+    participant P46 as _catalog_id()
+    participant P47 as _categoria_id()
+    participant P48 as get_catalogo()
+    participant P49 as definir_horario_funcionamento()
+    participant P50 as get_loja_detalhes()
+    participant P51 as get_loja_disponibilidade()
+    participant P52 as excluir_interrupcao()
+    participant P53 as excluir_grupo_opcao()
+    participant P54 as excluir_opcao()
+    participant P55 as get_categorias()
+    participant P56 as get_categoria()
+    participant P57 as excluir_categoria()
+    participant P58 as buscar_pedidos()
+    participant P59 as get_horario_funcionamento()
+    participant P60 as get_interrupcoes()
+    participant P61 as get_grupos_opcao()
+    participant P62 as get_pedidos()
+    participant P63 as get_eventos()
     P0->>+ P1: calls
     P1-->>- P0: return
     P1->>+ P2: calls
@@ -152,16 +154,20 @@ sequenceDiagram
     P40-->>- P2: return
     P2->>+ P41: calls
     P41-->>- P2: return
-    P1->>+ P42: calls
-    P42-->>- P1: return
-    P1->>+ P43: calls
-    P43-->>- P1: return
-    P1->>+ P0: calls
-    P0-->>- P1: return
+    P2->>+ P42: calls
+    P42-->>- P2: return
+    P2->>+ P43: calls
+    P43-->>- P2: return
     P1->>+ P44: calls
     P44-->>- P1: return
     P1->>+ P45: calls
     P45-->>- P1: return
+    P1->>+ P0: calls
+    P0-->>- P1: return
+    P1->>+ P46: calls
+    P46-->>- P1: return
+    P1->>+ P47: calls
+    P47-->>- P1: return
     P1->>+ P33: calls
     P33-->>- P1: return
     P0->>+ P6: calls
@@ -188,22 +194,18 @@ sequenceDiagram
     P19-->>- P0: return
     P0->>+ P20: calls
     P20-->>- P0: return
-    P0->>+ P46: calls
-    P46-->>- P0: return
+    P0->>+ P48: calls
+    P48-->>- P0: return
     P0->>+ P28: calls
     P28-->>- P0: return
-    P0->>+ P47: calls
-    P47-->>- P0: return
+    P0->>+ P49: calls
+    P49-->>- P0: return
     P0->>+ P29: calls
     P29-->>- P0: return
     P0->>+ P30: calls
     P30-->>- P0: return
     P0->>+ P31: calls
     P31-->>- P0: return
-    P0->>+ P48: calls
-    P48-->>- P0: return
-    P0->>+ P49: calls
-    P49-->>- P0: return
     P0->>+ P50: calls
     P50-->>- P0: return
     P0->>+ P51: calls
@@ -228,6 +230,10 @@ sequenceDiagram
     P60-->>- P0: return
     P0->>+ P61: calls
     P61-->>- P0: return
+    P0->>+ P62: calls
+    P62-->>- P0: return
+    P0->>+ P63: calls
+    P63-->>- P0: return
 ```
 
 ## Connections by Relation

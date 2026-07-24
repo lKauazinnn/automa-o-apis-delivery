@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 13
+comunidade: 14
 heat: 0.009
 complexidade: 1
 arquivo: "src/ifood_automacao/planilha.py"
 local: L18
-tags: [c/13, tipo/função]
+tags: [c/14, tipo/função]
 ---
 
 # carregar_itens()

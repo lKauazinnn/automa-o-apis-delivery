@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 13
-heat: 0.011
+comunidade: 14
+heat: 0.01
 complexidade: 2
 arquivo: "scripts/carga_massa.py"
 local: L32
-tags: [c/13, tipo/função]
+tags: [c/14, tipo/função]
 ---
 
 # carregar_ja_processados()

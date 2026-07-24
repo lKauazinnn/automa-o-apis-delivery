@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.009
+heat: 0.008
 complexidade: 4
 arquivo: "viewer/src/modals/HorarioFuncionamentoModal.jsx"
 local: L21

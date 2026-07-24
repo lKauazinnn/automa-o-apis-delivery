@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1386) (0 connections)
+- [Processa UM evento de pedido do iFood — vindo do polling OU do webhook. Monta a](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1265) (0 connections)
 
 ## Relationships
 

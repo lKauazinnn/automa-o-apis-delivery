@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Chamado pelo front logo depois que o próprio usuário troca a senha (direto no Su](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1113) (0 connections)
+- [Um ciclo de polling pra uma loja: busca eventos pendentes, materializa/atualiza](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1295) (0 connections)
 
 ## Relationships
 

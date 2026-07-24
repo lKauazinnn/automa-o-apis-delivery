@@ -4,7 +4,7 @@ comunidade: 0
 heat: 0.027
 complexidade: 6
 arquivo: "server/app.py"
-local: L560
+local: L585
 tags: [c/0, tipo/função]
 ---
 

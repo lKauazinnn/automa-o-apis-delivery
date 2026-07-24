@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 6
-heat: 0.041
+heat: 0.04
 complexidade: 17
 arquivo: "viewer/src/views/PedidosView.jsx"
 local: L24

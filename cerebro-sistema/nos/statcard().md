@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 7
-heat: 0.008
+heat: 0.007
 complexidade: 2
 arquivo: "automa-o-apis-delivery/viewer/src/App.jsx"
 local: L135

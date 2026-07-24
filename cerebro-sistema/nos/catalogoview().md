@@ -1,10 +1,10 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.114
-complexidade: 39
+heat: 0.115
+complexidade: 40
 arquivo: "viewer/src/views/CatalogoView.jsx"
-local: L49
+local: L54
 tags: [c/1, tipo/função]
 ---
 

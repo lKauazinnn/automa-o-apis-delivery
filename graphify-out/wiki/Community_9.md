@@ -1,38 +1,39 @@
 # Community 9
 
-> 16 nodes · cohesion 0.26
+> 17 nodes · cohesion 0.12
 
 ## Key Concepts
 
-- [auth.js](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L1) (14 connections)
-- [auth.js](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/auth.js#L1) (12 connections)
-- [headersSupabase()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L8) (7 connections)
-- [definirSenha()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L71) (3 connections)
-- [login()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L58) (3 connections)
-- [logoutSupabase()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L99) (3 connections)
-- [recuperarSenha()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L43) (3 connections)
-- [API](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L6) (2 connections)
-- [buscarEu()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L107) (2 connections)
-- [lerConviteDaUrl()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L17) (2 connections)
-- [lerErroDaUrl()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L31) (2 connections)
-- [limparHashDaUrl()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L39) (2 connections)
-- [renovarSessao()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L86) (2 connections)
-- [SUPABASE_ANON_KEY](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L5) (2 connections)
-- [SUPABASE_URL](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L4) (2 connections)
-- [marcarSenhaTrocada()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js#L120) (1 connections)
+- [Graficos.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L1) (18 connections)
+- [ACOES_DESPAUSAR](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L25) (1 connections)
+- [ACOES_PAUSAR](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L24) (1 connections)
+- [ALTURA_LINHA](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L16) (1 connections)
+- [ALTURA_MINIMA](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L17) (1 connections)
+- [CartaoGrafico()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L77) (1 connections)
+- [chaveDia()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L32) (1 connections)
+- [DIAS_TENDENCIA](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L18) (1 connections)
+- [GraficoItensReincidentes()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L192) (1 connections)
+- [GraficoTendenciaAtividade()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L110) (1 connections)
+- [INTERVALO_EIXO_DIAS](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L22) (1 connections)
+- [MAX_ITENS_REINCIDENTES](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L19) (1 connections)
+- [Selo()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L65) (1 connections)
+- [TooltipCartao()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L47) (1 connections)
+- [truncar()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L27) (1 connections)
+- [ultimosDias()](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx#L36) (1 connections)
+- [recharts](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json#L16) (1 connections)
 
 ## Relationships
 
-- No strong cross-community connections detected
+- [[Community 1]] (2 shared connections)
 
 ## Source Files
 
-- [C:\Users\Gustavo\Desktop\automação ifood\automa-o-apis-delivery\viewer\src\auth.js](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/automa-o-apis-delivery/viewer/src/auth.js)
-- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\auth.js](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/auth.js)
+- [C:\Users\Gustavo\Desktop\automação ifood\viewer\src\Graficos.jsx](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/src/Graficos.jsx)
+- [viewer/package.json](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/viewer/package.json)
 
 ## Audit Trail
 
-- EXTRACTED: 62 (100%)
+- EXTRACTED: 34 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

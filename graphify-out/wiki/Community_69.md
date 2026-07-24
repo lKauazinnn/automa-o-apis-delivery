@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1423) (0 connections)
+- [Detalhes completos da loja atual no iFood: razão social, endereço, tipo, status](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L367) (0 connections)
 
 ## Relationships
 

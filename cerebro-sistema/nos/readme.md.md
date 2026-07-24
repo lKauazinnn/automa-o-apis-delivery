@@ -1,11 +1,11 @@
 ---
 tipo: classe
-comunidade: 12
+comunidade: 13
 heat: 0.104
 complexidade: 0
 arquivo: "README.md"
 local: L1
-tags: [c/12, tipo/classe]
+tags: [c/13, tipo/classe]
 ---
 
 # README.md

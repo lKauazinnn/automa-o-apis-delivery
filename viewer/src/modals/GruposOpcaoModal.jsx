@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, ChevronDown, ChevronRight, Loader2, Pause, Pencil, Play, Plus, Trash2, X } from 'lucide-react'
-import { lerImagemComoDataUrl, Modal } from '../ui'
+import { lerImagemComoDataUrl, Modal, Pill } from '../ui'
 
 function LinhaOpcao({ opcao, podeExcluir, onExcluir, onAlternarStatus, onEditar, C, inputStyle }) {
   const [excluindo, setExcluindo] = useState(false)
@@ -31,7 +31,7 @@ function LinhaOpcao({ opcao, podeExcluir, onExcluir, onAlternarStatus, onEditar,
             style={inputStyle}
             value={form.nome}
             onChange={(e) => setForm({ ...form, nome: e.target.value })}
-            placeholder="Nome da opção"
+            placeholder="Nome do complemento"
           />
           <input
             required
@@ -91,6 +91,9 @@ function LinhaOpcao({ opcao, podeExcluir, onExcluir, onAlternarStatus, onEditar,
       <span className="font-mono flex-shrink-0" style={{ color: C.text3 }}>
         R$ {Number(opcao.price?.value ?? 0).toFixed(2)}
       </span>
+      <span className="flex-shrink-0">
+        <Pill color={pausada ? C.neutral : C.good} dot>{pausada ? 'Pausado' : 'Disponível'}</Pill>
+      </span>
       {podeExcluir && (
         <button
           type="button"
@@ -100,7 +103,7 @@ function LinhaOpcao({ opcao, podeExcluir, onExcluir, onAlternarStatus, onEditar,
           }}
           className="botao-icone-fantasma w-6 h-6 rounded-md inline-flex items-center justify-center flex-shrink-0"
           style={{ color: C.text2 }}
-          title="Editar opção"
+          title="Editar complemento"
         >
           <Pencil size={11} />
         </button>
@@ -114,7 +117,7 @@ function LinhaOpcao({ opcao, podeExcluir, onExcluir, onAlternarStatus, onEditar,
             await onAlternarStatus(opcao)
             setAlternando(false)
           }}
-          title={pausada ? 'Despausar opção' : 'Pausar opção'}
+          title={pausada ? 'Despausar complemento' : 'Pausar complemento'}
           className="w-6 h-6 rounded-md inline-flex items-center justify-center flex-shrink-0 disabled:opacity-40"
           style={
             pausada
@@ -136,7 +139,7 @@ function LinhaOpcao({ opcao, podeExcluir, onExcluir, onAlternarStatus, onEditar,
           }}
           className="botao-icone-fantasma w-6 h-6 rounded-md inline-flex items-center justify-center flex-shrink-0 disabled:opacity-40"
           style={{ color: C.bad }}
-          title="Excluir opção"
+          title="Excluir complemento"
         >
           {excluindo ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
         </button>
@@ -213,7 +216,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
     if (!novaOpcao.nome.trim()) return
     const preco = Number(String(novaOpcao.preco).replace(',', '.'))
     if (!preco || preco <= 0) {
-      notificar('erro', 'Preço da opção deve ser maior que zero.')
+      notificar('erro', 'Preço do complemento deve ser maior que zero.')
       return
     }
     setCriandoOpcao(true)
@@ -237,10 +240,27 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
           imagem_path: imagemPath,
         }),
       })
-      notificar('sucesso', `Opção "${novaOpcao.nome.trim()}" criada.`)
+      notificar('sucesso', `Complemento "${novaOpcao.nome.trim()}" criado.`)
+      // Blinda contra variação no nome do campo na resposta do iFood: a UI usa opcao.id
+      // (pausar) e opcao.productId (editar/excluir). Garante os dois — e status/preço iniciais
+      // pro badge e o valor aparecerem na hora — independente do shape exato do create_option.
+      const idOpcao = criada.id ?? criada.optionId ?? criada.option_id ?? criada.productId ?? criada.product?.id
+      const productIdOpcao =
+        criada.productId ?? criada.product_id ?? criada.product?.productId ?? criada.product?.id ?? criada.id ?? criada.optionId
       setOpcoesCriadasAqui((prev) => ({
         ...prev,
-        [grupo.id]: [...(prev[grupo.id] || []), { ...criada, name: novaOpcao.nome.trim(), imagePath: novaOpcao.foto }],
+        [grupo.id]: [
+          ...(prev[grupo.id] || []),
+          {
+            ...criada,
+            id: idOpcao,
+            productId: productIdOpcao,
+            status: criada.status || 'AVAILABLE',
+            name: novaOpcao.nome.trim(),
+            price: { value: preco },
+            imagePath: novaOpcao.foto,
+          },
+        ],
       }))
       setNovaOpcao({ nome: '', preco: '', codigo_pdv: '', foto: '' })
     } catch (e) {
@@ -262,7 +282,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
         ...prev,
         [grupo.id]: (prev[grupo.id] || []).map((o) => (o.productId === opcao.productId ? { ...o, status: novoStatus } : o)),
       }))
-      notificar('sucesso', `"${opcao.name}" ${novoStatus === 'UNAVAILABLE' ? 'pausada' : 'despausada'}.`)
+      notificar('sucesso', `"${opcao.name}" ${novoStatus === 'UNAVAILABLE' ? 'pausado' : 'despausado'}.`)
     } catch (e) {
       notificar('erro', e.message)
     }
@@ -271,11 +291,11 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
   async function editarOpcao(opcao, form) {
     const preco = Number(String(form.preco).replace(',', '.'))
     if (!preco || preco <= 0) {
-      notificar('erro', 'Preço da opção deve ser maior que zero.')
+      notificar('erro', 'Preço do complemento deve ser maior que zero.')
       return false
     }
     if (!form.foto) {
-      notificar('erro', 'Essa opção precisa de uma foto — o iFood exige foto pra editar (envie uma, mesmo que já tivesse antes).')
+      notificar('erro', 'Esse complemento precisa de uma foto — o iFood exige foto pra editar (envie uma, mesmo que já tivesse antes).')
       return false
     }
     try {
@@ -304,7 +324,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
         }
         return next
       })
-      notificar('sucesso', `"${form.nome.trim()}" atualizada.`)
+      notificar('sucesso', `"${form.nome.trim()}" atualizado.`)
       return true
     } catch (e) {
       notificar('erro', e.message)
@@ -315,7 +335,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
   async function excluirOpcao(grupo, opcao) {
     try {
       await apiFetch(`/grupos-opcao/${grupo.id}/opcoes/${opcao.productId}`, { method: 'DELETE' })
-      notificar('sucesso', 'Opção excluída.')
+      notificar('sucesso', 'Complemento excluído.')
       setOpcoesCriadasAqui((prev) => ({
         ...prev,
         [grupo.id]: (prev[grupo.id] || []).filter((o) => o.productId !== opcao.productId),
@@ -326,10 +346,10 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
   }
 
   return (
-    <Modal titulo="Grupos de opção (complementos)" onClose={onClose} largura="max-w-lg">
+    <Modal titulo="Complementos" onClose={onClose} largura="max-w-lg">
       <p className="text-xs mb-3 leading-relaxed" style={{ color: C.text2 }}>
-        Complementos de um item (ex: "Escolha a bebida"). Depois de criados, use um grupo ao
-        montar um combo ou anexe direto num item pela edição dele.
+        Um <strong>grupo de complementos</strong> junta os complementos de um item (ex: "Escolha a
+        bebida", "Adicionais"). Crie o grupo e adicione os complementos dentro dele.
       </p>
       <div className="flex flex-col gap-1.5 max-h-72 overflow-y-auto mb-4">
         {carregando && (
@@ -339,7 +359,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
         )}
         {!carregando && grupos.length === 0 && (
           <p className="text-xs" style={{ color: C.text2 }}>
-            Nenhum grupo de opção ainda.
+            Nenhum grupo de complementos ainda.
           </p>
         )}
         {grupos.map((grupo) => {
@@ -359,7 +379,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
                   </span>
                 </button>
                 <span className="text-[10px] flex-shrink-0" style={{ color: C.text3 }}>
-                  {opcoesDoGrupo.length} opções nesta sessão
+                  {opcoesDoGrupo.length} complementos nesta sessão
                 </span>
                 {souAdministrador && (
                   <button
@@ -376,8 +396,8 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
               {aberto && (
                 <div className="px-2.5 pb-2.5 flex flex-col gap-1.5">
                   <p className="text-[10px] px-1 leading-relaxed" style={{ color: C.text3 }}>
-                    O iFood não devolve as opções já cadastradas num grupo — só mostramos aqui
-                    as que você criar agora, nesta sessão.
+                    O iFood não devolve os complementos já cadastrados num grupo — só mostramos
+                    aqui os que você criar agora, nesta sessão.
                   </p>
                   {opcoesDoGrupo.map((opcao) => (
                     <LinhaOpcao
@@ -400,7 +420,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
                           style={inputStyle}
                           value={novaOpcao.nome}
                           onChange={(e) => setNovaOpcao({ ...novaOpcao, nome: e.target.value })}
-                          placeholder="Nome da opção"
+                          placeholder="Nome do complemento"
                         />
                         <input
                           required
@@ -416,7 +436,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
                           disabled={criandoOpcao}
                           className="botao-icone-fantasma w-8 h-8 rounded-md inline-flex items-center justify-center flex-shrink-0 disabled:opacity-40"
                           style={{ color: '#F56C35', border: `1px solid ${C.cardBorder}` }}
-                          title="Adicionar opção"
+                          title="Adicionar complemento"
                         >
                           {criandoOpcao ? <Loader2 size={12} className="animate-spin" /> : <Plus size={13} />}
                         </button>
@@ -454,7 +474,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
       {podeEditar && (
         <div className="border-t pt-3.5" style={{ borderColor: C.cardBorder }}>
           <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: C.text2 }}>
-            Novo grupo de opção
+            Novo grupo de complementos
           </p>
           <form onSubmit={criarGrupo} className="flex gap-2">
             <input

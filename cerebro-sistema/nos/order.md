@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 3
-heat: 0.025
+heat: 0.024
 complexidade: 2
 arquivo: "sistema-pedidos/backend/app/models.py"
 local: L24

@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 10
-heat: 0.022
+heat: 0.021
 complexidade: 5
 arquivo: "sistema-pedidos/backend/app/ws.py"
 local: L8

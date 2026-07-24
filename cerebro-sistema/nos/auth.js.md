@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 9
+comunidade: 11
 heat: 0.03
 complexidade: 1
 arquivo: "automa-o-apis-delivery/viewer/src/auth.js"
 local: L1
-tags: [c/9, tipo/função]
+tags: [c/11, tipo/função]
 ---
 
 # auth.js

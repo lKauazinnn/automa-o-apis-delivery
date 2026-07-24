@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 11
+comunidade: 12
 heat: 0.012
 complexidade: 3
 arquivo: "scripts/gerar_cerebro.py"
 local: L125
-tags: [c/11, tipo/função]
+tags: [c/12, tipo/função]
 ---
 
 # caminho_relativo()

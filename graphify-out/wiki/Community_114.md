@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Substitui a semana inteira de horário de funcionamento da loja de uma vez.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L430) (0 connections)
+- [Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L612) (0 connections)
 
 ## Relationships
 

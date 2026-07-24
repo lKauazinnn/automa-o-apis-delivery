@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Fecha a loja temporariamente (ex: sem entregador disponível, cozinha travada).](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L454) (0 connections)
+- [Edita nome/preço/código PDV/foto de um item já existente. O PUT do iFood substit](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L657) (0 connections)
 
 ## Relationships
 

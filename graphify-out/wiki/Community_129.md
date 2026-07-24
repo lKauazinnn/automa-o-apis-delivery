@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Busca os detalhes completos do pedido na Order API e materializa localmente em](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1187) (0 connections)
+- [Consulta agora os eventos pendentes no iFood (Events API) pra loja informada. Ch](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1470) (0 connections)
 
 ## Relationships
 

@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 17
-heat: 0.018
+heat: 0.017
 complexidade: 7
 arquivo: "viewer/src/components/CerebroGraphify.jsx"
 local: L43

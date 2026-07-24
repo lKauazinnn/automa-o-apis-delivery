@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 9
-heat: 0.015
+comunidade: 11
+heat: 0.014
 complexidade: 4
 arquivo: "viewer/src/auth.js"
 local: L43
-tags: [c/9, tipo/função]
+tags: [c/11, tipo/função]
 ---
 
 # recuperarSenha()

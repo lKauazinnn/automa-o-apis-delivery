@@ -6,7 +6,7 @@
 ## Core Abstractions (God Nodes)
 1. `auth_headers()` (41 edges)
 2. `registrar_auditoria()` (39 edges)
-3. `com_retry()` (38 edges)
+3. `com_retry()` (39 edges)
 4. `_merchant_id()` (37 edges)
 5. `OrderStatus` (30 edges)
 6. `OrderType` (27 edges)

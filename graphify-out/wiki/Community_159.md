@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Falha de login/permissão — sessão ausente/expirada (401) ou papel sem acesso (40](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L124) (0 connections)
+- [Entrypoint da Vercel: expõe o app Flask (server/app.py) como função serverless.](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/api/index.py#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [server/app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py)
+- [C:\Users\Gustavo\Desktop\automação ifood\api\index.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/api/index.py)
 
 ## Audit Trail
 

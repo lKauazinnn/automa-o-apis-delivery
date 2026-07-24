@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 16
-heat: 0.007
+heat: 0.006
 complexidade: 1
 arquivo: "sistema-pedidos/frontend/src/api.ts"
 local: L56

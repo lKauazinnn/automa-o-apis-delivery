@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.014
+heat: 0.013
 complexidade: 1
 arquivo: "viewer/src/Sidebar.jsx"
 local: L1

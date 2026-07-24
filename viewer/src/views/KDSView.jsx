@@ -41,6 +41,32 @@ function corTempo(min, C) {
   return C.text2
 }
 
+// Itens do pedido no formato do KDS, respeitando a API de CADA plataforma (não misturar):
+// 99Food guarda em detalhes_brutos.itens (nome/qtd/complementos); iFood em
+// detalhes_brutos.items (name/quantity/options — shape da Order API do iFood).
+function itensNormalizados(p) {
+  const db = p.detalhes_brutos || {}
+  const eh99 = String(p.ifood_order_id || '').startsWith('99-')
+  if (eh99) {
+    return (db.itens || []).map((it, i) => ({
+      id: i,
+      quantidade: it.qtd || 1,
+      nome: it.nome,
+      preco: it.preco,
+      complementos: it.complementos || [],
+      obs: it.obs || '',
+    }))
+  }
+  return (db.items || []).map((it, i) => ({
+    id: i,
+    quantidade: it.quantity || 1,
+    nome: it.name,
+    preco: it.totalPrice ?? it.price ?? it.unitPrice,
+    complementos: (it.options || []).map((o) => ({ nome: o.name, preco: o.price, grupo: o.groupName || '' })),
+    obs: it.observations || '',
+  }))
+}
+
 export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistorico, plataforma }) {
   const [pedidos, setPedidos] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -67,14 +93,7 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
     }
     return {
       ...p,
-      itens: (db.itens || []).map((it, i) => ({
-        id: i,
-        quantidade: it.qtd || 1,
-        nome: it.nome,
-        preco: it.preco,
-        complementos: it.complementos || [],
-        obs: it.obs || '',
-      })),
+      itens: itensNormalizados(p),
       linha_do_tempo: (db.timeline || []).map((t, i) => ({ id: i, tipo: rot[t.status] || t.status, recebido_em: t.em })),
     }
   }
@@ -301,6 +320,9 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
                 <div className="flex flex-col gap-2">
                   {doColuna.map((p) => {
                     const podeLimpar = p.status === 'CONCLUIDO' || p.status === 'CANCELADO'
+                    // Preview dos itens no card, normalizado pela API de CADA plataforma (iFood lê
+                    // detalhes_brutos.items; 99, detalhes_brutos.itens) — ver itensNormalizados.
+                    const itensCard = itensNormalizados(p)
                     return (
                       <div
                         key={p.id}
@@ -341,11 +363,11 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
                             <span className="fonte-mono">R$ {Number(p.total).toFixed(2).replace('.', ',')}</span>
                           )}
                         </p>
-                        {p.detalhes_brutos?.itens?.length > 0 && (
+                        {itensCard.length > 0 && (
                           <div className="mt-2 pt-2 flex flex-col gap-0.5 border-t" style={{ borderColor: C.cardBorder }}>
-                            {p.detalhes_brutos.itens.slice(0, 4).map((it, idx) => (
+                            {itensCard.slice(0, 4).map((it, idx) => (
                               <div key={idx} className="text-[11px] leading-snug" style={{ color: C.text1 }}>
-                                <span className="font-bold" style={{ color: '#F56C35' }}>{it.qtd || 1}×</span> {it.nome}
+                                <span className="font-bold" style={{ color: '#F56C35' }}>{it.quantidade || 1}×</span> {it.nome}
                                 {it.complementos?.length > 0 && (
                                   <span style={{ color: C.text3 }}> · {it.complementos.map((c) => c.nome).join(', ')}</span>
                                 )}
@@ -357,8 +379,8 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
                                 )}
                               </div>
                             ))}
-                            {p.detalhes_brutos.itens.length > 4 && (
-                              <div className="text-[10px]" style={{ color: C.text3 }}>+{p.detalhes_brutos.itens.length - 4} item(ns)</div>
+                            {itensCard.length > 4 && (
+                              <div className="text-[10px]" style={{ color: C.text3 }}>+{itensCard.length - 4} item(ns)</div>
                             )}
                           </div>
                         )}

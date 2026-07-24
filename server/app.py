@@ -58,6 +58,7 @@ from ifood_automacao.client import (  # noqa: E402
     get_opening_hours,
     list_catalogs,
     list_categories,
+    list_merchants,
     list_interruptions,
     list_option_groups,
     patch_item_external_code,
@@ -320,6 +321,26 @@ def get_lojas():
     return jsonify(lojas)
 
 
+@app.get("/api/lojas-verificacao-ifood")
+@requer_login
+def verificar_lojas_ifood():
+    """Cruza o painel com o GET /merchants do iFood: devolve os merchant_ids que o iFood
+    reconhece como vinculados às credenciais atuais. Serve só pra exibir o selo "verificada no
+    iFood" — NÃO bloqueia a listagem: se a API do iFood cair/negar, volta disponivel=False e o
+    front simplesmente não mostra o selo."""
+    try:
+        merchants = com_retry(list_merchants)
+        ids = {
+            str(m.get("id") or m.get("merchantId") or m.get("uuid") or "").strip()
+            for m in (merchants or [])
+            if isinstance(m, dict)
+        }
+        return jsonify({"disponivel": True, "merchant_ids": sorted(i for i in ids if i)})
+    except Exception as exc:
+        logger.warning("Não consegui verificar lojas no iFood (GET /merchants): %s", exc)
+        return jsonify({"disponivel": False, "merchant_ids": []})
+
+
 @app.post("/api/lojas")
 @requer_papel("administrador")
 def criar_loja():
@@ -416,6 +437,10 @@ def get_catalogo():
                 }
             )
     nomes_categorias = sorted({c["name"] for c in categorias})
+    logger.info(
+        "catálogo carregado do iFood: merchant=%s catalog=%s categorias=%d itens=%d",
+        merchant_id, catalog_id, len(categorias), len(itens),
+    )
     return jsonify({"itens": itens, "categorias": nomes_categorias})
 
 
@@ -1218,7 +1243,10 @@ def _criar_pedido_local(merchant_id, order_id) -> bool:
 
     detalhes = com_retry(get_order_details, order_id)
     tipo = TIPO_IFOOD_PARA_INTERNO.get(detalhes.get("orderType"), "ENTREGA")
-    total = ((detalhes.get("total") or {}).get("orderAmount") or {}).get("value")
+    # O iFood manda total.orderAmount como número direto (ex: 27.0); alguns esquemas antigos
+    # usavam {value: X}. Trata os dois.
+    _order_amount = (detalhes.get("total") or {}).get("orderAmount")
+    total = _order_amount.get("value") if isinstance(_order_amount, dict) else _order_amount
     metodos = ((detalhes.get("payments") or {}).get("methods")) or []
     pagamento = ", ".join(m.get("method", "") for m in metodos if m.get("method")) or None
 
@@ -1261,7 +1289,9 @@ def _registrar_e_materializar_evento(merchant_id, evento, origem, ack_enviado=Fa
     """Processa UM evento de pedido do iFood — vindo do polling OU do webhook. Monta a linha de
     log, materializa pedido novo (PLACED) ou atualiza o status de um existente. Devolve
     (linha_de_log, entrou_pedido_novo)."""
-    codigo = evento.get("code") or evento.get("fullCode") or "DESCONHECIDO"
+    # O iFood manda o código curto em `code` ("PLC") e o completo em `fullCode` ("PLACED").
+    # Nossas regras (PLACED/CONFIRMED/...) batem com o fullCode, então ele vem primeiro.
+    codigo = evento.get("fullCode") or evento.get("code") or "DESCONHECIDO"
     order_id = evento.get("orderId")
     linha = {
         "merchant_id": merchant_id,
@@ -1362,20 +1392,48 @@ def get_pedido_detalhe(pedido_id):
     resp_eventos.raise_for_status()
     pedido["linha_do_tempo"] = resp_eventos.json()
 
-    # Fallback 99Food: itens e linha do tempo vivem em detalhes_brutos (não nas tabelas iFood).
+    # Normaliza os itens RESPEITANDO a API de cada plataforma (sem misturar): cada uma guarda
+    # o pedido no seu formato nativo em `detalhes_brutos`; a reconciliação pro shape que o KDS
+    # espera ({nome, quantidade, preco, complementos:[{nome,grupo,preco}], obs}) acontece só aqui,
+    # na leitura.
     db = pedido.get("detalhes_brutos") or {}
+    eh_99 = str(pedido.get("ifood_order_id") or "").startswith("99-")
     if isinstance(db, dict):
-        if not pedido["itens"] and db.get("itens"):
+        if eh_99:
+            # 99Food: itens em detalhes_brutos.itens (nome/qtd/obs/complementos).
+            if not pedido["itens"] and db.get("itens"):
+                pedido["itens"] = [
+                    {
+                        "id": i,
+                        "quantidade": it.get("qtd", 1),
+                        "nome": it.get("nome"),
+                        "preco": it.get("preco"),
+                        "complementos": it.get("complementos") or [],
+                        "obs": it.get("obs") or "",
+                    }
+                    for i, it in enumerate(db["itens"])
+                ]
+        elif db.get("items"):
+            # iFood: shape cru da Order API em detalhes_brutos.items (name/quantity/options).
+            # É a fonte autoritativa — a tabela `itens_pedido` guarda os `options` crus e o preço
+            # UNITÁRIO, que exibem errado no modal (complementos sem nome, total baixo). Por isso
+            # normaliza a partir do bruto, não das colunas da tabela.
+            def _num(v):
+                return v.get("value") if isinstance(v, dict) else v
             pedido["itens"] = [
                 {
                     "id": i,
-                    "quantidade": it.get("qtd", 1),
-                    "nome": it.get("nome"),
-                    "preco": it.get("preco"),
-                    "complementos": it.get("complementos") or [],
-                    "obs": it.get("obs") or "",
+                    "quantidade": it.get("quantity", 1),
+                    "nome": it.get("name"),
+                    "preco": _num(it.get("totalPrice") if it.get("totalPrice") is not None
+                                  else (it.get("price") if it.get("price") is not None else it.get("unitPrice"))),
+                    "complementos": [
+                        {"nome": o.get("name"), "preco": _num(o.get("price")), "grupo": o.get("groupName") or ""}
+                        for o in (it.get("options") or [])
+                    ],
+                    "obs": it.get("observations") or "",
                 }
-                for i, it in enumerate(db["itens"])
+                for i, it in enumerate(db["items"])
             ]
         if not pedido["linha_do_tempo"] and db.get("timeline"):
             rot = {
@@ -1529,7 +1587,7 @@ def webhook_ifood():
             linha, _ = _registrar_e_materializar_evento(merchant_id, evento, "Webhook iFood", ack_enviado=True)
         except Exception as exc:  # nunca vira 5xx: o iFood desativa o webhook se falhar em série
             logger.warning("Falha ao processar evento iFood: %s", exc)
-            codigo = evento.get("code") or evento.get("fullCode") or "ERRO"
+            codigo = evento.get("fullCode") or evento.get("code") or "ERRO"
             linha = {
                 "merchant_id": merchant_id,
                 "pedido_ifood_id": evento.get("orderId"),

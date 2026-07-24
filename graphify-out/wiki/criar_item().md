@@ -1,6 +1,6 @@
 # criar_item()
 
-> God node · 11 connections · [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L611)
+> God node · 11 connections · [C:\Users\Gustavo\Desktop\automação ifood\server\app.py](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L636)
 
 ## Call Trace Diagram
 
@@ -50,16 +50,18 @@ sequenceDiagram
     participant P41 as editar_item_99food()
     participant P42 as criar_item_99food()
     participant P43 as transicionar()
-    participant P44 as alterar_status_pedido()
-    participant P45 as alterar_status_99food()
-    participant P46 as alterar_preco_99food()
-    participant P47 as alterar_codigo_pdv_99food()
-    participant P48 as alterar_nome_descricao_99food()
-    participant P49 as catalogo_99food()
-    participant P50 as main()
-    participant P51 as _merchant_id()
-    participant P52 as _catalog_id()
-    participant P53 as _categoria_id()
+    participant P44 as verificar_lojas_ifood()
+    participant P45 as alterar_status_pedido()
+    participant P46 as alterar_status_99food()
+    participant P47 as alterar_preco_99food()
+    participant P48 as alterar_codigo_pdv_99food()
+    participant P49 as alterar_nome_descricao_99food()
+    participant P50 as get_pedido_detalhe()
+    participant P51 as catalogo_99food()
+    participant P52 as main()
+    participant P53 as _merchant_id()
+    participant P54 as _catalog_id()
+    participant P55 as _categoria_id()
     P0->>+ P1: calls
     P1-->>- P0: return
     P1->>+ P0: calls
@@ -166,16 +168,20 @@ sequenceDiagram
     P49-->>- P1: return
     P1->>+ P50: calls
     P50-->>- P1: return
+    P1->>+ P51: calls
+    P51-->>- P1: return
+    P1->>+ P52: calls
+    P52-->>- P1: return
     P0->>+ P10: calls
     P10-->>- P0: return
     P0->>+ P3: calls
     P3-->>- P0: return
-    P0->>+ P51: calls
-    P51-->>- P0: return
-    P0->>+ P52: calls
-    P52-->>- P0: return
     P0->>+ P53: calls
     P53-->>- P0: return
+    P0->>+ P54: calls
+    P54-->>- P0: return
+    P0->>+ P55: calls
+    P55-->>- P0: return
     P0->>+ P42: calls
     P42-->>- P0: return
 ```

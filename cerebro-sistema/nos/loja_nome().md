@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 3
-heat: 0.006
+heat: 0.005
 complexidade: 2
 arquivo: "sistema-pedidos/backend/app/models.py"
 local: L87

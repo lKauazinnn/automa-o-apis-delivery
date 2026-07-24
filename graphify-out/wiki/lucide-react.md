@@ -21,12 +21,12 @@
 - [[OrderDrawer.tsx]] `EXTRACTED`
 - [[Sidebar.jsx]] `EXTRACTED`
 - [[GruposOpcaoModal.jsx]] `EXTRACTED`
+- [[CatalogoView.jsx]] `EXTRACTED`
 - [[Layout.tsx]] `EXTRACTED`
 - [[ErroFatal.jsx]] `EXTRACTED`
 - [[CategoriasModal.jsx]] `EXTRACTED`
 - [[ComboModal.jsx]] `EXTRACTED`
 - [[InterrupcoesModal.jsx]] `EXTRACTED`
-- [[CatalogoView.jsx]] `EXTRACTED`
 
 ---
 

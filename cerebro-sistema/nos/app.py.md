@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 0
-heat: 0.067
+heat: 0.066
 complexidade: 1
 arquivo: "automa-o-apis-delivery/server/app.py"
 local: L1

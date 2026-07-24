@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 11
-heat: 0.007
+comunidade: 12
+heat: 0.006
 complexidade: 1
 arquivo: "scripts/gerar_cerebro.py"
 local: L140
-tags: [c/11, tipo/função]
+tags: [c/12, tipo/função]
 ---
 
 # carregar_grafo()

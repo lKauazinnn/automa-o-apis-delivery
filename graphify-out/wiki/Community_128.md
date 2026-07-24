@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Order/Events API: implementado a partir da doc pública, ainda não disparado cont](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1165) (0 connections)
+- [Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditori](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L1452) (0 connections)
 
 ## Relationships
 

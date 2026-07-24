@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [Cria um item novo. Só administrador/gerente pode — e agora isso é checado de ver](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L610) (0 connections)
+- [Define em quais dias/horários um item fica disponível (ex: um prato que só vende](file:///C:/Users/Gustavo/Desktop/automa%C3%A7%C3%A3o%20ifood/server/app.py#L892) (0 connections)
 
 ## Relationships
 

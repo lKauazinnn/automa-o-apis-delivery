@@ -1,10 +1,10 @@
 ---
 tipo: função
 comunidade: 0
-heat: 0.032
+heat: 0.031
 complexidade: 6
 arquivo: "server/app.py"
-local: L1166
+local: L1191
 tags: [c/0, tipo/função]
 ---
 

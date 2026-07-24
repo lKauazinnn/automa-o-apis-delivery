@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 4
-heat: 0.027
+comunidade: 2
+heat: 0.026
 complexidade: 1
 arquivo: "src/ifood_automacao/client.py"
 local: L216
-tags: [c/4, tipo/função]
+tags: [c/2, tipo/função]
 ---
 
 # update_item_price()

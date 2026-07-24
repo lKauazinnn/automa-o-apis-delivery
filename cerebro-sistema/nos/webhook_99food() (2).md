@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 10
-heat: 0.013
+heat: 0.012
 complexidade: 3
 arquivo: "sistema-pedidos/backend/app/main.py"
 local: L67

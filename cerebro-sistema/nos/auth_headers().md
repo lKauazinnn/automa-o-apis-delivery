@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 2
-heat: 0.1
+heat: 0.099
 complexidade: 1
 arquivo: "src/ifood_automacao/auth.py"
 local: L45

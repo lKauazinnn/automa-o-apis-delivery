@@ -1,11 +1,11 @@
 ---
 tipo: função
-comunidade: 4
+comunidade: 0
 heat: 0.019
 complexidade: 1
 arquivo: "src/food99_automacao/client.py"
 local: L117
-tags: [c/4, tipo/função]
+tags: [c/0, tipo/função]
 ---
 
 # update_item_campos()

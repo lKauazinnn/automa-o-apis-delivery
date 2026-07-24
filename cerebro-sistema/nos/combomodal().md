@@ -1,7 +1,7 @@
 ---
 tipo: função
 comunidade: 1
-heat: 0.051
+heat: 0.05
 complexidade: 18
 arquivo: "viewer/src/modals/ComboModal.jsx"
 local: L5

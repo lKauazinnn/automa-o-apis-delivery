@@ -1,11 +1,11 @@
 ---
 tipo: classe
-comunidade: 28
+comunidade: 27
 heat: 0.037
 complexidade: 0
 arquivo: "CLAUDE.md"
 local: L1
-tags: [c/28, tipo/classe]
+tags: [c/27, tipo/classe]
 ---
 
 # CLAUDE.md
