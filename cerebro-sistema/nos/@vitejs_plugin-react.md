@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 342
-heat: 0.068
+heat: 0.059
 complexidade: 0
 arquivo: "viewer/package.json"
 local: L21

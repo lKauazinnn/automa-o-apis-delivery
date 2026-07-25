@@ -1083,7 +1083,7 @@
       "source_location": "L59",
       "level": 3,
       "granularity": "low",
-      "heat": 0.137,
+      "heat": 0.118,
       "owner": "unowned",
       "community": 2,
       "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est",
@@ -1097,7 +1097,7 @@
       "source_location": "L91",
       "level": 3,
       "granularity": "low",
-      "heat": 0.137,
+      "heat": 0.118,
       "owner": "unowned",
       "community": 2,
       "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata",
@@ -1111,7 +1111,7 @@
       "source_location": "L102",
       "level": 3,
       "granularity": "low",
-      "heat": 0.137,
+      "heat": 0.118,
       "owner": "unowned",
       "community": 2,
       "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente.",
@@ -1125,7 +1125,7 @@
       "source_location": "L113",
       "level": 3,
       "granularity": "low",
-      "heat": 0.137,
+      "heat": 0.118,
       "owner": "unowned",
       "community": 2,
       "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo.",
@@ -12655,7 +12655,7 @@
       "norm_label": "carga em massa: cria/atualiza todos os itens ativos da planilha no catalogo ifoo",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "scripts_carga_massa_rationale_1"
     },
@@ -12670,7 +12670,7 @@
       "norm_label": "lista as lojas (merchants) vinculadas as credenciais do .env.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "scripts_descobrir_lojas_rationale_1"
     },
@@ -12685,7 +12685,7 @@
       "norm_label": "puxa o catalogo atual (categorias + itens) direto da api do ifood e exporta pra",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "scripts_exportar_catalogo_rationale_1"
     },
@@ -12700,7 +12700,7 @@
       "norm_label": "cria uma categoria de teste e alguns itens de exemplo da planilha no catalogo sa",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "scripts_testar_sandbox_rationale_1"
     },
@@ -12715,7 +12715,7 @@
       "norm_label": "lista catalogos e categorias da loja configurada no .env, para inspecao manual.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "scripts_ver_catalogo_rationale_1"
     },
@@ -13184,7 +13184,7 @@
       "norm_label": "autenticacao oauth2 (client_credentials) com a merchant api do ifood.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "sensitivity": "HIGH",
       "id": "src_ifood_automacao_auth_rationale_1"
@@ -13200,7 +13200,7 @@
       "norm_label": "retorna um access token valido, reaproveitando o cache em memoria enquanto nao e",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "sensitivity": "HIGH",
       "id": "src_ifood_automacao_auth_rationale_17"
@@ -13216,7 +13216,7 @@
       "norm_label": "cliente fino para os endpoints da merchant api / catalog api do ifood usados na",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_1"
     },
@@ -13231,7 +13231,7 @@
       "norm_label": "lista as lojas (merchants) associadas as credenciais configuradas.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_11"
     },
@@ -13246,7 +13246,7 @@
       "norm_label": "detalhes completos da loja: nome, razao social, tipo, status e operacoes/canais",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_18"
     },
@@ -13261,7 +13261,7 @@
       "norm_label": "disponibilidade da loja por operacao/canal de venda: se esta apta a receber pedi",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_26"
     },
@@ -13276,7 +13276,7 @@
       "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_77"
     },
@@ -13291,7 +13291,7 @@
       "norm_label": "cria um item do tipo combo_v2 (ex: \"combo hamburguer e refrigerante\").      `g",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_140"
     },
@@ -13306,7 +13306,7 @@
       "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_195"
     },
@@ -13321,7 +13321,7 @@
       "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_206"
     },
@@ -13336,7 +13336,7 @@
       "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_217"
     },
@@ -13351,7 +13351,7 @@
       "norm_label": "edita nome/status/sequencia de uma categoria. ex: edit_category(m, c, cid, statu",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_242"
     },
@@ -13366,7 +13366,7 @@
       "norm_label": "define os turnos de disponibilidade de um item (ex: item que so vende no almoco)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_272"
     },
@@ -13381,7 +13381,7 @@
       "norm_label": "fecha a loja temporariamente (ex: sem entregador, fila da cozinha travada).",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_326"
     },
@@ -13396,7 +13396,7 @@
       "norm_label": "cria um grupo de complemento vazio (ex: \"escolha sua bebida\"). depois associe",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_361"
     },
@@ -13411,7 +13411,7 @@
       "norm_label": "cria uma opcao nova (ex: \"coca-cola\") dentro de um grupo de complemento ja exist",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_394"
     },
@@ -13426,7 +13426,7 @@
       "norm_label": "`option_product_id` e o `productid` devolvido por `create_option` (nao o `id` da",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_415"
     },
@@ -13441,7 +13441,7 @@
       "norm_label": "edita nome e foto de uma opcao (complemento) ja existente. `product_id` e o",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_430"
     },
@@ -13456,7 +13456,7 @@
       "norm_label": "atualiza o preco de uma opcao (complemento) ja existente. endpoint em lote (acei",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_444"
     },
@@ -13471,7 +13471,7 @@
       "norm_label": "pausa/despausa uma opcao (complemento) sem exclui-la. `option_id` e o `id` da op",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_458"
     },
@@ -13486,7 +13486,7 @@
       "norm_label": "envia uma imagem (jpg/jpeg/png, ate 5mb) e devolve o `imagepath` a usar em",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "src_ifood_automacao_client_rationale_474"
     },
@@ -13501,7 +13501,7 @@
       "norm_label": "cliente fino para a order api e a events api (polling) do ifood \u2014 mesmo padrao d",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "src_ifood_automacao_pedidos_rationale_1"
     },
@@ -13516,7 +13516,7 @@
       "norm_label": "busca eventos pendentes (novos pedidos, mudancas de status) da loja. cada evento",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "src_ifood_automacao_pedidos_rationale_26"
     },
@@ -13531,7 +13531,7 @@
       "norm_label": "confirma o recebimento dos eventos \u2014 obrigatorio, senao o ifood reenvia os mesmo",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "src_ifood_automacao_pedidos_rationale_41"
     },
@@ -13546,7 +13546,7 @@
       "norm_label": "payload completo do pedido: cliente, itens com complementos, pagamento, entrega,",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "sensitivity": "HIGH",
       "id": "src_ifood_automacao_pedidos_rationale_55"
@@ -13562,7 +13562,7 @@
       "norm_label": "leitura da planilha de itens/pdv.",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "src_ifood_automacao_planilha_rationale_1"
     },
@@ -13577,7 +13577,7 @@
       "norm_label": "wrapper simples de retry/backoff para chamadas http sujeitas a rate limit (429)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "src_ifood_automacao_rate_limit_rationale_1"
     },
@@ -13592,7 +13592,7 @@
       "norm_label": "react",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "ref_react"
     },
@@ -13607,7 +13607,7 @@
       "norm_label": "oxc",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "ref_oxc"
     },
@@ -13622,7 +13622,7 @@
       "norm_label": "warn",
       "level": 3,
       "granularity": "low",
-      "heat": 0.035,
+      "heat": 0.03,
       "owner": "unowned",
       "id": "ref_warn"
     },
@@ -13637,7 +13637,7 @@
       "norm_label": "lucide-react",
       "level": 0,
       "granularity": "low",
-      "heat": 0.125,
+      "heat": 0.116,
       "owner": "unowned",
       "id": "lucide_react"
     },
@@ -13652,7 +13652,7 @@
       "norm_label": "react",
       "level": 0,
       "granularity": "low",
-      "heat": 0.121,
+      "heat": 0.111,
       "owner": "unowned",
       "id": "react"
     },
@@ -13667,7 +13667,7 @@
       "norm_label": "react-dom",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "react_dom"
     },
@@ -13682,7 +13682,7 @@
       "norm_label": "recharts",
       "level": 3,
       "granularity": "low",
-      "heat": 0.071,
+      "heat": 0.061,
       "owner": "unowned",
       "id": "recharts"
     },
@@ -13697,7 +13697,7 @@
       "norm_label": "@types/react",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "types_react"
     },
@@ -13712,7 +13712,7 @@
       "norm_label": "@types/react-dom",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "types_react_dom"
     },
@@ -13727,7 +13727,7 @@
       "norm_label": "@vitejs/plugin-react",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "vitejs_plugin_react"
     },
@@ -13742,7 +13742,7 @@
       "norm_label": "autoprefixer",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "autoprefixer"
     },
@@ -13757,7 +13757,7 @@
       "norm_label": "oxlint",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "oxlint"
     },
@@ -13772,7 +13772,7 @@
       "norm_label": "postcss",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "postcss"
     },
@@ -13787,7 +13787,7 @@
       "norm_label": "tailwindcss",
       "level": 3,
       "granularity": "low",
-      "heat": 0.068,
+      "heat": 0.059,
       "owner": "unowned",
       "id": "tailwindcss"
     },
@@ -13802,7 +13802,7 @@
       "norm_label": "vite",
       "level": 2,
       "granularity": "low",
-      "heat": 0.075,
+      "heat": 0.066,
       "owner": "unowned",
       "id": "vite"
     },
@@ -13817,7 +13817,7 @@
       "norm_label": "claude.md",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "claude"
     },
@@ -13832,7 +13832,7 @@
       "norm_label": "graphify",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "claude_graphify"
     },
@@ -13847,7 +13847,7 @@
       "norm_label": "homologacao.md",
       "level": 3,
       "granularity": "low",
-      "heat": 0.071,
+      "heat": 0.061,
       "owner": "unowned",
       "id": "homologacao"
     },
@@ -13862,7 +13862,7 @@
       "norm_label": "mapa de homologacao \u2014 modulos de catalogo e merchant ifood",
       "level": 1,
       "granularity": "low",
-      "heat": 0.08,
+      "heat": 0.071,
       "owner": "unowned",
       "id": "homologacao_mapa_de_homologa\u00e7\u00e3o_m\u00f3dulos_de_cat\u00e1logo_e_merchant_ifood"
     },
@@ -13877,7 +13877,7 @@
       "norm_label": "tabela geral",
       "level": 3,
       "granularity": "low",
-      "heat": 0.071,
+      "heat": 0.061,
       "owner": "unowned",
       "id": "homologacao_tabela_geral"
     },
@@ -13892,7 +13892,7 @@
       "norm_label": "o que esta 100% pronto e testado",
       "level": 3,
       "granularity": "low",
-      "heat": 0.071,
+      "heat": 0.061,
       "owner": "unowned",
       "id": "homologacao_o_que_est\u00e1_100_pronto_e_testado"
     },
@@ -13907,7 +13907,7 @@
       "norm_label": "o que esta bloqueado, e por que",
       "level": 2,
       "granularity": "low",
-      "heat": 0.075,
+      "heat": 0.066,
       "owner": "unowned",
       "id": "homologacao_o_que_est\u00e1_bloqueado_e_por_qu\u00ea"
     },
@@ -13922,7 +13922,7 @@
       "norm_label": "\ud83d\udd34 promocao (duracao de desconto)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.071,
+      "heat": 0.061,
       "owner": "unowned",
       "id": "homologacao_promo\u00e7\u00e3o_dura\u00e7\u00e3o_de_desconto"
     },
@@ -13937,7 +13937,7 @@
       "norm_label": "\ud83d\udd34 tags do item (vegan, organic...)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.071,
+      "heat": 0.061,
       "owner": "unowned",
       "id": "homologacao_tags_do_item_vegan_organic"
     },
@@ -13952,7 +13952,7 @@
       "norm_label": "o que ainda nao esta na interface (`viewer/`)",
       "level": 2,
       "granularity": "low",
-      "heat": 0.073,
+      "heat": 0.063,
       "owner": "unowned",
       "id": "homologacao_o_que_ainda_n\u00e3o_est\u00e1_na_interface_viewer"
     },
@@ -13967,7 +13967,7 @@
       "norm_label": "limitacao conhecida: opcoes (complementos) somem da tela apos recarregar",
       "level": 3,
       "granularity": "low",
-      "heat": 0.071,
+      "heat": 0.061,
       "owner": "unowned",
       "id": "homologacao_limita\u00e7\u00e3o_conhecida_op\u00e7\u00f5es_complementos_somem_da_tela_ap\u00f3s_recarregar"
     },
@@ -13982,7 +13982,7 @@
       "norm_label": "readme.md",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme"
     },
@@ -13997,7 +13997,7 @@
       "norm_label": "automacao de catalogo ifood \u2014 cajupar",
       "level": 0,
       "granularity": "low",
-      "heat": 0.128,
+      "heat": 0.113,
       "owner": "unowned",
       "id": "readme_automa\u00e7\u00e3o_de_cat\u00e1logo_ifood_cajupar"
     },
@@ -14012,7 +14012,7 @@
       "norm_label": "arquitetura",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_arquitetura"
     },
@@ -14027,7 +14027,7 @@
       "norm_label": "subindo o projeto",
       "level": 2,
       "granularity": "low",
-      "heat": 0.109,
+      "heat": 0.094,
       "owner": "unowned",
       "id": "readme_subindo_o_projeto"
     },
@@ -14042,7 +14042,7 @@
       "norm_label": "opcao rapida (windows)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_op\u00e7\u00e3o_r\u00e1pida_windows"
     },
@@ -14057,7 +14057,7 @@
       "norm_label": "manual",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_manual"
     },
@@ -14072,7 +14072,7 @@
       "norm_label": "variaveis de ambiente (`.env`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_vari\u00e1veis_de_ambiente_env"
     },
@@ -14087,7 +14087,7 @@
       "norm_label": "api local (`server/app.py`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_api_local_server_app_py"
     },
@@ -14102,7 +14102,7 @@
       "norm_label": "pausar / despausar itens",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_pausar_despausar_itens"
     },
@@ -14117,7 +14117,7 @@
       "norm_label": "auditoria e logs",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_auditoria_e_logs"
     },
@@ -14132,7 +14132,7 @@
       "norm_label": "login, papeis e convites",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_login_pap\u00e9is_e_convites"
     },
@@ -14147,7 +14147,7 @@
       "norm_label": "scripts (`scripts/`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_scripts_scripts"
     },
@@ -14162,7 +14162,7 @@
       "norm_label": "deploy no vercel",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_deploy_no_vercel"
     },
@@ -14177,7 +14177,7 @@
       "norm_label": "sandbox vs. producao",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "readme_sandbox_vs_produ\u00e7\u00e3o"
     },
@@ -14192,7 +14192,7 @@
       "norm_label": "briefing_redesign.md",
       "level": 2,
       "granularity": "low",
-      "heat": 0.04,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "viewer_briefing_redesign"
     },
@@ -14207,7 +14207,7 @@
       "norm_label": "briefing do sistema \u2014 pra quem for redesenhar",
       "level": 0,
       "granularity": "low",
-      "heat": 0.059,
+      "heat": 0.054,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_briefing_do_sistema_pra_quem_for_redesenhar"
     },
@@ -14222,7 +14222,7 @@
       "norm_label": "o que e",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_o_que_\u00e9"
     },
@@ -14237,7 +14237,7 @@
       "norm_label": "stack tecnica",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_stack_t\u00e9cnica"
     },
@@ -14252,7 +14252,7 @@
       "norm_label": "papeis e permissoes",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_pap\u00e9is_e_permiss\u00f5es"
     },
@@ -14267,7 +14267,7 @@
       "norm_label": "telas (fora do painel logado)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_telas_fora_do_painel_logado"
     },
@@ -14282,7 +14282,7 @@
       "norm_label": "o painel logado \u2014 layout de cima pra baixo",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_o_painel_logado_layout_de_cima_pra_baixo"
     },
@@ -14297,7 +14297,7 @@
       "norm_label": "modais",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_modais"
     },
@@ -14312,7 +14312,7 @@
       "norm_label": "toasts (avisos temporarios)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_toasts_avisos_tempor\u00e1rios"
     },
@@ -14327,7 +14327,7 @@
       "norm_label": "dados que a tela consome (via api do backend flask)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_dados_que_a_tela_consome_via_api_do_backend_flask"
     },
@@ -14342,7 +14342,7 @@
       "norm_label": "o que precisa continuar existindo num redesign",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_briefing_redesign_o_que_precisa_continuar_existindo_num_redesign"
     },
@@ -14357,7 +14357,7 @@
       "norm_label": "claude.md",
       "level": 2,
       "granularity": "low",
-      "heat": 0.04,
+      "heat": 0.035,
       "owner": "unowned",
       "id": "viewer_claude"
     },
@@ -14372,7 +14372,7 @@
       "norm_label": "design deste painel",
       "level": 1,
       "granularity": "low",
-      "heat": 0.049,
+      "heat": 0.044,
       "owner": "unowned",
       "id": "viewer_claude_design_deste_painel"
     },
@@ -14387,7 +14387,7 @@
       "norm_label": "regras principais",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_claude_regras_principais"
     },
@@ -14402,7 +14402,7 @@
       "norm_label": "classes reutilizaveis (`index.css`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_claude_classes_reutiliz\u00e1veis_index_css"
     },
@@ -14417,7 +14417,7 @@
       "norm_label": "cores de status (ja usadas em `paletas` no `app.jsx`)",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_claude_cores_de_status_j\u00e1_usadas_em_paletas_no_app_jsx"
     },
@@ -14432,7 +14432,7 @@
       "norm_label": "graficos",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_claude_gr\u00e1ficos"
     },
@@ -14447,7 +14447,7 @@
       "norm_label": "antes de considerar terminado",
       "level": 3,
       "granularity": "low",
-      "heat": 0.037,
+      "heat": 0.032,
       "owner": "unowned",
       "id": "viewer_claude_antes_de_considerar_terminado"
     },
@@ -14462,7 +14462,7 @@
       "norm_label": "readme.md",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "viewer_readme"
     },
@@ -14477,7 +14477,7 @@
       "norm_label": "react + vite",
       "level": 2,
       "granularity": "low",
-      "heat": 0.109,
+      "heat": 0.094,
       "owner": "unowned",
       "id": "viewer_readme_react_vite"
     },
@@ -14492,7 +14492,7 @@
       "norm_label": "react compiler",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "viewer_readme_react_compiler"
     },
@@ -14507,7 +14507,7 @@
       "norm_label": "expanding the oxlint configuration",
       "level": 3,
       "granularity": "low",
-      "heat": 0.104,
+      "heat": 0.09,
       "owner": "unowned",
       "id": "viewer_readme_expanding_the_oxlint_configuration"
     },
@@ -14646,7 +14646,7 @@
       "source_location": "L60",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "community": 356,
       "norm_label": "cria ou substitui por completo um item (put e idempotente e sempre reenvia a est",
@@ -14660,7 +14660,7 @@
       "source_location": "L175",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "community": 357,
       "norm_label": "atualiza globalmente o codigo pdv (externalcode) de um item ja existente no cata",
@@ -14674,7 +14674,7 @@
       "source_location": "L186",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "community": 358,
       "norm_label": "pausa (unavailable) ou despausa (available) um item globalmente.",
@@ -14688,7 +14688,7 @@
       "source_location": "L197",
       "level": 3,
       "granularity": "low",
-      "heat": 0.135,
+      "heat": 0.116,
       "owner": "unowned",
       "community": 359,
       "norm_label": "atualiza globalmente o preco de um item ja existente no catalogo.",

@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 8
-heat: 0.037
+heat: 0.032
 complexidade: 0
 arquivo: "viewer/CLAUDE.md"
 local: L39

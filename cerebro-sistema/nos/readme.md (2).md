@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 20
-heat: 0.104
+heat: 0.09
 complexidade: 0
 arquivo: "viewer/README.md"
 local: L1

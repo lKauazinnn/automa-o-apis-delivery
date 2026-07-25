@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 8
-heat: 0.04
+heat: 0.035
 complexidade: 0
 arquivo: "viewer/BRIEFING_REDESIGN.md"
 local: L1

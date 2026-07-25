@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 27
-heat: 0.037
+heat: 0.032
 complexidade: 0
 arquivo: "CLAUDE.md"
 local: L1

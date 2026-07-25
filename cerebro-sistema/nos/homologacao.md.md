@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 15
-heat: 0.071
+heat: 0.061
 complexidade: 0
 arquivo: "HOMOLOGACAO.md"
 local: L1

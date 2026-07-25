@@ -1,7 +1,7 @@
 ---
 tipo: classe
 comunidade: 336
-heat: 0.035
+heat: 0.03
 complexidade: 0
 arquivo: "viewer/.oxlintrc.json"
 local: L3

@@ -20,13 +20,13 @@ conectados pelas relações reais (**chama**, **contém**, **herda**...).
 - [[kdsview()]] — função, comunidade 1
 - [[gruposopcaomodal()]] — função, comunidade 1
 - [[lucide-react]] — classe, comunidade 1
-- [[react]] — classe, comunidade 1
 - [[catalogoview()]] — função, comunidade 1
-- [[readme.md]] — classe, comunidade 13
-- [[arquitetura]] — classe, comunidade 13
-- [[manual]] — classe, comunidade 13
-- [[readme.md (2)]] — classe, comunidade 20
+- [[react]] — classe, comunidade 1
 - [[registrar_auditoria()]] — função, comunidade 0
+- [[com_retry()]] — função, comunidade 0
+- [[auth_headers()]] — função, comunidade 2
+- [[_merchant_id()]] — função, comunidade 0
+- [[readme.md]] — classe, comunidade 13
 
 ## Como foi feito
 
