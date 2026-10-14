@@ -1,7 +1,7 @@
 ---
 tags: [home]
 ---
-
+![[Pasted image 20260903171533.png]]
 # 🧠 Cérebro do Sistema
 
 Mapa vivo do projeto **Automação iFood**, gerado a partir do grafo de

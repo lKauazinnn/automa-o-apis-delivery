@@ -2,11 +2,13 @@
 Existe pra manter o clientSecret longe do navegador, validar os dados antes de gravar de
 verdade, tentar de novo automaticamente quando o iFood devolve rate limit/erro transiente,
 e registrar em log/auditoria tudo que é alterado no catálogo real."""
+import hashlib
+import hmac
 import json
 import logging
 import os
 import random
-import random
+import re
 import secrets
 import string
 import sys
@@ -23,7 +25,7 @@ load_dotenv()
 
 import requests  # noqa: E402
 import uuid  # noqa: E402
-from datetime import datetime, timezone  # noqa: E402
+from datetime import date, datetime, timedelta, timezone  # noqa: E402
 
 from flask import Flask, g, jsonify, request  # noqa: E402
 from flask_cors import CORS  # noqa: E402
@@ -32,13 +34,18 @@ from werkzeug.exceptions import HTTPException  # noqa: E402
 from ifood_automacao.pedidos import (  # noqa: E402
     CODIGO_EVENTO_LABEL,
     TIPO_IFOOD_PARA_INTERNO,
+    accept_dispute,
     acknowledge_events,
     cancel_order,
     confirm_order,
     dispatch_order,
+    get_cancellation_reasons,
     get_order_details,
     poll_events,
+    ready_to_pickup,
+    reject_dispute,
 )
+from ifood_automacao.financeiro import get_financial_events, get_sales, get_settlements  # noqa: E402
 from ifood_automacao.client import (  # noqa: E402
     create_category,
     create_combo,
@@ -132,6 +139,15 @@ class ErroAutenticacao(Exception):
         self.status = status
 
 
+class ErroPedidoRecusado(Exception):
+    """O iFood recusou a mudanca de status deste pedido. Vira 409 com o motivo real, em vez
+    do 4xx generico de "servico remoto" — o KDS precisa dizer POR QUE desfez o movimento."""
+
+    def __init__(self, mensagem, detalhe=""):
+        super().__init__(mensagem)
+        self.detalhe = detalhe
+
+
 def usuario_atual():
     """Valida a sessão (header Authorization: Bearer <token>, emitido pelo Supabase Auth no
     login do front) direto com o Supabase, e busca o papel real na tabela `perfis`. Não confia
@@ -217,7 +233,7 @@ def _categoria_id(nome_categoria, categorias_existentes, merchant_id, catalog_id
     return nova.get("categoryId") or nova["id"]
 
 
-def registrar_auditoria(operador, acao, item_id="", codigo_pdv="", nome="", detalhe="", valor_de="", valor_para=""):
+def registrar_auditoria(operador, acao, item_id="", codigo_pdv="", nome="", detalhe="", valor_de="", valor_para="", merchant_id=None):
     """Grava uma linha na tabela `auditoria` do Supabase para toda ação que altera o catálogo
     real. É best-effort: se o Supabase estiver fora do ar ou mal configurado, só loga o erro
     e segue — auditoria não pode derrubar a ação de verdade (pausar/criar/etc) que já aconteceu
@@ -231,8 +247,9 @@ def registrar_auditoria(operador, acao, item_id="", codigo_pdv="", nome="", deta
         return
 
     # Loja atual, pra a auditoria poder ser filtrada por loja no dashboard (best-effort).
+    # `merchant_id` explícito existe pro worker, que roda fora de uma requisição.
     try:
-        loja_atual = request.args.get("loja") or MERCHANT_ID_PADRAO
+        loja_atual = merchant_id or request.args.get("loja") or MERCHANT_ID_PADRAO
     except Exception:
         loja_atual = MERCHANT_ID_PADRAO
 
@@ -269,6 +286,10 @@ def tratar_erro(exc):
         logger.warning("Falha de autenticação/permissão (%s): %s", exc.status, exc)
         return jsonify({"erro": str(exc)}), exc.status
 
+    if isinstance(exc, ErroPedidoRecusado):
+        logger.warning("Pedido recusado pelo iFood: %s", exc)
+        return jsonify({"erro": str(exc), "detalhe": exc.detalhe}), 409
+
     if isinstance(exc, requests.exceptions.HTTPError):
         status = exc.response.status_code if exc.response is not None else 502
         detalhe = exc.response.text if exc.response is not None else str(exc)
@@ -292,6 +313,67 @@ def tratar_erro(exc):
 @app.get("/api/saude")
 def saude():
     return jsonify({"status": "ok"})
+
+
+# --------------------------------------------------------------------------- Marca (white-label)
+# Nome, cor e logo da empresa cliente. GET é público porque a tela de login já mostra a marca,
+# antes de existir sessão. Fallback: MARCA_NOME/MARCA_COR do .env, depois o padrão do produto.
+
+MARCA_PADRAO = {
+    "nome": os.environ.get("MARCA_NOME") or "PausaFast",
+    "cor": os.environ.get("MARCA_COR") or "#2B59C3",
+    "logo": None,
+}
+LOGO_MAX_BYTES = 300_000
+TIPOS_LOGO = ("data:image/png;", "data:image/svg+xml;", "data:image/jpeg;", "data:image/webp;")
+
+
+@app.get("/api/marca")
+def get_marca():
+    if not SUPABASE_CONFIGURADO:
+        return jsonify(MARCA_PADRAO)
+    try:
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/marca",
+            headers=_supabase_headers(),
+            params={"select": "nome,cor,logo", "id": "eq.1"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        linhas = resp.json()
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Não consegui ler a marca (rodou a migration 011?): %s", exc)
+        return jsonify(MARCA_PADRAO)
+    return jsonify({**MARCA_PADRAO, **{k: v for k, v in (linhas[0] if linhas else {}).items() if v}})
+
+
+@app.put("/api/marca")
+@requer_papel("administrador")
+def definir_marca():
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    cor = str(dados.get("cor", "")).strip()
+    logo = dados.get("logo") or None
+    if not nome or len(nome) > 40:
+        raise ValueError("O nome da marca é obrigatório (até 40 caracteres).")
+    if not re.fullmatch(r"#[0-9a-fA-F]{6}", cor):
+        raise ValueError("A cor deve ser um hex no formato #RRGGBB.")
+    if logo is not None:
+        logo = str(logo)
+        if not logo.startswith(TIPOS_LOGO):
+            raise ValueError("A logo deve ser PNG, SVG, JPEG ou WEBP.")
+        if len(logo) > LOGO_MAX_BYTES:
+            raise ValueError("A logo passou de 300 KB. Exporte numa resolução menor.")
+
+    resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/marca",
+        headers={**_supabase_headers(), "Prefer": "resolution=merge-duplicates,return=representation"},
+        json={"id": 1, "nome": nome, "cor": cor.upper(), "logo": logo, "atualizado_por": g.usuario["nome"], "atualizado_em": _agora_iso()},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    registrar_auditoria(g.usuario["nome"], "definir_marca", nome=nome, detalhe=f"cor {cor.upper()}" + (" · com logo" if logo else ""))
+    return jsonify({"nome": nome, "cor": cor.upper(), "logo": logo})
 
 
 @app.get("/api/eu")
@@ -430,6 +512,7 @@ def get_catalogo():
                     "categoria": cat["name"],
                     "categoryId": cat["id"],
                     "nome": item.get("name"),
+                    "descricao": item.get("description") or "",
                     "codigo_pdv": item.get("externalCode"),
                     "preco": item.get("price", {}).get("value"),
                     "status": item.get("status"),
@@ -496,7 +579,16 @@ def criar_interrupcao():
 @requer_papel("administrador", "gerente")
 def excluir_interrupcao(interrupcao_id):
     merchant_id = _merchant_id()
-    com_retry(delete_interruption, merchant_id, interrupcao_id)
+    # O iFood bloqueia remover uma interrupção recém-criada por ~5s (409
+    # RecentlyCreatedInterruption). com_retry espera e tenta de novo sozinho, então o botão
+    # "Remover" funciona mesmo que o usuário clique logo após criar (importante na homologação).
+    com_retry(
+        delete_interruption,
+        merchant_id,
+        interrupcao_id,
+        tentativas=6,
+        conflitos_reprocessaveis=("RecentlyCreatedInterruption",),
+    )
     registrar_auditoria(g.usuario["nome"], "excluir_interrupcao", item_id=interrupcao_id)
     return jsonify({"ok": True})
 
@@ -508,11 +600,69 @@ def get_interrupcoes():
     return jsonify(com_retry(list_interruptions, merchant_id))
 
 
+IMAGEM_IFOOD_BASE = "https://static-images.ifood.com.br/pratos/"
+
+
+def _complementos(acao, **kw):
+    """Espelho local dos complementos em `public.complementos` (best-effort). O iFood devolve
+    `options: []` vazio ao listar grupos, então sem isso um complemento criado some da tela
+    no próximo refresh. Falha aqui nunca derruba a ação real no iFood."""
+    if not SUPABASE_CONFIGURADO:
+        return []
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/complementos"
+        if acao == "listar":
+            resp = requests.get(url, headers=_supabase_headers(), params={"select": "*", "merchant_id": f"eq.{kw['merchant_id']}"}, timeout=10)
+        elif acao == "salvar":
+            resp = requests.post(
+                url,
+                headers={**_supabase_headers(), "Prefer": "resolution=merge-duplicates"},
+                json=kw["linha"],
+                timeout=10,
+            )
+        elif acao == "atualizar":
+            campo, valor = kw["filtro"]
+            resp = requests.patch(url, headers=_supabase_headers(), params={campo: f"eq.{valor}"}, json={**kw["campos"], "atualizado_em": _agora_iso()}, timeout=10)
+        elif acao == "excluir":
+            resp = requests.delete(url, headers=_supabase_headers(), params={"product_id": f"eq.{kw['product_id']}"}, timeout=10)
+        else:
+            return []
+        resp.raise_for_status()
+        return resp.json() if acao == "listar" else []
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Espelho de complementos (%s) falhou: %s", acao, exc)
+        return []
+
+
+def _opcao_do_espelho(linha):
+    imagem = linha.get("imagem_path") or ""
+    if imagem and not imagem.startswith("http"):
+        imagem = IMAGEM_IFOOD_BASE + imagem
+    return {
+        "id": linha.get("option_id") or linha["product_id"],
+        "productId": linha["product_id"],
+        "name": linha.get("nome"),
+        "status": linha.get("status") or "AVAILABLE",
+        "price": {"value": float(linha["preco"]) if linha.get("preco") is not None else None},
+        "externalCode": linha.get("codigo_pdv") or "",
+        "imagePath": imagem,
+    }
+
+
 @app.get("/api/grupos-opcao")
 @requer_login
 def get_grupos_opcao():
     merchant_id = _merchant_id()
-    return jsonify(com_retry(list_option_groups, merchant_id))
+    grupos = com_retry(list_option_groups, merchant_id)
+    espelho = _complementos("listar", merchant_id=merchant_id)
+    for grupo in grupos:
+        opcoes = list(grupo.get("options") or [])
+        ja_tem = {o.get("productId") for o in opcoes}
+        for linha in espelho:
+            if linha["grupo_id"] == grupo["id"] and linha["product_id"] not in ja_tem:
+                opcoes.append(_opcao_do_espelho(linha))
+        grupo["options"] = opcoes
+    return jsonify(grupos)
 
 
 @app.post("/api/grupos-opcao")
@@ -553,6 +703,22 @@ def criar_opcao(grupo_id):
 
     merchant_id = _merchant_id()
     resultado = com_retry(create_option, merchant_id, grupo_id, nome, preco, codigo_pdv, image_path=imagem_path)
+    product_id = resultado.get("productId") or (resultado.get("product") or {}).get("id")
+    if product_id:
+        _complementos(
+            "salvar",
+            linha={
+                "product_id": product_id,
+                "option_id": resultado.get("id") or resultado.get("optionId"),
+                "merchant_id": merchant_id,
+                "grupo_id": grupo_id,
+                "nome": nome,
+                "preco": preco,
+                "codigo_pdv": codigo_pdv,
+                "status": "AVAILABLE",
+                "imagem_path": imagem_path,
+            },
+        )
     registrar_auditoria(g.usuario["nome"], "criar_opcao", item_id=resultado.get("productId", ""), nome=nome, detalhe=f"grupo {grupo_id}")
     return jsonify(resultado), 201
 
@@ -565,19 +731,31 @@ def alterar_status_opcao(grupo_id, option_id):
     dados = request.get_json(silent=True) or {}
     status = dados.get("status")
     nome = str(dados.get("nome", "")).strip()
+    codigo_pdv = str(dados.get("codigo_pdv", "")).strip()
+    motivo = str(dados.get("motivo", "")).strip()[:MOTIVO_MAX]
     if status not in ("AVAILABLE", "UNAVAILABLE"):
         raise ValueError("status deve ser AVAILABLE ou UNAVAILABLE")
+    minutos = _prazo_pausa(dados) if status == "UNAVAILABLE" else None
 
     merchant_id = _merchant_id()
     com_retry(update_option_status, merchant_id, option_id, status)
+    _complementos("atualizar", filtro=("option_id", option_id), campos={"status": status})
+    _registrar_mudanca_pausa(
+        merchant_id, "ifood", "opcao", option_id, status, g.usuario["nome"], nome, codigo_pdv,
+        grupo_id=grupo_id, minutos=minutos, motivo=motivo,
+    )
+    detalhe = f"grupo {grupo_id}"
+    if status == "UNAVAILABLE":
+        detalhe += f" · {_descrever_pausa(motivo, minutos)}"
     registrar_auditoria(
         g.usuario["nome"],
         "pausar_opcao" if status == "UNAVAILABLE" else "despausar_opcao",
         item_id=option_id,
         nome=nome,
-        detalhe=f"grupo {grupo_id}",
+        codigo_pdv=codigo_pdv,
+        detalhe=detalhe,
     )
-    return jsonify({"optionId": option_id, "status": status})
+    return jsonify({"optionId": option_id, "status": status, "minutos": minutos})
 
 
 @app.patch("/api/grupos-opcao/opcoes/<product_id>")
@@ -598,8 +776,13 @@ def editar_opcao(product_id):
     if not imagem_path:
         raise ValueError("imagem_path é obrigatório — reenvie o path atual da opção se a foto não mudou.")
 
+    # Complemento recarregado do espelho volta com a URL completa da foto; o iFood quer o path.
+    if imagem_path.startswith(IMAGEM_IFOOD_BASE):
+        imagem_path = imagem_path[len(IMAGEM_IFOOD_BASE):]
+
     merchant_id = _merchant_id()
     resultado = com_retry(edit_option, merchant_id, product_id, nome, imagem_path)
+    campos_espelho = {"nome": nome, "imagem_path": imagem_path}
 
     preco_bruto = dados.get("preco")
     if preco_bruto not in (None, ""):
@@ -611,6 +794,8 @@ def editar_opcao(product_id):
             raise ValueError("Preço deve ser maior que zero")
         com_retry(update_option_price, merchant_id, product_id, preco)
         resultado["preco"] = preco
+        campos_espelho["preco"] = preco
+    _complementos("atualizar", filtro=("product_id", product_id), campos=campos_espelho)
 
     registrar_auditoria(
         operador,
@@ -627,6 +812,7 @@ def editar_opcao(product_id):
 def excluir_opcao(grupo_id, option_product_id):
     merchant_id = _merchant_id()
     com_retry(delete_option, merchant_id, grupo_id, option_product_id)
+    _complementos("excluir", product_id=option_product_id)
     registrar_auditoria(g.usuario["nome"], "excluir_opcao", item_id=option_product_id, detalhe=f"grupo {grupo_id}")
     return jsonify({"ok": True})
 
@@ -842,20 +1028,204 @@ def criar_combo():
     return jsonify(resultado), 201
 
 
+# --------------------------------------------------------------------------- Pausas com motivo/prazo
+# Cada pausa feita pelo painel vira uma linha em `public.pausas` (sql/010). Com `volta_em`, é uma
+# pausa temporária que o worker desfaz sozinho; sem, fica até alguém reativar. Tudo aqui é
+# best-effort: se a tabela não existir, a pausa no iFood/99 continua valendo, só não tem prazo.
+
+PRAZO_MAXIMO_PAUSA_MIN = 7 * 24 * 60
+MOTIVO_MAX = 120
+
+
+def _prazo_pausa(dados):
+    """`minutos` do corpo da requisição: None/0 = pausa manual (sem prazo)."""
+    minutos = dados.get("minutos")
+    if minutos in (None, "", 0, "0"):
+        return None
+    try:
+        minutos = int(minutos)
+    except (TypeError, ValueError):
+        raise ValueError("minutos deve ser um número inteiro")
+    if not 1 <= minutos <= PRAZO_MAXIMO_PAUSA_MIN:
+        raise ValueError("A pausa temporária vai de 1 minuto a 7 dias")
+    return minutos
+
+
+def _descrever_pausa(motivo, minutos):
+    partes = []
+    if motivo:
+        partes.append(f"motivo: {motivo}")
+    if minutos:
+        horas, resto = divmod(minutos, 60)
+        duracao = f"{horas}h{resto:02d}" if horas and resto else (f"{horas}h" if horas else f"{resto}min")
+        partes.append(f"volta sozinho em {duracao}")
+    else:
+        partes.append("sem prazo")
+    return " · ".join(partes)
+
+
+def _pausas_rest(metodo, params, corpo=None, prefer=None):
+    headers = _supabase_headers()
+    if prefer:
+        headers = {**headers, "Prefer": prefer}
+    resp = requests.request(metodo, f"{SUPABASE_URL}/rest/v1/pausas", headers=headers, params=params, json=corpo, timeout=10)
+    resp.raise_for_status()
+    return resp.json() if resp.content else []
+
+
+def _registrar_mudanca_pausa(merchant_id, plataforma, tipo, alvo_id, status, operador, nome="", codigo_pdv="",
+                             grupo_id=None, minutos=None, motivo=""):
+    """Abre (UNAVAILABLE) ou encerra (AVAILABLE) a pausa ativa do alvo. Uma pausa nova fecha a
+    anterior do mesmo alvo — repausar com outro prazo substitui, não acumula."""
+    if not SUPABASE_CONFIGURADO:
+        return
+    agora = _agora_iso()
+    filtro_ativo = {
+        "merchant_id": f"eq.{merchant_id}",
+        "tipo": f"eq.{tipo}",
+        "alvo_id": f"eq.{alvo_id}",
+        "encerrada_em": "is.null",
+    }
+    try:
+        _pausas_rest("PATCH", filtro_ativo, {"encerrada_em": agora, "encerrada_por": operador})
+        if status == "UNAVAILABLE":
+            volta_em = (datetime.now(timezone.utc) + timedelta(minutes=minutos)).isoformat() if minutos else None
+            _pausas_rest(
+                "POST",
+                None,
+                {
+                    "merchant_id": merchant_id,
+                    "plataforma": plataforma,
+                    "tipo": tipo,
+                    "alvo_id": alvo_id,
+                    "grupo_id": grupo_id,
+                    "nome": nome,
+                    "codigo_pdv": codigo_pdv,
+                    "motivo": motivo,
+                    "pausado_por": operador,
+                    "volta_em": volta_em,
+                },
+            )
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Registro de pausa falhou (rodou a migration 010?): %s", exc)
+
+
+def _definir_status_alvo(plataforma, merchant_id, tipo, alvo_id, status):
+    if plataforma == "99food":
+        if not (food99 and FOOD99_CONFIGURADO):
+            raise RuntimeError("99Food não configurado no servidor")
+        food99.update_item_status(merchant_id, alvo_id, disponivel=(status == "AVAILABLE"))
+    elif tipo == "opcao":
+        com_retry(update_option_status, merchant_id, alvo_id, status)
+        _complementos("atualizar", filtro=("option_id", alvo_id), campos={"status": status})
+    else:
+        com_retry(update_item_status, merchant_id, alvo_id, status)
+
+
+def reativar_pausas_vencidas(merchant_id=None, limite=50):
+    """Despausa o que passou do `volta_em`. Chamado pelo worker a cada ciclo e, de carona, ao abrir
+    a tela de Rupturas (pra funcionar mesmo sem o worker no ar). Cada linha é "reservada" com um
+    PATCH condicionado a encerrada_em nulo antes de chamar a plataforma, então o worker e o painel
+    rodando juntos não reativam nem auditam o mesmo item duas vezes."""
+    if not SUPABASE_CONFIGURADO:
+        return 0
+    params = {
+        "select": "*",
+        "encerrada_em": "is.null",
+        "volta_em": f"lte.{_agora_iso()}",
+        "order": "volta_em.asc",
+        "limit": str(limite),
+    }
+    if merchant_id:
+        params["merchant_id"] = f"eq.{merchant_id}"
+    try:
+        vencidas = _pausas_rest("GET", params)
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Não consegui ler pausas vencidas (rodou a migration 010?): %s", exc)
+        return 0
+
+    reativadas = 0
+    for pausa in vencidas:
+        try:
+            reservada = _pausas_rest(
+                "PATCH",
+                {"id": f"eq.{pausa['id']}", "encerrada_em": "is.null"},
+                {"encerrada_em": _agora_iso(), "encerrada_por": "automático"},
+                prefer="return=representation",
+            )
+        except requests.exceptions.RequestException as exc:
+            logger.warning("Não consegui reservar a pausa %s: %s", pausa["id"], exc)
+            continue
+        if not reservada:
+            continue  # outro processo já pegou
+        try:
+            _definir_status_alvo(pausa["plataforma"], pausa["merchant_id"], pausa["tipo"], pausa["alvo_id"], "AVAILABLE")
+        except Exception as exc:
+            logger.error("Falha ao reativar %s (%s): %s", pausa.get("nome"), pausa["alvo_id"], exc)
+            # Devolve a pausa pra fila: o próximo ciclo tenta de novo.
+            try:
+                _pausas_rest("PATCH", {"id": f"eq.{pausa['id']}"}, {"encerrada_em": None, "encerrada_por": None, "erro_reativacao": str(exc)[:300]})
+            except requests.exceptions.RequestException:
+                pass
+            continue
+        registrar_auditoria(
+            "sistema (pausa programada)",
+            "reativar_automatico" if pausa["tipo"] == "item" else "reativar_opcao_automatico",
+            item_id=pausa["alvo_id"],
+            codigo_pdv=pausa.get("codigo_pdv") or "",
+            nome=pausa.get("nome") or "",
+            detalhe=f"pausado por {pausa.get('pausado_por') or '?'}" + (f" · motivo: {pausa['motivo']}" if pausa.get("motivo") else ""),
+            merchant_id=pausa["merchant_id"],
+        )
+        reativadas += 1
+        time.sleep(PAUSA_ENTRE_CHAMADAS)
+    return reativadas
+
+
+@app.get("/api/pausas")
+@requer_login
+def get_pausas():
+    """Rupturas ativas da loja: o que está pausado pelo painel, por quem, por quê e até quando."""
+    merchant_id = _merchant_id()
+    reativadas = reativar_pausas_vencidas(merchant_id, limite=10)
+    if not SUPABASE_CONFIGURADO:
+        return jsonify({"pausas": [], "reativadas": 0, "disponivel": False})
+    try:
+        pausas = _pausas_rest(
+            "GET",
+            {"select": "*", "merchant_id": f"eq.{merchant_id}", "encerrada_em": "is.null", "order": "pausado_em.desc"},
+        )
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Não consegui listar pausas (rodou a migration 010?): %s", exc)
+        return jsonify({"pausas": [], "reativadas": reativadas, "disponivel": False})
+    return jsonify({"pausas": pausas, "reativadas": reativadas, "disponivel": True})
+
+
 @app.patch("/api/itens/<item_id>/status")
 @requer_login
 def alterar_status(item_id):
     dados = request.get_json(silent=True) or {}
     status = dados.get("status")
     nome = str(dados.get("nome", "")).strip()
+    codigo_pdv = str(dados.get("codigo_pdv", "")).strip()
+    motivo = str(dados.get("motivo", "")).strip()[:MOTIVO_MAX]
     operador = g.usuario["nome"]
     if status not in ("AVAILABLE", "UNAVAILABLE"):
         raise ValueError("status deve ser AVAILABLE ou UNAVAILABLE")
+    minutos = _prazo_pausa(dados) if status == "UNAVAILABLE" else None
 
     merchant_id = _merchant_id()
     com_retry(update_item_status, merchant_id, item_id, status)
-    registrar_auditoria(operador, "pausar" if status == "UNAVAILABLE" else "despausar", item_id=item_id, nome=nome)
-    return jsonify({"itemId": item_id, "status": status})
+    _registrar_mudanca_pausa(merchant_id, "ifood", "item", item_id, status, operador, nome, codigo_pdv, minutos=minutos, motivo=motivo)
+    registrar_auditoria(
+        operador,
+        "pausar" if status == "UNAVAILABLE" else "despausar",
+        item_id=item_id,
+        nome=nome,
+        codigo_pdv=codigo_pdv,
+        detalhe=_descrever_pausa(motivo, minutos) if status == "UNAVAILABLE" else "",
+    )
+    return jsonify({"itemId": item_id, "status": status, "minutos": minutos})
 
 
 @app.patch("/api/itens/<item_id>/preco")
@@ -967,6 +1337,9 @@ def pausar_em_massa():
         raise ValueError("status deve ser AVAILABLE ou UNAVAILABLE")
     if not isinstance(alvos, list) or not alvos:
         raise ValueError("Informe ao menos um item em alvos")
+    minutos = _prazo_pausa(dados) if status == "UNAVAILABLE" else None
+    motivo = str(dados.get("motivo", "")).strip()[:MOTIVO_MAX]
+    detalhe = _descrever_pausa(motivo, minutos) if status == "UNAVAILABLE" else ""
 
     merchant_id = _merchant_id()
     acao = "pausar_em_massa" if status == "UNAVAILABLE" else "despausar_em_massa"
@@ -974,11 +1347,13 @@ def pausar_em_massa():
     for i, alvo in enumerate(alvos):
         item_id = str(alvo.get("item_id", "")).strip()
         nome = str(alvo.get("nome", "")).strip()
+        codigo_pdv = str(alvo.get("codigo_pdv", "")).strip()
         if not item_id:
             continue
         try:
             com_retry(update_item_status, merchant_id, item_id, status)
-            registrar_auditoria(operador, acao, item_id=item_id, nome=nome)
+            _registrar_mudanca_pausa(merchant_id, "ifood", "item", item_id, status, operador, nome, codigo_pdv, minutos=minutos, motivo=motivo)
+            registrar_auditoria(operador, acao, item_id=item_id, nome=nome, codigo_pdv=codigo_pdv, detalhe=detalhe)
             resultados.append({"itemId": item_id, "ok": True})
         except Exception as exc:  # segue processando o resto mesmo se um item falhar
             logger.error("Falha em %s para o item %s: %s", acao, item_id, exc)
@@ -1170,17 +1545,51 @@ def _agora_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
-ACAO_POR_STATUS_PEDIDO = {
-    "CONFIRMADO": confirm_order,
-    "DESPACHADO": dispatch_order,
-}
 STATUS_VALIDOS_PEDIDO = ("NOVO", "CONFIRMADO", "DESPACHADO", "CONCLUIDO", "CANCELADO")
 STATUS_POR_CODIGO_EVENTO = {
     "CONFIRMED": "CONFIRMADO",
     "DISPATCHED": "DESPACHADO",
+    "READY_TO_PICKUP": "DESPACHADO",
     "CONCLUDED": "CONCLUIDO",
     "CANCELLED": "CANCELADO",
 }
+
+
+def _acao_ifood_para_status(novo_status, tipo):
+    """Qual chamada da Order API corresponde a mover o pedido pra `novo_status`. "Despachar"
+    depende do tipo: entrega → dispatch; retirada/mesa → readyToPickup (o iFood recusa dispatch
+    em pedido TAKEOUT). CONCLUIDO não tem chamada: quem conclui é o próprio iFood (evento
+    CONCLUDED)."""
+    if novo_status == "CONFIRMADO":
+        return confirm_order
+    if novo_status == "DESPACHADO":
+        return dispatch_order if tipo == "ENTREGA" else ready_to_pickup
+    return None
+
+
+def _id_real_99(ifood_order_id):
+    """Pedido real do 99 tem id numérico depois do prefixo "99-". Pedido de teste gerado pelo
+    painel ("99-TESTE...") só existe no nosso banco."""
+    ident = str(ifood_order_id or "")
+    if not ident.startswith("99-"):
+        return None
+    resto = ident[3:]
+    return int(resto) if resto.isdigit() else None
+
+
+def _empurrar_status_99(app_shop_id, order_id_99, novo_status, motivo_codigo, motivo):
+    if not (food99 and FOOD99_CONFIGURADO):
+        raise ErroPedidoRecusado("99Food não configurado no servidor (FOOD99_APP_ID/FOOD99_APP_SECRET).")
+    try:
+        if novo_status == "CONFIRMADO":
+            food99.confirm_order(app_shop_id, order_id_99)
+        elif novo_status == "DESPACHADO":
+            food99.order_ready(app_shop_id, order_id_99)
+        elif novo_status == "CANCELADO":
+            codigo = int(motivo_codigo) if str(motivo_codigo or "").isdigit() else 1080
+            food99.cancel_order(app_shop_id, order_id_99, reason_id=codigo, reason=motivo or "")
+    except Exception as exc:
+        raise ErroPedidoRecusado(f"O 99Food não aceitou mudar este pedido para {novo_status}.", detalhe=str(exc)) from exc
 
 
 def _preco_item(item):
@@ -1188,19 +1597,54 @@ def _preco_item(item):
     return preco.get("value") if isinstance(preco, dict) else preco
 
 
-def _atualizar_status_pedido(pedido_id, ifood_order_id, novo_status, operador):
-    """Order/Events API: implementado a partir da doc pública, ainda não disparado contra um
-    pedido real do sandbox (mesmo nível de confiança 🟡 documentado em HOMOLOGACAO.md pras
-    demais capacidades novas). CONCLUIDO não chama o iFood: pedidos de entrega são concluídos
-    pelo próprio iFood (chega um evento CONCLUDED); aqui só refletimos o status local."""
-    # Pedidos do 99Food (ifood_order_id "99-...") NÃO falam com a Order API do iFood — o 99
-    # tem outro fluxo (webhook). Só o iFood empurra a ação pra API dele.
+# Um pedido de verdade do iFood tem `ifood_order_id` no formato UUID. Pedido semeado pra
+# demonstração ("DEMO-0001"), pedido de teste do 99Food ("99-...") e qualquer outro id fora
+# desse formato só existem no NOSSO banco — empurrar mudança de status desses pra Order API
+# do iFood devolve 404/422, o backend virava 4xx e o KDS desfazia o movimento na cara do
+# usuário ("troco o pedido de lugar e ele volta sozinho").
+_RE_UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+
+
+def _pedido_e_local(ifood_order_id) -> bool:
+    """True quando o pedido não existe do lado do iFood e a mudança de status é só local."""
+    ident = str(ifood_order_id or "").strip()
+    return not bool(_RE_UUID.match(ident))
+
+
+def _atualizar_status_pedido(pedido_id, ifood_order_id, novo_status, operador, tipo="ENTREGA",
+                             merchant_id=None, motivo_codigo=None, motivo=None):
+    """Empurra a mudança de status pra plataforma certa e reflete localmente. CONCLUIDO não
+    chama o iFood: pedidos são concluídos pelo próprio iFood (chega um evento CONCLUDED).
+    Cancelamento no iFood exige `motivo_codigo` vindo de GET /cancellationReasons do pedido."""
     eh_99 = str(ifood_order_id or "").startswith("99-")
-    if not eh_99:
-        if novo_status == "CANCELADO":
-            com_retry(cancel_order, ifood_order_id)
-        elif novo_status in ACAO_POR_STATUS_PEDIDO:
-            com_retry(ACAO_POR_STATUS_PEDIDO[novo_status], ifood_order_id)
+    id_99 = _id_real_99(ifood_order_id)
+    if id_99 is not None:
+        _empurrar_status_99(merchant_id, id_99, novo_status, motivo_codigo, motivo)
+    # Pedido de demonstração/teste não existe em plataforma nenhuma — só muda local.
+    somente_local = _pedido_e_local(ifood_order_id) and id_99 is None
+    if not eh_99 and not somente_local:
+        try:
+            if novo_status == "CANCELADO":
+                if not motivo_codigo:
+                    raise ValueError("Escolha o motivo do cancelamento (lista vem do iFood pra este pedido).")
+                com_retry(cancel_order, ifood_order_id, str(motivo_codigo), motivo or "Cancelado pelo estabelecimento")
+            else:
+                acao = _acao_ifood_para_status(novo_status, tipo)
+                if acao:
+                    com_retry(acao, ifood_order_id)
+        except requests.exceptions.HTTPError as exc:
+            # O iFood recusou (pedido velho, já concluído do lado dele, fora da janela de
+            # confirmação...). Não adianta gravar local e fingir que foi: o quadro ficaria
+            # mentindo. Devolve 409 com o motivo REAL, em vez do erro genérico de API remota.
+            corpo = exc.response.text if exc.response is not None else str(exc)
+            codigo = exc.response.status_code if exc.response is not None else "?"
+            logger.warning("iFood recusou %s -> %s (%s): %s", ifood_order_id, novo_status, codigo, corpo)
+            raise ErroPedidoRecusado(
+                f"O iFood não aceitou mudar este pedido para {novo_status} (HTTP {codigo}). "
+                "Normalmente é pedido antigo demais, já finalizado do lado deles, ou fora da "
+                "janela de confirmação.",
+                detalhe=corpo,
+            ) from exc
 
     # Acrescenta na linha do tempo (detalhes_brutos.timeline) — precisa reler pra não perder o resto.
     atual = requests.get(
@@ -1215,6 +1659,8 @@ def _atualizar_status_pedido(pedido_id, ifood_order_id, novo_status, operador):
     timeline = list(db.get("timeline") or [])
     timeline.append({"status": novo_status, "em": _agora_iso()})
     db["timeline"] = timeline
+    if novo_status == "CANCELADO" and motivo:
+        db["motivo_cancelamento"] = {"codigo": motivo_codigo, "descricao": motivo}
 
     resp = requests.patch(
         f"{SUPABASE_URL}/rest/v1/pedidos",
@@ -1224,7 +1670,11 @@ def _atualizar_status_pedido(pedido_id, ifood_order_id, novo_status, operador):
         timeout=10,
     )
     resp.raise_for_status()
-    registrar_auditoria(operador, "alterar_status_pedido", item_id=pedido_id, detalhe=f"novo status: {novo_status}{' (99Food)' if eh_99 else ''}")
+    origem = " (99Food)" if id_99 is not None else (" (só local)" if somente_local or eh_99 else "")
+    sufixo_motivo = f" — motivo: {motivo}" if novo_status == "CANCELADO" and motivo else ""
+    registrar_auditoria(
+        operador, "alterar_status_pedido", item_id=pedido_id, detalhe=f"novo status: {novo_status}{origem}{sufixo_motivo}"
+    )
     return resp.json()[0]
 
 
@@ -1305,41 +1755,161 @@ def _registrar_e_materializar_evento(merchant_id, evento, origem, ack_enviado=Fa
     novo = False
     if codigo == "PLACED" and order_id:
         novo = _criar_pedido_local(merchant_id, order_id)
+    elif order_id and codigo in ("HANDSHAKE_DISPUTE", "HANDSHAKE_SETTLEMENT"):
+        _registrar_disputa(order_id, codigo, evento)
     elif order_id and codigo in STATUS_POR_CODIGO_EVENTO:
+        status_novo = STATUS_POR_CODIGO_EVENTO[codigo]
         requests.patch(
             f"{SUPABASE_URL}/rest/v1/pedidos",
             headers=_supabase_headers(),
             params={"ifood_order_id": f"eq.{order_id}"},
-            json={"status": STATUS_POR_CODIGO_EVENTO[codigo], "atualizado_em": _agora_iso()},
+            json={"status": status_novo, "atualizado_em": _agora_iso()},
             timeout=10,
         )
+        if status_novo == "CANCELADO":
+            # Pedido cancelado encerra qualquer negociação pendente.
+            _atualizar_detalhes_brutos(order_id, lambda db: db.pop("disputa", None))
     return linha, novo
 
 
-def _processar_eventos_da_loja(merchant_id) -> int:
-    """Um ciclo de polling pra uma loja: busca eventos pendentes, materializa/atualiza pelos
-    MESMOS helpers do webhook, grava o log em `eventos_ifood` e confirma (ack) no iFood.
-    Devolve quantos pedidos novos entraram."""
-    eventos = com_retry(poll_events, merchant_id)
+def _atualizar_detalhes_brutos(ifood_order_id, mutar):
+    """Lê `detalhes_brutos` do pedido, aplica `mutar(db)` e grava de volta."""
+    atual = requests.get(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers=_supabase_headers(),
+        params={"select": "detalhes_brutos", "ifood_order_id": f"eq.{ifood_order_id}"},
+        timeout=10,
+    )
+    atual.raise_for_status()
+    linhas = atual.json()
+    if not linhas:
+        return False
+    db = linhas[0].get("detalhes_brutos") or {}
+    if not isinstance(db, dict):
+        db = {}
+    mutar(db)
+    resp = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers=_supabase_headers(),
+        params={"ifood_order_id": f"eq.{ifood_order_id}"},
+        json={"detalhes_brutos": db, "atualizado_em": _agora_iso()},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return True
+
+
+def _registrar_disputa(order_id, codigo, evento):
+    """HANDSHAKE_DISPUTE: o cliente pediu cancelamento/reembolso — guarda a negociação aberta
+    em `detalhes_brutos.disputa` pra o KDS mostrar o alerta com Aceitar/Recusar.
+    HANDSHAKE_SETTLEMENT: negociação encerrada (aceita, recusada ou expirada) — tira o alerta."""
+    metadata = evento.get("metadata") or {}
+
+    def mutar(db):
+        if codigo == "HANDSHAKE_DISPUTE":
+            db["disputa"] = {
+                "id": metadata.get("disputeId") or metadata.get("id"),
+                "acao": metadata.get("action"),
+                "mensagem": metadata.get("message"),
+                "acao_se_expirar": metadata.get("timeoutAction"),
+                "expira_em": metadata.get("expiresAt"),
+                "alternativas": metadata.get("alternatives") or [],
+                "recebida_em": evento.get("createdAt") or _agora_iso(),
+            }
+        else:
+            db.pop("disputa", None)
+            db["ultima_negociacao"] = {"resultado": metadata, "em": evento.get("createdAt") or _agora_iso()}
+
+    _atualizar_detalhes_brutos(order_id, mutar)
+
+
+def _lojas_ifood():
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/lojas",
+        headers=_supabase_headers(),
+        params={"select": "*"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return [l for l in resp.json() if (l.get("plataforma") or "ifood") == "ifood"]
+
+
+def _processar_eventos(merchant_ids) -> int:
+    """Um ciclo de polling pra uma ou mais lojas: busca eventos pendentes, materializa/atualiza
+    pelos MESMOS helpers do webhook, grava o log em `eventos_ifood` e confirma (ack) no iFood.
+    Confirma TODOS os eventos recebidos (regra do iFood — sem ack o evento volta pra sempre); o
+    que falhou ao processar fica gravado com `tratado=false` pra investigar. Devolve quantos
+    pedidos novos entraram."""
+    eventos = com_retry(poll_events, merchant_ids)
     if not eventos:
         return 0
 
+    padrao = merchant_ids if isinstance(merchant_ids, str) else merchant_ids[0]
     novos_pedidos = 0
     ids_para_confirmar = []
     linhas_evento = []
+    ja_vistos = set()
     for evento in eventos:
+        # O iFood pode devolver o mesmo evento duas vezes no mesmo lote — processa uma só.
+        if evento["id"] in ja_vistos:
+            continue
+        ja_vistos.add(evento["id"])
+        merchant_id = evento.get("merchantId") or padrao
         ids_para_confirmar.append(evento["id"])
-        linha, novo = _registrar_e_materializar_evento(merchant_id, evento, "Consulta automática")
+        try:
+            linha, novo = _registrar_e_materializar_evento(merchant_id, evento, "Consulta automática", ack_enviado=True)
+        except Exception as exc:
+            logger.warning("Falha ao processar evento %s (%s): %s", evento.get("id"), evento.get("fullCode"), exc)
+            codigo = evento.get("fullCode") or evento.get("code") or "ERRO"
+            linha, novo = {
+                "merchant_id": merchant_id,
+                "pedido_ifood_id": evento.get("orderId"),
+                "tipo": CODIGO_EVENTO_LABEL.get(codigo, codigo),
+                "origem": "Consulta automática",
+                "tratado": False,
+                "ack_enviado": True,
+                "payload": evento,
+            }, False
         linhas_evento.append(linha)
         if novo:
             novos_pedidos += 1
 
     if linhas_evento:
-        resp = requests.post(f"{SUPABASE_URL}/rest/v1/eventos_ifood", headers=_supabase_headers(), json=linhas_evento, timeout=10)
-        resp.raise_for_status()
+        try:
+            requests.post(f"{SUPABASE_URL}/rest/v1/eventos_ifood", headers=_supabase_headers(), json=linhas_evento, timeout=10)
+        except requests.exceptions.RequestException as exc:
+            logger.warning("Falha ao gravar log de eventos iFood: %s", exc)
 
     com_retry(acknowledge_events, ids_para_confirmar)
     return novos_pedidos
+
+
+def _processar_eventos_da_loja(merchant_id) -> int:
+    return _processar_eventos([merchant_id])
+
+
+MONITOR_ID = "monitor"
+MONITOR_TOLERANCIA_SEGUNDOS = 120
+
+
+def _monitor_ativo():
+    """True se o worker contínuo (worker/monitor.py) deu sinal de vida nos últimos 2 min."""
+    try:
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/monitor_heartbeat",
+            headers=_supabase_headers(),
+            params={"select": "ultimo_ping,info", "id": f"eq.{MONITOR_ID}"},
+            timeout=10,
+        )
+        if not resp.ok or not resp.json():
+            return False, None
+        linha = resp.json()[0]
+        ultimo = datetime.fromisoformat(linha["ultimo_ping"].replace("Z", "+00:00"))
+        idade = (datetime.now(timezone.utc) - ultimo).total_seconds()
+        return idade <= MONITOR_TOLERANCIA_SEGUNDOS, linha
+    except Exception as exc:
+        logger.warning("Não consegui ler o heartbeat do monitor: %s", exc)
+        return False, None
 
 
 @app.get("/api/pedidos")
@@ -1456,19 +2026,96 @@ def alterar_status_pedido(pedido_id):
     if novo_status not in STATUS_VALIDOS_PEDIDO:
         raise ValueError("status inválido.")
 
+    pedido = _buscar_pedido(pedido_id)
+    if not pedido:
+        return jsonify({"erro": "Pedido não encontrado."}), 404
+
+    atualizado = _atualizar_status_pedido(
+        pedido_id,
+        pedido["ifood_order_id"],
+        novo_status,
+        g.usuario["nome"],
+        tipo=pedido.get("tipo") or "ENTREGA",
+        merchant_id=pedido.get("merchant_id"),
+        motivo_codigo=str(dados.get("motivo_codigo") or "").strip() or None,
+        motivo=str(dados.get("motivo") or "").strip() or None,
+    )
+    return jsonify(atualizado)
+
+
+def _buscar_pedido(pedido_id):
     resp = requests.get(
         f"{SUPABASE_URL}/rest/v1/pedidos",
         headers=_supabase_headers(),
-        params={"select": "id,ifood_order_id", "id": f"eq.{pedido_id}"},
+        params={"select": "id,ifood_order_id,tipo,merchant_id,status,detalhes_brutos", "id": f"eq.{pedido_id}"},
         timeout=10,
     )
     resp.raise_for_status()
     pedidos = resp.json()
-    if not pedidos:
-        return jsonify({"erro": "Pedido não encontrado."}), 404
+    return pedidos[0] if pedidos else None
 
-    atualizado = _atualizar_status_pedido(pedido_id, pedidos[0]["ifood_order_id"], novo_status, g.usuario["nome"])
-    return jsonify(atualizado)
+
+@app.get("/api/pedidos/<pedido_id>/motivos-cancelamento")
+@requer_login
+def get_motivos_cancelamento(pedido_id):
+    """Motivos válidos pra cancelar ESTE pedido agora. iFood: vem da Order API (muda por
+    pedido/momento). 99Food: lista fixa do swagger. Pedido de teste: lista genérica."""
+    pedido = _buscar_pedido(pedido_id)
+    if not pedido:
+        return jsonify({"erro": "Pedido não encontrado."}), 404
+    ident = pedido["ifood_order_id"]
+    if str(ident).startswith("99-") and food99:
+        motivos = [{"codigo": str(k), "descricao": v} for k, v in food99.MOTIVOS_CANCELAMENTO.items()]
+    elif _pedido_e_local(ident):
+        motivos = [{"codigo": "LOCAL", "descricao": "Cancelado pela loja (pedido de teste)"}]
+    else:
+        brutos = com_retry(get_cancellation_reasons, ident)
+        motivos = [
+            {"codigo": str(m.get("cancelCode") or m.get("code") or ""), "descricao": m.get("description") or ""}
+            for m in brutos
+        ]
+    return jsonify(motivos)
+
+
+def _disputa_do_pedido(pedido_id):
+    pedido = _buscar_pedido(pedido_id)
+    if not pedido:
+        raise ValueError("Pedido não encontrado.")
+    disputa = (pedido.get("detalhes_brutos") or {}).get("disputa") or {}
+    if not disputa.get("id"):
+        raise ValueError("Este pedido não tem negociação aberta.")
+    return pedido, disputa
+
+
+@app.post("/api/pedidos/<pedido_id>/disputa/aceitar")
+@requer_login
+def aceitar_disputa(pedido_id):
+    """Aceita o pedido de cancelamento/reembolso do cliente (Plataforma de Negociação)."""
+    pedido, disputa = _disputa_do_pedido(pedido_id)
+    com_retry(accept_dispute, disputa["id"])
+    _atualizar_detalhes_brutos(
+        pedido["ifood_order_id"],
+        lambda db: (db.pop("disputa", None), db.__setitem__("ultima_negociacao", {"resultado": "ACEITA", "em": _agora_iso()})),
+    )
+    registrar_auditoria(g.usuario["nome"], "aceitar_negociacao", item_id=pedido_id, detalhe=f"disputa {disputa['id']} ({disputa.get('acao')})")
+    return jsonify({"ok": True})
+
+
+@app.post("/api/pedidos/<pedido_id>/disputa/recusar")
+@requer_login
+def recusar_disputa(pedido_id):
+    dados = request.get_json(silent=True) or {}
+    motivo = str(dados.get("motivo", "")).strip()
+    if not motivo:
+        raise ValueError("Informe o motivo da recusa — o iFood exige.")
+    pedido, disputa = _disputa_do_pedido(pedido_id)
+    com_retry(reject_dispute, disputa["id"], motivo)
+    _atualizar_detalhes_brutos(
+        pedido["ifood_order_id"],
+        lambda db: (db.pop("disputa", None), db.__setitem__("ultima_negociacao", {"resultado": "RECUSADA", "motivo": motivo, "em": _agora_iso()})),
+    )
+    registrar_auditoria(g.usuario["nome"], "recusar_negociacao", item_id=pedido_id, detalhe=f"disputa {disputa['id']} — {motivo}")
+    return jsonify({"ok": True})
 
 
 @app.post("/api/pedidos/<pedido_id>/ocultar")
@@ -1496,10 +2143,15 @@ def buscar_pedidos():
     manualmente ("Atualizar do iFood") e automaticamente a cada ~15s pelas telas de Pedidos/KDS
     enquanto abertas. Não existe worker/cron nesse projeto (deploy é uma função serverless da
     Vercel, sem processo contínuo) — o polling só roda enquanto alguém está com a tela aberta,
-    o que já cobre o uso real (a tela fica ligada na cozinha/balcão)."""
+    o que já cobre o uso real (a tela fica ligada na cozinha/balcão).
+    Quando o worker contínuo (worker/monitor.py) está ativo, ELE é o dono do polling: aqui não
+    consulta o iFood de novo (evita processar o mesmo evento em dois lugares) e só avisa a tela."""
+    ativo, _ = _monitor_ativo()
+    if ativo:
+        return jsonify({"novosPedidos": 0, "monitorAtivo": True})
     merchant_id = _merchant_id()
     novos_pedidos = _processar_eventos_da_loja(merchant_id)
-    return jsonify({"novosPedidos": novos_pedidos})
+    return jsonify({"novosPedidos": novos_pedidos, "monitorAtivo": False})
 
 
 @app.get("/api/eventos")
@@ -1566,8 +2218,29 @@ def webhook_ifood_check():
     return jsonify({"status": "ok"})
 
 
+def _assinatura_ifood_valida(corpo: bytes, assinatura: str) -> bool:
+    """O iFood assina cada POST do webhook com HMAC-SHA256 do corpo CRU usando o clientSecret
+    do app, em hexadecimal, no header X-IFood-Signature. Compara em tempo constante."""
+    segredo = os.environ.get("IFOOD_CLIENT_SECRET", "")
+    if not segredo or not assinatura:
+        return False
+    esperado = hmac.new(segredo.encode("utf-8"), corpo, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(esperado.lower(), assinatura.strip().lower())
+
+
+# Desligar só pra depurar localmente (ex: simular POST com curl). Em produção, sempre ligado.
+IFOOD_WEBHOOK_VALIDAR_ASSINATURA = os.environ.get("IFOOD_WEBHOOK_VALIDAR_ASSINATURA", "1") != "0"
+
+
 @app.post("/webhook/ifood")
 def webhook_ifood():
+    corpo_cru = request.get_data(cache=True)
+    if IFOOD_WEBHOOK_VALIDAR_ASSINATURA and not _assinatura_ifood_valida(
+        corpo_cru, request.headers.get("X-IFood-Signature", "")
+    ):
+        # Sem assinatura válida qualquer um poderia injetar pedido falso no KDS.
+        logger.warning("Webhook iFood recusado: assinatura ausente/inválida (ip=%s)", request.remote_addr)
+        return jsonify({"erro": "assinatura inválida"}), 401
     payload = request.get_json(silent=True)
     logger.info("iFood webhook recebido: %s", payload)
     # O iFood pode mandar um evento único (dict), uma lista, ou {"events": [...]}.
@@ -1808,6 +2481,7 @@ def catalogo_99food():
                 "categoria": cat_por_item.get(iid, "Sem categoria"),
                 "categoryId": catid_por_item.get(iid, ""),
                 "nome": it.get("item_name"),
+                "descricao": it.get("short_desc") or it.get("description") or "",
                 "codigo_pdv": it.get("app_external_id") or "",
                 "preco": (it.get("price") or 0) / 100.0,  # 99 manda o preço em centavos
                 "status": "AVAILABLE" if it.get("status") == 1 else "UNAVAILABLE",
@@ -1823,25 +2497,33 @@ def alterar_status_99food(item_id):
     dados = request.get_json(silent=True) or {}
     status = dados.get("status")
     nome = str(dados.get("nome", "")).strip()
+    codigo_pdv = str(dados.get("codigo_pdv", "")).strip()
+    motivo = str(dados.get("motivo", "")).strip()[:MOTIVO_MAX]
     app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
     if status not in ("AVAILABLE", "UNAVAILABLE"):
         raise ValueError("status deve ser AVAILABLE ou UNAVAILABLE")
     if not app_shop_id:
         raise ValueError("Informe a loja (app_shop_id do 99Food).")
+    minutos = _prazo_pausa(dados) if status == "UNAVAILABLE" else None
     if not (food99 and FOOD99_CONFIGURADO):
         return jsonify({"erro": "99Food não configurado no servidor."}), 503
     try:
         food99.update_item_status(app_shop_id, item_id, disponivel=(status == "AVAILABLE"))
     except Exception as exc:
         return jsonify({"erro": f"99Food: {exc}"}), 502
+    _registrar_mudanca_pausa(app_shop_id, "99food", "item", item_id, status, g.usuario["nome"], nome, codigo_pdv, minutos=minutos, motivo=motivo)
+    detalhe = "99Food"
+    if status == "UNAVAILABLE":
+        detalhe += f" · {_descrever_pausa(motivo, minutos)}"
     registrar_auditoria(
         g.usuario["nome"],
         "pausar" if status == "UNAVAILABLE" else "despausar",
         item_id=item_id,
         nome=nome,
-        detalhe="99Food",
+        codigo_pdv=codigo_pdv,
+        detalhe=detalhe,
     )
-    return jsonify({"itemId": item_id, "status": status})
+    return jsonify({"itemId": item_id, "status": status, "minutos": minutos})
 
 
 @app.patch("/api/99food/itens/<item_id>/preco")
@@ -2092,6 +2774,324 @@ def criar_pedido_teste_99():
     _processar_evento_99(evento)  # mesmo caminho de um pedido real do 99
     registrar_auditoria(g.usuario["nome"], "pedido_teste", item_id=order_id, detalhe="99Food (teste manual)")
     return jsonify({"ok": True, "order_id": f"99-{order_id}", "total": round(total / 100.0, 2)}), 201
+
+
+# ---- Status das lojas (aberta/fechada) ----
+# Quem mantém isso atualizado o tempo todo é o worker (worker/monitor.py), que grava em
+# `status_lojas` (estado atual) e `status_lojas_historico` (cada mudança). Sem worker rodando,
+# a tela consulta ao vivo e grava do mesmo jeito — só que aí só atualiza com a tela aberta.
+
+def _status_ifood(merchant_id):
+    """Interpreta GET /merchants/{id}/status: a loja está aberta se ALGUMA operação/canal está
+    `available`. O motivo vem do `message` da operação + validações que não estão OK (ex:
+    is-connected = "Gestor de Pedidos ou PDV desconectado", opening-hours, interrupções)."""
+    operacoes = com_retry(get_merchant_status, merchant_id) or []
+    aberta = any(op.get("available") for op in operacoes)
+    problemas = []
+    for op in operacoes:
+        for v in op.get("validations") or []:
+            if v.get("state") not in ("OK", None):
+                msg = v.get("message") or {}
+                problemas.append({"id": v.get("id"), "estado": v.get("state"), "titulo": msg.get("title"), "detalhe": msg.get("subtitle")})
+    principal = (operacoes[0].get("message") or {}) if operacoes else {}
+    motivo = " — ".join(x for x in (principal.get("title"), principal.get("subtitle")) if x) or None
+    estado = operacoes[0].get("state") if operacoes else None
+    return {"aberta": aberta, "estado": estado, "motivo": motivo, "problemas": problemas, "detalhes": operacoes}
+
+
+def _status_99(app_shop_id):
+    if not (food99 and FOOD99_CONFIGURADO):
+        return {"aberta": None, "estado": None, "motivo": "99Food não configurado no servidor.", "problemas": [], "detalhes": None}
+    detalhe = food99.shop_detail(app_shop_id) or {}
+    sub = detalhe.get("sub_biz_status")
+    return {
+        "aberta": sub == 1,
+        "estado": str(sub) if sub is not None else None,
+        "motivo": food99.SUB_STATUS_LOJA.get(sub, f"status {sub}"),
+        "problemas": [],
+        "detalhes": {k: detalhe.get(k) for k in ("biz_status", "sub_biz_status", "auto_switch", "shop_name")},
+    }
+
+
+def verificar_status_loja(loja):
+    """Consulta a plataforma da loja e devolve o estado normalizado. Nunca levanta: falha de
+    consulta vira aberta=None com o erro no motivo."""
+    plataforma = loja.get("plataforma") or "ifood"
+    try:
+        status = _status_99(loja["merchant_id"]) if plataforma == "99food" else _status_ifood(loja["merchant_id"])
+    except Exception as exc:
+        logger.warning("Falha ao consultar status da loja %s: %s", loja.get("merchant_id"), exc)
+        status = {"aberta": None, "estado": "ERRO_CONSULTA", "motivo": f"Não consegui consultar: {exc}"[:300], "problemas": [], "detalhes": None}
+    return {**status, "merchant_id": loja["merchant_id"], "plataforma": plataforma, "nome": loja.get("nome")}
+
+
+def registrar_status_loja(status):
+    """Grava o estado atual em `status_lojas` e, se mudou (aberta/fechada ou motivo), uma linha
+    em `status_lojas_historico`. Devolve True se mudou."""
+    agora = _agora_iso()
+    anterior = requests.get(
+        f"{SUPABASE_URL}/rest/v1/status_lojas",
+        headers=_supabase_headers(),
+        params={"select": "aberta,motivo,mudou_em", "merchant_id": f"eq.{status['merchant_id']}"},
+        timeout=10,
+    )
+    anterior.raise_for_status()
+    linha_anterior = anterior.json()[0] if anterior.json() else None
+    mudou = linha_anterior is None or linha_anterior.get("aberta") != status["aberta"] or linha_anterior.get("motivo") != status["motivo"]
+    linha = {
+        "merchant_id": status["merchant_id"],
+        "plataforma": status["plataforma"],
+        "aberta": status["aberta"],
+        "estado": status["estado"],
+        "motivo": status["motivo"],
+        "detalhes": {"problemas": status["problemas"], "bruto": status["detalhes"]},
+        "verificado_em": agora,
+        "mudou_em": agora if mudou else linha_anterior["mudou_em"],
+    }
+    resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/status_lojas",
+        headers={**_supabase_headers(), "Prefer": "resolution=merge-duplicates"},
+        json=linha,
+        timeout=10,
+    )
+    resp.raise_for_status()
+    if mudou:
+        requests.post(
+            f"{SUPABASE_URL}/rest/v1/status_lojas_historico",
+            headers=_supabase_headers(),
+            json={k: status[k] for k in ("merchant_id", "plataforma", "aberta", "estado", "motivo")},
+            timeout=10,
+        ).raise_for_status()
+    return mudou
+
+
+def _todas_lojas():
+    resp = requests.get(f"{SUPABASE_URL}/rest/v1/lojas", headers=_supabase_headers(), params={"select": "*", "order": "criado_em.asc"}, timeout=10)
+    resp.raise_for_status()
+    return resp.json()
+
+
+@app.get("/api/lojas/status")
+@requer_login
+def get_status_lojas():
+    """Estado aberta/fechada de TODAS as lojas cadastradas (iFood e 99). Com o monitor ativo, lê
+    o que ele gravou (atualizado a cada minuto); sem monitor, ou com ?ao_vivo=1, consulta as
+    plataformas agora e grava."""
+    ativo, heartbeat = _monitor_ativo()
+    lojas = _todas_lojas()
+    if ativo and request.args.get("ao_vivo") != "1":
+        resp = requests.get(f"{SUPABASE_URL}/rest/v1/status_lojas", headers=_supabase_headers(), params={"select": "*"}, timeout=10)
+        resp.raise_for_status()
+        por_loja = {s["merchant_id"]: s for s in resp.json()}
+        resultado = []
+        for loja in lojas:
+            s = por_loja.get(loja["merchant_id"]) or {}
+            resultado.append({
+                "merchant_id": loja["merchant_id"],
+                "nome": loja.get("nome"),
+                "plataforma": loja.get("plataforma") or "ifood",
+                "aberta": s.get("aberta"),
+                "estado": s.get("estado"),
+                "motivo": s.get("motivo"),
+                "problemas": (s.get("detalhes") or {}).get("problemas") or [],
+                "verificado_em": s.get("verificado_em"),
+                "mudou_em": s.get("mudou_em"),
+            })
+    else:
+        resultado = []
+        for loja in lojas:
+            status = verificar_status_loja(loja)
+            try:
+                registrar_status_loja(status)
+            except requests.exceptions.RequestException as exc:
+                logger.warning("Não gravei status da loja %s (rodou a migration 009?): %s", loja["merchant_id"], exc)
+            status.pop("detalhes", None)
+            resultado.append({**status, "verificado_em": _agora_iso()})
+    return jsonify({
+        "monitor": {"ativo": ativo, "ultimo_ping": (heartbeat or {}).get("ultimo_ping"), "info": (heartbeat or {}).get("info")},
+        "lojas": resultado,
+    })
+
+
+@app.get("/api/lojas/status/historico")
+@requer_login
+def get_historico_status_lojas():
+    params = {"select": "*", "order": "em.desc", "limit": min(int(request.args.get("limite", 100)), 500)}
+    merchant = request.args.get("merchant")
+    if merchant:
+        params["merchant_id"] = f"eq.{merchant}"
+    resp = requests.get(f"{SUPABASE_URL}/rest/v1/status_lojas_historico", headers=_supabase_headers(), params=params, timeout=10)
+    resp.raise_for_status()
+    return jsonify(resp.json())
+
+
+# ---- Financeiro ----
+MAX_DIAS_FINANCEIRO = 93
+
+
+def _periodo():
+    """?inicio=AAAA-MM-DD&fim=AAAA-MM-DD (padrão: últimos 7 dias, incluindo hoje)."""
+    hoje = date.today()
+    try:
+        fim = date.fromisoformat(request.args.get("fim") or hoje.isoformat())
+        inicio = date.fromisoformat(request.args.get("inicio") or (fim - timedelta(days=6)).isoformat())
+    except ValueError as exc:
+        raise ValueError("Datas devem estar no formato AAAA-MM-DD.") from exc
+    if inicio > fim:
+        raise ValueError("A data inicial é depois da final.")
+    if (fim - inicio).days + 1 > MAX_DIAS_FINANCEIRO:
+        raise ValueError(f"Período máximo: {MAX_DIAS_FINANCEIRO} dias.")
+    return inicio, fim
+
+
+def _num(v):
+    if isinstance(v, dict):
+        v = v.get("value")
+    try:
+        return float(v or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+@app.get("/api/financeiro/resumo")
+@requer_papel("administrador", "gerente")
+def get_resumo_financeiro():
+    """Resumo a partir dos pedidos que entraram no painel (iFood + 99), por dia, plataforma,
+    loja, forma de pagamento e tipo. É o "faturamento bruto operacional" — o valor que o cliente
+    pagou. O que a plataforma de fato repassa (descontadas comissão/taxas) está em
+    /api/financeiro/ifood. `?todas=1` soma todas as lojas; sem isso, só a loja atual."""
+    inicio, fim = _periodo()
+    params = {
+        "select": "id,ifood_order_id,merchant_id,status,tipo,pagamento,total,recebido_em",
+        "and": f"(recebido_em.gte.{inicio.isoformat()}T00:00:00-03:00,recebido_em.lt.{(fim + timedelta(days=1)).isoformat()}T00:00:00-03:00)",
+        "order": "recebido_em.asc",
+        "limit": 10000,
+    }
+    if request.args.get("todas") != "1":
+        params["merchant_id"] = f"eq.{_merchant_id()}"
+    resp = requests.get(f"{SUPABASE_URL}/rest/v1/pedidos", headers=_supabase_headers(), params=params, timeout=15)
+    resp.raise_for_status()
+    pedidos = resp.json()
+
+    nomes_lojas = {l["merchant_id"]: l.get("nome") for l in _todas_lojas()}
+    por_dia, por_plataforma, por_loja, por_pagamento, por_tipo = {}, {}, {}, {}, {}
+
+    def somar(mapa, chave, valor, cancelado):
+        linha = mapa.setdefault(chave, {"chave": chave, "pedidos": 0, "faturamento": 0.0, "cancelados": 0, "valor_cancelado": 0.0})
+        if cancelado:
+            linha["cancelados"] += 1
+            linha["valor_cancelado"] += valor
+        else:
+            linha["pedidos"] += 1
+            linha["faturamento"] += valor
+
+    total_validos = total_cancelados = 0
+    faturamento = valor_cancelado = 0.0
+    for p in pedidos:
+        valor = _num(p.get("total"))
+        cancelado = p.get("status") == "CANCELADO"
+        # Dia no fuso de Brasília (o Supabase devolve em UTC).
+        dia = (datetime.fromisoformat(p["recebido_em"].replace("Z", "+00:00")) - timedelta(hours=3)).date().isoformat()
+        plataforma = "99Food" if str(p.get("ifood_order_id") or "").startswith("99-") else "iFood"
+        somar(por_dia, dia, valor, cancelado)
+        somar(por_plataforma, plataforma, valor, cancelado)
+        somar(por_loja, nomes_lojas.get(p.get("merchant_id"), p.get("merchant_id")), valor, cancelado)
+        somar(por_pagamento, p.get("pagamento") or "Não informado", valor, cancelado)
+        somar(por_tipo, p.get("tipo") or "—", valor, cancelado)
+        if cancelado:
+            total_cancelados += 1
+            valor_cancelado += valor
+        else:
+            total_validos += 1
+            faturamento += valor
+
+    # Dias sem pedido também aparecem (zerados), pra série não ter buraco.
+    dia = inicio
+    while dia <= fim:
+        por_dia.setdefault(dia.isoformat(), {"chave": dia.isoformat(), "pedidos": 0, "faturamento": 0.0, "cancelados": 0, "valor_cancelado": 0.0})
+        dia += timedelta(days=1)
+
+    def ordenado(mapa, por_valor=True):
+        linhas = list(mapa.values())
+        return sorted(linhas, key=lambda l: -l["faturamento"]) if por_valor else sorted(linhas, key=lambda l: l["chave"])
+
+    return jsonify({
+        "inicio": inicio.isoformat(),
+        "fim": fim.isoformat(),
+        "totais": {
+            "pedidos": total_validos,
+            "faturamento": round(faturamento, 2),
+            "ticket_medio": round(faturamento / total_validos, 2) if total_validos else 0,
+            "cancelados": total_cancelados,
+            "valor_cancelado": round(valor_cancelado, 2),
+            "taxa_cancelamento": round(100 * total_cancelados / (total_validos + total_cancelados), 1) if (total_validos + total_cancelados) else 0,
+        },
+        "por_dia": ordenado(por_dia, por_valor=False),
+        "por_plataforma": ordenado(por_plataforma),
+        "por_loja": ordenado(por_loja),
+        "por_pagamento": ordenado(por_pagamento),
+        "por_tipo": ordenado(por_tipo),
+    })
+
+
+@app.get("/api/financeiro/ifood")
+@requer_papel("administrador", "gerente")
+def get_financeiro_ifood():
+    """Dados financeiros OFICIAIS do iFood (Financial API v3) da loja atual: vendas, repasses e
+    eventos financeiros (comissão, taxas, ajustes). Cada bloco é independente: se um falhar,
+    os outros ainda voltam, com o erro no campo `erros`."""
+    inicio, fim = _periodo()
+    merchant_id = _merchant_id()
+    resultado = {"inicio": inicio.isoformat(), "fim": fim.isoformat(), "vendas": [], "repasses": {}, "eventos": [], "erros": {}}
+    for chave, func in (("vendas", get_sales), ("repasses", get_settlements), ("eventos", get_financial_events)):
+        try:
+            resultado[chave] = com_retry(func, merchant_id, inicio, fim)
+        except requests.exceptions.HTTPError as exc:
+            corpo = exc.response.text[:300] if exc.response is not None else str(exc)
+            resultado["erros"][chave] = corpo
+            logger.warning("Financial API (%s) falhou: %s", chave, corpo)
+
+    # Formato confirmado com vendas reais do sandbox: saleGrossValue {bag, deliveryFee,
+    # serviceFee}, benefits.totalValue, payments.methods[], billingSummary {saleBalance,
+    # billingEntries[]} (saldo da venda depois de comissões/taxas — vem 0 até o iFood fechar).
+    linhas = []
+    for v in resultado["vendas"]:
+        bruto = v.get("saleGrossValue") or {}
+        cobranca = v.get("billingSummary") or {}
+        valor_bruto = _num(bruto.get("bag")) + _num(bruto.get("deliveryFee")) + _num(bruto.get("serviceFee"))
+        linhas.append({
+            "id": v.get("id"),
+            "codigo": v.get("shortId"),
+            "data": v.get("createdAt"),
+            "status": v.get("currentStatus"),
+            "canal": v.get("salesChannel"),
+            "itens": _num(bruto.get("bag")),
+            "taxa_entrega": _num(bruto.get("deliveryFee")),
+            "taxa_servico": _num(bruto.get("serviceFee")),
+            "bruto": round(valor_bruto, 2),
+            "beneficios": _num((v.get("benefits") or {}).get("totalValue")),
+            "saldo": _num(cobranca.get("saleBalance")),
+            "lancamentos": cobranca.get("billingEntries") or [],
+            "pagamentos": ", ".join(
+                f"{m.get('method')}{' ' + m['card']['brand'] if (m.get('card') or {}).get('brand') else ''}"
+                for m in (v.get("payments") or {}).get("methods") or []
+            ),
+            "entrega": ((v.get("delivery") or {}).get("deliveryParameters") or {}).get("deliveryProduct"),
+        })
+    validas = [l for l in linhas if l["status"] != "CANCELLED"]
+    repasses = resultado["repasses"] if isinstance(resultado["repasses"], dict) else {}
+    resultado["vendas"] = linhas
+    resultado["totais"] = {
+        "vendas": len(validas),
+        "canceladas": len(linhas) - len(validas),
+        "bruto": round(sum(l["bruto"] for l in validas), 2),
+        "taxa_entrega": round(sum(l["taxa_entrega"] for l in validas), 2),
+        "beneficios": round(sum(l["beneficios"] for l in validas), 2),
+        "saldo_vendas": round(sum(l["saldo"] for l in validas), 2),
+        "saldo_repasses": _num(repasses.get("balance")),
+        "qtd_repasses": len(repasses.get("settlements") or []),
+    }
+    return jsonify(resultado)
 
 
 if __name__ == "__main__":

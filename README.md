@@ -1,7 +1,12 @@
-# Automação de Catálogo iFood — Cajupar
+# PausaFast — operação de delivery (iFood + 99Food)
 
-Painel interno para gerenciar o catálogo (itens, preços, categorias e disponibilidade) de lojas
-do iFood via API, sem depender do Portal do Parceiro pra tarefas do dia a dia.
+Painel de operação de delivery para empresas com lojas no iFood e no 99Food: cardápio, pausas
+(com motivo, prazo e volta automática, por insumo e em várias lojas de uma vez), pedidos, cozinha e
+status das lojas, sem depender do Portal do Parceiro pra tarefas do dia a dia.
+
+**White-label:** cada empresa cliente configura nome, cor de destaque e logo em Administração >
+Marca (`sql/011_marca_white_label.sql`; padrão em `MARCA_NOME`/`MARCA_COR` do `.env`). O visual é
+o design system PausaFast — ver [`viewer/DESIGN_SYSTEM.md`](viewer/DESIGN_SYSTEM.md).
 
 ## Arquitetura
 
@@ -27,7 +32,10 @@ viewer/ (React + Vite)  --fetch-->  server/app.py (Flask, :5000)  --requests--> 
 - **`data/`** — planilhas de origem, logs de carga e o log técnico de aplicação (`app.log`). Não
   vai pro controle de versão (está no `.gitignore`). A auditoria (quem fez o quê) não fica mais
   aqui — vai pra uma tabela no Supabase, ver seção própria abaixo.
-- **`sql/`** — migrações pra rodar no SQL Editor do Supabase.
+- **`sql/`** — migrações pra rodar no SQL Editor do Supabase (001 a 009, em ordem).
+- **`worker/monitor.py`** — processo contínuo (fora da Vercel): polling de pedidos do iFood a
+  cada 30s pra todas as lojas (é o que mantém a loja "conectada" no iFood) e status
+  aberta/fechada de todas as lojas a cada 1 min. Ver seção "Monitor" abaixo.
 
 ## Subindo o projeto
 
@@ -102,6 +110,36 @@ mandar `operador`/`papel` mais.
 
 Trocar de loja: qualquer rota aceita `?loja=<merchantId>` na query string; sem isso, usa a
 `IFOOD_MERCHANT_ID` do `.env`.
+
+### Rotas de pedidos, status de loja e financeiro (adicionadas em 2026-10-09)
+
+| Rota | Acesso | O que faz |
+|---|---|---|
+| `GET /api/pedidos/<id>/motivos-cancelamento` | logado | Motivos válidos pra cancelar o pedido agora (iFood: `cancellationReasons`; 99: lista fixa). |
+| `POST /api/pedidos/<id>/status` | logado | Aceita `motivo_codigo`/`motivo` no cancelamento; "despachar" vira `readyToPickup` em retirada; pedidos reais do 99 vão pra API do 99. |
+| `POST /api/pedidos/<id>/disputa/aceitar` e `/recusar` | logado | Responde a negociação aberta pelo cliente (`HANDSHAKE_DISPUTE`). Recusar exige `{motivo}`. |
+| `GET /api/lojas/status` | logado | Aberta/fechada de todas as lojas, com motivo. `?ao_vivo=1` força consultar agora. |
+| `GET /api/lojas/status/historico` | logado | Cada mudança de estado (abriu/fechou e por quê). |
+| `GET /api/financeiro/resumo?inicio&fim[&todas=1]` | admin/gerente | Faturamento dos pedidos do painel por dia/plataforma/loja/pagamento/tipo. |
+| `GET /api/financeiro/ifood?inicio&fim` | admin/gerente | Extrato oficial do iFood (vendas, repasses, eventos financeiros). |
+
+## Monitor (worker contínuo)
+
+O iFood só considera a loja conectada enquanto há polling a cada 30s — sem isso ela aparece
+**fechada** ("Gestor de Pedidos ou PDV desconectado"), mesmo dentro do horário. A Vercel não
+mantém processo rodando, então isso fica num worker separado:
+
+```bash
+python worker/monitor.py          # mesmo .env do backend
+```
+- Windows, PC que fica ligado: `iniciar_monitor.bat` (reinicia sozinho se cair). O
+  `iniciar.bat` também já sobe ele numa terceira janela.
+- Servidor: `docker build -f Dockerfile.monitor -t pausafast-monitor .` e
+  `docker run -d --restart=always --env-file .env pausafast-monitor` (ou o `Procfile`).
+- Pré-requisito: `sql/009_monitor_lojas_financeiro_complementos.sql` e `sql/010_pausas_programadas.sql`
+  aplicadas (a 010 é a fila das pausas com prazo, que o monitor reativa sozinho).
+- Rode **um** monitor só. Enquanto ele está ativo (heartbeat < 2 min), a rota
+  `/api/pedidos/buscar` não faz polling próprio, pra não processar evento em dobro.
 
 ## Pausar / despausar itens
 

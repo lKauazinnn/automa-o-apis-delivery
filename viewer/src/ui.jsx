@@ -1,77 +1,77 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useEffect } from 'react'
 import { X } from 'lucide-react'
 
 // Paleta ativa (dark/claro), injetada pelo `Painel` em App.jsx. Compartilhado por App.jsx
 // e pelos componentes de view/Sidebar pra não precisar repassar `C` por toda a árvore.
 export const CoresContext = createContext(null)
 
-// Tokens do redesign "App Cajupar iFood" (handoff do Claude Design). `neutral` representa
-// "pausado" em toda a UI (pills, stat card, gráficos) — nesse redesign isso é âmbar/aviso, não
-// cinza neutro, porque um item pausado merece atenção (possível ruptura de estoque).
+// Tokens do design system PausaFast (ver DESIGN_SYSTEM.md). A cor de DESTAQUE não mora aqui: é da
+// empresa cliente (white-label) e entra em `C` como `marca`, `marcaTinta`, `marcaTexto`... via
+// tokensDaMarca() em marca.js. `neutral` representa "pausado" em toda a UI (pills, stat card,
+// gráficos) — é âmbar, não cinza, porque item pausado merece atenção (possível ruptura).
+//
+// Neutros frios (puxados pro azul-acinzentado) e cores de status com 4,5:1 ou mais sobre card,
+// fundo e campo nos dois temas — conferido com contraste() de marca.js.
 export const PALETAS = {
+  claro: {
+    bg: '#F4F5F7',
+    bg2: '#EBEDF0',
+    cardBg: '#FFFFFF',
+    card2: '#F7F8FA',
+    inputBg: '#F1F3F5',
+    hover: 'rgba(17,20,27,0.04)',
+    cardBorder: '#DFE2E7',
+    rowBorder: '#ECEEF1',
+    text1: '#12151B',
+    text2: '#4B5361',
+    text3: '#626A79',
+    headerBg: '#FFFFFF',
+    good: '#1A7F4B',
+    goodBg: 'rgba(26,127,75,0.09)',
+    goodBd: 'rgba(26,127,75,0.26)',
+    neutral: '#A35406',
+    neutralBg: 'rgba(163,84,6,0.09)',
+    neutralBd: 'rgba(163,84,6,0.26)',
+    bad: '#C8322B',
+    badBg: 'rgba(200,50,43,0.08)',
+    badBd: 'rgba(200,50,43,0.24)',
+    info: '#0B7285',
+    infoBg: 'rgba(11,114,133,0.09)',
+    overlay: 'rgba(12,14,19,0.45)',
+    modalBg: '#FFFFFF',
+    modalBorder: '#DFE2E7',
+    sh: '0 1px 2px rgba(17,20,27,0.05), 0 16px 40px -22px rgba(17,20,27,0.30)',
+    shSm: '0 1px 2px rgba(17,20,27,0.07)',
+  },
   escuro: {
-    bg: '#0A0A0D',
-    bg2: '#08080B',
-    cardBg: '#141419',
-    card2: '#1B1B22',
-    inputBg: '#101015',
-    hover: 'rgba(255,255,255,0.04)',
-    cardBorder: '#26262F',
-    rowBorder: '#1D1D25',
-    text1: '#F5F5F7',
-    text2: '#9A9AA6',
-    text3: '#5C5C67',
-    headerBg: '#141419',
-    good: '#34C77B',
-    goodBg: 'rgba(52,199,123,0.13)',
-    goodBd: 'rgba(52,199,123,0.30)',
-    neutral: '#F5A623',
-    neutralBg: 'rgba(245,166,35,0.13)',
-    neutralBd: 'rgba(245,166,35,0.32)',
-    bad: '#F0473F',
-    badBg: 'rgba(240,71,63,0.12)',
-    badBd: 'rgba(240,71,63,0.30)',
-    info: '#5B8CFF',
-    infoBg: 'rgba(91,140,255,0.12)',
-    brand2: '#FBB34A',
-    ring: 'rgba(245,108,53,0.32)',
-    overlay: 'rgba(4,4,8,0.6)',
-    modalBg: '#141419',
-    modalBorder: '#26262F',
+    bg: '#0D0F13',
+    bg2: '#090B0E',
+    cardBg: '#15181E',
+    card2: '#1B1F26',
+    inputBg: '#111419',
+    hover: 'rgba(255,255,255,0.045)',
+    cardBorder: '#272C35',
+    rowBorder: '#1E2229',
+    text1: '#F1F3F6',
+    text2: '#A7AFBC',
+    text3: '#858E9C',
+    headerBg: '#15181E',
+    good: '#3DC981',
+    goodBg: 'rgba(61,201,129,0.13)',
+    goodBd: 'rgba(61,201,129,0.30)',
+    neutral: '#F0A23B',
+    neutralBg: 'rgba(240,162,59,0.13)',
+    neutralBd: 'rgba(240,162,59,0.32)',
+    bad: '#F26A5F',
+    badBg: 'rgba(242,106,95,0.12)',
+    badBd: 'rgba(242,106,95,0.30)',
+    info: '#3BB6D4',
+    infoBg: 'rgba(59,182,212,0.12)',
+    overlay: 'rgba(4,5,8,0.62)',
+    modalBg: '#15181E',
+    modalBorder: '#323844',
     sh: '0 1px 0 rgba(255,255,255,0.02), 0 18px 48px -16px rgba(0,0,0,0.65)',
     shSm: '0 1px 2px rgba(0,0,0,0.4)',
-  },
-  claro: {
-    bg: '#F4F4F6',
-    bg2: '#ECECEF',
-    cardBg: '#FFFFFF',
-    card2: '#F6F6F8',
-    inputBg: '#F0F0F3',
-    hover: 'rgba(16,16,20,0.035)',
-    cardBorder: '#E6E6EA',
-    rowBorder: '#EDEDF1',
-    text1: '#15151A',
-    text2: '#6A6A75',
-    text3: '#9A9AA4',
-    headerBg: '#FFFFFF',
-    good: '#12924C',
-    goodBg: 'rgba(18,146,76,0.09)',
-    goodBd: 'rgba(18,146,76,0.24)',
-    neutral: '#B57200',
-    neutralBg: 'rgba(181,114,0,0.09)',
-    neutralBd: 'rgba(181,114,0,0.24)',
-    bad: '#DB3B33',
-    badBg: 'rgba(219,59,51,0.08)',
-    badBd: 'rgba(219,59,51,0.22)',
-    info: '#2F6BE0',
-    infoBg: 'rgba(47,107,224,0.09)',
-    brand2: '#FBB34A',
-    ring: 'rgba(245,108,53,0.32)',
-    overlay: 'rgba(4,4,8,0.6)',
-    modalBg: '#FFFFFF',
-    modalBorder: '#E6E6EA',
-    sh: '0 1px 2px rgba(16,16,20,0.05), 0 16px 40px -22px rgba(16,16,20,0.28)',
-    shSm: '0 1px 2px rgba(16,16,20,0.06)',
   },
 }
 
@@ -86,6 +86,10 @@ export const ACAO_LABEL = {
   despausar_em_massa: 'despausou (em massa)',
   pausar_em_massa_erro: 'falhou ao pausar (em massa)',
   despausar_em_massa_erro: 'falhou ao despausar (em massa)',
+  pausar_opcao: 'pausou o complemento',
+  despausar_opcao: 'despausou o complemento',
+  reativar_automatico: 'reativou (fim do prazo da pausa)',
+  reativar_opcao_automatico: 'reativou o complemento (fim do prazo da pausa)',
   criar_categoria: 'criou a categoria',
   editar_categoria: 'editou a categoria',
   excluir_categoria: 'excluiu a categoria',
@@ -103,6 +107,7 @@ export const ACAO_LABEL = {
   alterar_papel_usuario: 'trocou o papel de',
   criar_loja: 'cadastrou a loja',
   remover_loja: 'removeu a loja',
+  definir_marca: 'atualizou a marca',
 }
 
 const FORMATOS_FOTO_ACEITOS = new Set(['image/jpeg', 'image/jpg', 'image/png'])
@@ -141,39 +146,54 @@ export function iniciaisDe(nome) {
     .toUpperCase()
 }
 
-export const CORES_AVATAR = [
-  'linear-gradient(135deg,#F56C35,#FBB34A)',
-  'linear-gradient(135deg,#6366F1,#8B5CF6)',
-  'linear-gradient(135deg,#0EA5E9,#22D3EE)',
-  'linear-gradient(135deg,#EC4899,#F472B6)',
-]
+// Cores de avatar lisas e claras o bastante pra carregar iniciais ESCURAS (#0F1115): todas passam
+// de 6:1. Não usam a cor da marca — ela é do cliente e pode ser escura demais pra isso.
+export const CORES_AVATAR = ['#8FA9EA', '#E9A97C', '#6CC3B1', '#D19BDF']
 
 export function Avatar({ nome, idx = 0, size = 32 }) {
   return (
     <div
-      className="rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
-      style={{ width: size, height: size, background: CORES_AVATAR[idx % CORES_AVATAR.length] }}
+      className="rounded-full flex items-center justify-center font-bold flex-shrink-0"
+      style={{
+        width: size,
+        height: size,
+        background: CORES_AVATAR[idx % CORES_AVATAR.length],
+        color: '#0F1115',
+        fontSize: Math.max(11, Math.round(size * 0.38)),
+      }}
     >
       {iniciaisDe(nome)}
     </div>
   )
 }
 
-export function StatCard({ icon: Icon, value, label, color }) {
+// Placeholder de carregamento. Substitui o spinner central em lista/tabela: com refresh
+// automático a cada 10–15s, o spinner fazia a tela inteira piscar a cada ciclo.
+export function Esqueleto({ w = '100%', h = 12, className = '', style }) {
+  return <div className={`esqueleto ${className}`} style={{ width: w, height: h, ...style }} />
+}
+
+export function StatCard({ icon: Icon, value, label, color, destaque = false }) {
   const C = useContext(CoresContext)
   return (
-    <div className="rounded-2xl border p-5 flex flex-col gap-3" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
+    <div
+      className="rounded-2xl border p-5 flex items-center gap-4"
+      style={{ background: C.cardBg, borderColor: destaque ? color + '55' : C.cardBorder }}
+    >
       <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center"
-        style={{ background: color + '18', border: `1px solid ${color}30` }}
+        className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: color + '20', border: `1px solid ${color}4D` }}
       >
-        <Icon size={17} color={color} />
+        <Icon size={21} color={color} />
       </div>
-      <div>
-        <p className="text-3xl font-black leading-none" style={{ color: C.text1, letterSpacing: '-0.04em' }}>
+      <div className="min-w-0">
+        <p
+          className="font-bold leading-none"
+          style={{ color: destaque ? color : C.text1, fontSize: 32, letterSpacing: '-0.035em' }}
+        >
           {value}
         </p>
-        <p className="text-xs mt-1.5" style={{ color: C.text3 }}>
+        <p className="mt-1.5" style={{ color: C.text2, fontSize: 13 }}>
           {label}
         </p>
       </div>
@@ -181,17 +201,25 @@ export function StatCard({ icon: Icon, value, label, color }) {
   )
 }
 
-export function Pill({ children, color, dot = false }) {
+// `marcador` troca o ponto por um ícone (ex: relógio de pausa com prazo), mantendo o formato de pílula.
+export function Pill({ children, color, dot = false, marcador = null }) {
+  if (marcador) dot = true
   return (
     <span
       className={
         dot
-          ? 'text-[11px] font-semibold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5'
-          : 'text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider inline-flex items-center gap-1'
+          ? 'font-semibold px-2.5 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap'
+          : 'font-bold px-2.5 rounded-lg uppercase tracking-wider inline-flex items-center gap-1.5 whitespace-nowrap'
       }
-      style={{ color, background: color + '15', border: `1px solid ${color}30` }}
+      style={{
+        color,
+        background: color + '1F',
+        border: `1px solid ${color}4D`,
+        fontSize: dot ? 12.5 : 11.5,
+        height: dot ? 27 : 24,
+      }}
     >
-      {dot && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />}
+      {marcador || (dot && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />)}
       {children}
     </span>
   )
@@ -204,15 +232,16 @@ export function Toggle({ ligado, onChange, disabled = false, titulo }) {
       type="button"
       role="switch"
       aria-checked={ligado}
+      aria-label={titulo}
       title={titulo}
       disabled={disabled}
       onClick={onChange}
       className="relative inline-flex flex-shrink-0 rounded-full transition-colors disabled:opacity-40"
-      style={{ width: 38, height: 21, background: ligado ? C.good : C.text3 }}
+      style={{ width: 44, height: 25, background: ligado ? C.good : C.text3 }}
     >
       <span
         className="absolute rounded-full bg-white transition-all"
-        style={{ width: 15, height: 15, top: 3, left: ligado ? 20 : 3, boxShadow: '0 1px 2px rgba(0,0,0,0.35)' }}
+        style={{ width: 19, height: 19, top: 3, left: ligado ? 22 : 3, boxShadow: '0 1px 3px rgba(0,0,0,0.45)' }}
       />
     </button>
   )
@@ -220,6 +249,17 @@ export function Toggle({ ligado, onChange, disabled = false, titulo }) {
 
 export function Modal({ titulo, eyebrow, onClose, children, largura = 'max-w-md' }) {
   const C = useContext(CoresContext)
+
+  // Esc fecha. Antes só o clique no overlay ou no X fechavam — quem navega por teclado ficava
+  // preso dentro do modal.
+  useEffect(() => {
+    function aoTeclar(e) {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', aoTeclar)
+    return () => window.removeEventListener('keydown', aoTeclar)
+  }, [onClose])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -227,37 +267,45 @@ export function Modal({ titulo, eyebrow, onClose, children, largura = 'max-w-md'
       onClick={onClose}
     >
       <div
-        className={`w-full ${largura} rounded-2xl p-5 max-h-[80vh] overflow-y-auto`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={titulo}
+        className={`modal-entrada w-full ${largura} rounded-2xl max-h-[85vh] overflow-y-auto`}
         style={{
           background: C.modalBg,
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
           border: `1px solid ${C.modalBorder}`,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+          boxShadow: '0 28px 70px -20px rgba(0,0,0,0.85)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between mb-4">
-          <div>
+        <div
+          className="flex items-start justify-between gap-3 px-5 py-4 border-b sticky top-0 z-10"
+          style={{ borderColor: C.cardBorder, background: C.modalBg }}
+        >
+          <div className="min-w-0">
             {eyebrow && (
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#F56C35' }}>
+              <p
+                className="font-bold uppercase tracking-widest mb-1"
+                style={{ color: C.marcaTinta, fontSize: 11.5 }}
+              >
                 {eyebrow}
               </p>
             )}
-            <h3 className="text-sm font-bold" style={{ color: C.text1 }}>
+            <h3 className="font-bold" style={{ color: C.text1, fontSize: 16, letterSpacing: '-0.01em' }}>
               {titulo}
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ color: C.text2, background: C.inputBg }}
+            aria-label="Fechar"
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
           >
-            <X size={14} />
+            <X size={15} />
           </button>
         </div>
-        {children}
+        <div className="p-5">{children}</div>
       </div>
     </div>
   )

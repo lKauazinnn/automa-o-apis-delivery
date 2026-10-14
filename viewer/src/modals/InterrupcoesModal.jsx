@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2, Trash2 } from 'lucide-react'
 import { Modal } from '../ui'
 
@@ -8,20 +8,37 @@ export function InterrupcoesModal({ onClose, apiFetch, notificar, podeEditar, C,
   const [form, setForm] = useState({ descricao: '', inicio: '', fim: '' })
   const [criando, setCriando] = useState(false)
   const [excluindoId, setExcluindoId] = useState(null)
+  const montado = useRef(true)
 
-  async function carregar() {
-    setCarregando(true)
+  async function carregar(silencioso = false) {
+    if (!silencioso) setCarregando(true)
     try {
-      setInterrupcoes(await apiFetch('/interrupcoes'))
+      const dados = await apiFetch('/interrupcoes')
+      if (montado.current) setInterrupcoes(dados)
     } catch (e) {
-      notificar('erro', e.message)
+      if (!silencioso) notificar('erro', e.message)
     } finally {
-      setCarregando(false)
+      if (!silencioso && montado.current) setCarregando(false)
+    }
+  }
+
+  // A lista do iFood é eventualmente consistente: uma interrupção recém-criada/removida leva
+  // ~10-15s pra aparecer/sumir. Reconsultamos em silêncio algumas vezes pra a tela refletir a
+  // realidade sem depender de um refresh manual (importante na gravação da homologação).
+  function recarregarComPropagacao() {
+    carregar()
+    for (const ms of [6000, 13000]) {
+      setTimeout(() => {
+        if (montado.current) carregar(true)
+      }, ms)
     }
   }
 
   useEffect(() => {
     carregar()
+    return () => {
+      montado.current = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -41,7 +58,7 @@ export function InterrupcoesModal({ onClose, apiFetch, notificar, podeEditar, C,
       })
       notificar('sucesso', 'Interrupção criada — a loja fecha automaticamente nesse período.')
       setForm({ descricao: '', inicio: '', fim: '' })
-      carregar()
+      recarregarComPropagacao()
     } catch (e) {
       notificar('erro', e.message)
     } finally {
@@ -54,7 +71,7 @@ export function InterrupcoesModal({ onClose, apiFetch, notificar, podeEditar, C,
     try {
       await apiFetch(`/interrupcoes/${interrupcao.id}`, { method: 'DELETE' })
       notificar('sucesso', 'Interrupção removida.')
-      carregar()
+      recarregarComPropagacao()
     } catch (e) {
       notificar('erro', e.message)
     } finally {

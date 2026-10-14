@@ -36,8 +36,8 @@ const ARESTAS_SINAL = [
 ]
 
 const CORES = {
-  escuro: { aresta: 'rgba(148,163,184,0.28)', no: '#94a3b8', sinal: '#f56c35' },
-  claro: { aresta: 'rgba(100,116,139,0.28)', no: '#64748b', sinal: '#f56c35' },
+  escuro: { aresta: 'rgba(148,163,184,0.28)', no: '#94a3b8', sinal: 'var(--marca)' },
+  claro: { aresta: 'rgba(100,116,139,0.28)', no: '#64748b', sinal: 'var(--marca)' },
 }
 
 export function CerebroGraphify({ tema = 'escuro', tamanho = 160, className = '' }) {
@@ -62,7 +62,7 @@ export function CerebroGraphify({ tema = 'escuro', tamanho = 160, className = ''
         const de = NOS[aresta.de]
         const para = NOS[aresta.para]
         return (
-          <circle key={i} r="2.5" fill={cor.sinal}>
+          <circle key={i} r="2.5" style={{ fill: cor.sinal }}>
             <animateMotion
               dur={`${aresta.dur}s`}
               repeatCount="indefinite"

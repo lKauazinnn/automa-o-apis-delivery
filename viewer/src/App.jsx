@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Check, CheckCircle2, Loader2, Moon, Store, Sun, Trash2, X } from 'lucide-react'
+import { AlertTriangle, Check, CheckCircle2, Loader2, Moon, Sun, Trash2, X } from 'lucide-react'
 import {
   API,
   buscarEu,
@@ -15,22 +15,34 @@ import { ComboModal } from './modals/ComboModal'
 import { GruposOpcaoModal } from './modals/GruposOpcaoModal'
 import { HorarioFuncionamentoModal } from './modals/HorarioFuncionamentoModal'
 import { InterrupcoesModal } from './modals/InterrupcoesModal'
+import { MarcaModal } from './modals/MarcaModal'
+import { PausaInsumoModal } from './modals/PausaInsumoModal'
+import { PausarModal } from './modals/PausarModal'
+import { RupturasModal } from './modals/RupturasModal'
 import { Sidebar } from './Sidebar'
 import { TelaDefinirSenha, TelaLogin } from './TelasAuth'
 import { Avatar, CoresContext, iniciaisDe, lerImagemComoDataUrl, Modal, PALETAS, Pill } from './ui'
+import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
 import { AuditoriaView } from './views/AuditoriaView'
 import { CatalogoView } from './views/CatalogoView'
 import { DashboardView } from './views/DashboardView'
+import { FinanceiroView } from './views/FinanceiroView'
+import { StatusLojasView } from './views/StatusLojasView'
 import { KDSView } from './views/KDSView'
 import { PedidosView } from './views/PedidosView'
 
 const TITULOS_VIEW = {
-  dashboard: { t: 'Painel', sub: 'Visão geral da operação na loja ativa' },
-  pedidos: { t: 'Pedidos', sub: 'Pedidos da loja ativa, atualizando sozinho' },
-  kds: { t: 'Cozinha (KDS)', sub: 'Quadro de preparo em tempo real' },
-  catalogo: { t: 'Cardápio', sub: 'Gestão de itens da loja ativa' },
+  dashboard: { t: 'Painel', sub: 'Visão geral da operação' },
+  pedidos: { t: 'Pedidos', sub: 'Histórico completo, atualizando sozinho' },
+  kds: { t: 'Cozinha', sub: 'Quadro de preparo em tempo real' },
+  catalogo: { t: 'Cardápio', sub: 'Gestão de itens' },
   auditoria: { t: 'Histórico', sub: 'Tudo que a equipe alterou, em ordem' },
 }
+
+// Views que se atualizam sozinhas — o selo "Ao vivo" no header existe pra deixar claro que a
+// tela relê os pedidos por conta própria, e (junto com o estado de erro) pra dar onde olhar
+// quando a leitura falha.
+const AO_VIVO = { kds: '10s', pedidos: '15s' }
 
 const PAPEIS = [
   { valor: 'administrador', label: 'Administrador' },
@@ -102,7 +114,7 @@ function FormDefinirSenha({ usuario, carregando, onConfirmar, onCancelar, C }) {
     }
   }
 
-  const botaoEstiloAtivo = { background: '#F56C35', color: '#fff' }
+  const botaoEstiloAtivo = { background: C.marca, color: C.marcaTexto }
   const botaoEstiloInativo = { background: C.inputBg, color: C.text2 }
 
   return (
@@ -146,7 +158,7 @@ function FormDefinirSenha({ usuario, carregando, onConfirmar, onCancelar, C }) {
       {erro && (
         <p
           className="text-xs rounded-lg px-3 py-2"
-          style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+          style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}` }}
         >
           {erro}
         </p>
@@ -177,8 +189,7 @@ function FormDefinirSenha({ usuario, carregando, onConfirmar, onCancelar, C }) {
 let contadorToast = 0
 const CHAVE_SESSAO = 'sessao_ifood_v1'
 
-function Painel({ sessao, onSair, tema, setTema }) {
-  const C = PALETAS[tema]
+function Painel({ sessao, onSair, tema, setTema, C }) {
 
   const [itens, setItens] = useState([])
   const [categorias, setCategorias] = useState([])
@@ -227,6 +238,14 @@ function Painel({ sessao, onSair, tema, setTema }) {
   const [progressoMassa, setProgressoMassa] = useState(null)
   const [modalAcoesMassa, setModalAcoesMassa] = useState(false)
   const [modalRelacionados, setModalRelacionados] = useState(null)
+  const [modalPausar, setModalPausar] = useState(null) // { titulo, descricao, alvos, motivoInicial }
+  const [modalInsumo, setModalInsumo] = useState(false)
+  const [modalRupturas, setModalRupturas] = useState(false)
+  const [modalMarca, setModalMarca] = useState(false)
+  const [pausasAtivas, setPausasAtivas] = useState([])
+  const [carregandoPausas, setCarregandoPausas] = useState(false)
+  const [erroPausas, setErroPausas] = useState('')
+  const [registroPausas, setRegistroPausas] = useState(true)
 
   const [modalEdicao, setModalEdicao] = useState(null)
   const [salvandoEdicao, setSalvandoEdicao] = useState(false)
@@ -278,7 +297,13 @@ function Painel({ sessao, onSair, tema, setTema }) {
       throw new Error('Sua sessão expirou. Faça login de novo.')
     }
     if (!resp.ok) {
-      throw new Error(dados?.erro || 'Erro inesperado ao falar com o servidor local.')
+      // O backend manda `detalhe` com a resposta crua do iFood/Supabase. Sem isso o usuário
+      // via só "a operação foi recusada" e não tinha como saber o motivo nem o que fazer.
+      const base = dados?.erro || 'Erro inesperado ao falar com o servidor local.'
+      const detalhe = String(dados?.detalhe || '').trim()
+      const erro = new Error(detalhe ? `${base} — ${detalhe.slice(0, 160)}` : base)
+      erro.status = resp.status
+      throw erro
     }
     return dados
   }
@@ -290,10 +315,33 @@ function Painel({ sessao, onSair, tema, setTema }) {
       const data = await apiFetch(lojaAtual?.plataforma === '99food' ? '/99food/catalogo' : '/catalogo')
       setItens(data.itens)
       setCategorias(data.categorias)
+      carregarPausas()
     } catch (e) {
       setErroCarregamento(e.message || 'Não consegui falar com o servidor local. Ele está rodando? (python server/app.py)')
     } finally {
       setCarregando(false)
+    }
+  }
+
+  // Pausas registradas pelo painel (motivo/prazo). O backend aproveita a chamada pra reativar o
+  // que já venceu, então se ele devolver `reativadas > 0` o catálogo na tela está velho.
+  async function carregarPausas() {
+    setCarregandoPausas(true)
+    setErroPausas('')
+    try {
+      const r = await apiFetch('/pausas')
+      setPausasAtivas(r.pausas || [])
+      setRegistroPausas(!!r.disponivel)
+      if (r.reativadas > 0) {
+        notificar('sucesso', `${r.reativadas} item(ns) com pausa vencida voltaram ao cardápio.`)
+        const data = await apiFetch(lojaAtual?.plataforma === '99food' ? '/99food/catalogo' : '/catalogo')
+        setItens(data.itens)
+        carregarAuditoria()
+      }
+    } catch (e) {
+      setErroPausas(e.message)
+    } finally {
+      setCarregandoPausas(false)
     }
   }
 
@@ -565,22 +613,44 @@ function Painel({ sessao, onSair, tema, setTema }) {
     }
   }
 
-  // Toggle direto de um único item, sem checar relacionados (usado quando não há
-  // nenhum item parecido, ou quando o usuário escolhe "só este item" no modal).
+  // Rota de status de um alvo. `alvo.tipo` é 'item' ou 'opcao' (complemento); `loja` só vem
+  // preenchida na replicação pra outra loja — o ?loja= no caminho tem prioridade sobre o que o
+  // apiFetch acrescenta (o Flask lê o primeiro valor).
+  function caminhoStatus(alvo, loja) {
+    const plataforma = loja ? loja.plataforma : lojaAtual?.plataforma
+    let caminho
+    if (alvo.tipo === 'opcao') caminho = `/grupos-opcao/${alvo.grupoId}/opcoes/${alvo.id}/status`
+    else if (plataforma === '99food') caminho = `/99food/itens/${alvo.id}/status`
+    else caminho = `/itens/${alvo.id}/status`
+    return loja ? `${caminho}?loja=${encodeURIComponent(loja.merchant_id)}` : caminho
+  }
+
+  function alvoDoItem(item, extras = {}) {
+    return {
+      chave: `item:${item.itemId}`,
+      tipo: 'item',
+      id: item.itemId,
+      nome: item.nome,
+      codigo_pdv: item.codigo_pdv || '',
+      status: item.status,
+      ...extras,
+    }
+  }
+
+  // Toggle direto de um único item, sem checar relacionados (usado pra despausar quando não há
+  // nenhum item parecido, quando o usuário escolhe "só este item" e no despausar rápido do Painel).
   async function executarAlternarStatus(item, novoStatus) {
     setAlterandoStatus(item.itemId)
     try {
-      await apiFetch(
-        lojaAtual?.plataforma === '99food' ? `/99food/itens/${item.itemId}/status` : `/itens/${item.itemId}/status`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: novoStatus, nome: item.nome }),
-        },
-      )
+      await apiFetch(caminhoStatus(alvoDoItem(item)), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: novoStatus, nome: item.nome, codigo_pdv: item.codigo_pdv || '' }),
+      })
       setItens((prev) => prev.map((i) => (i.itemId === item.itemId ? { ...i, status: novoStatus } : i)))
       notificar('sucesso', `"${item.nome}" ${novoStatus === 'UNAVAILABLE' ? 'pausado' : 'despausado'}.`)
       carregarAuditoria()
+      carregarPausas()
     } catch (e) {
       notificar('erro', `Não consegui alterar "${item.nome}": ${e.message}`)
     } finally {
@@ -588,12 +658,28 @@ function Painel({ sessao, onSair, tema, setTema }) {
     }
   }
 
-  // Clique no botão de pausar/despausar de uma linha: se existir item parecido (ex: mesma
-  // proteína em tamanhos "Com/Fam/Exec"), pergunta antes se quer aplicar a todos de uma vez —
-  // pensado pra ruptura de insumo, onde travar 1 por 1 é lento.
+  function abrirPausar(alvos, { titulo, descricao, motivoInicial = '' } = {}) {
+    setModalPausar({ alvos, titulo, descricao, motivoInicial })
+  }
+
+  // Clique no botão da linha. Pausar abre o modal de motivo/prazo já com os itens parecidos
+  // sugeridos (ex: mesma proteína em tamanhos "Com/Fam/Exec" — ruptura de insumo, onde travar
+  // 1 por 1 é lento). Despausar continua direto, perguntando só pelos parecidos.
   function prepararAlternarStatus(item) {
     const novoStatus = item.status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE'
     const relacionados = encontrarRelacionados(item, itens).filter((i) => i.status !== novoStatus)
+    if (novoStatus === 'UNAVAILABLE') {
+      abrirPausar(
+        [alvoDoItem(item, { marcado: true }), ...relacionados.map((r) => alvoDoItem(r, { marcado: true, sugerido: true }))],
+        {
+          titulo: `Pausar "${item.nome}"`,
+          descricao: relacionados.length
+            ? `Marcamos também ${relacionados.length} ${relacionados.length === 1 ? 'item parecido' : 'itens parecidos'} — desmarque o que não faltar.`
+            : '',
+        },
+      )
+      return
+    }
     if (relacionados.length === 0) {
       executarAlternarStatus(item, novoStatus)
       return
@@ -615,50 +701,45 @@ function Painel({ sessao, onSair, tema, setTema }) {
     })
   }
 
-  // Aplica um status a vários itens de uma vez (usado pelo modal de ações em massa e pelo
-  // modal de itens parecidos). `alvos` é [{ item_id, nome }] — o nome vai só pra auditoria
-  // ficar legível, sem precisar o backend ir buscar no iFood.
-  async function pausarComIds(alvos, status) {
+  // Aplica um status a vários alvos, um por vez (as APIs não têm status em lote), com barra de
+  // progresso. Cada tarefa é um alvo { tipo, id, grupoId?, nome, codigo_pdv } com `loja`
+  // opcional (replicação pra outra loja). `extras` = { minutos, motivo } da pausa.
+  async function executarStatusEmLote(tarefas, status, extras = {}) {
     setExecutandoMassa(true)
-    setProgressoMassa({ atual: 0, total: alvos.length, status })
+    setProgressoMassa({ atual: 0, total: tarefas.length, status })
     try {
       const resultados = []
-      for (let i = 0; i < alvos.length; i++) {
-        const alvo = alvos[i]
+      for (let i = 0; i < tarefas.length; i++) {
+        const t = tarefas[i]
         try {
-          await apiFetch(
-            lojaAtual?.plataforma === '99food' ? `/99food/itens/${alvo.item_id}/status` : `/itens/${alvo.item_id}/status`,
-            {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status, nome: alvo.nome }),
-            },
-          )
-          resultados.push({ itemId: alvo.item_id, ok: true })
+          await apiFetch(caminhoStatus(t, t.loja), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status, nome: t.nome, codigo_pdv: t.codigo_pdv || '', ...extras }),
+          })
+          resultados.push({ t, ok: true })
         } catch (e) {
-          resultados.push({ itemId: alvo.item_id, ok: false, erro: e.message })
+          resultados.push({ t, ok: false, erro: e.message })
           // sessão caiu no meio da operação: não adianta insistir no resto da fila
           if (e.message.includes('sessão expirou')) break
         }
-        setProgressoMassa({ atual: i + 1, total: alvos.length, status })
-        if (i < alvos.length - 1) await new Promise((resolve) => setTimeout(resolve, 150))
+        setProgressoMassa({ atual: i + 1, total: tarefas.length, status })
+        if (i < tarefas.length - 1) await new Promise((resolve) => setTimeout(resolve, 150))
       }
 
-      setItens((prev) =>
-        prev.map((i) => {
-          const resultado = resultados.find((r) => r.itemId === i.itemId)
-          return resultado?.ok ? { ...i, status } : i
-        })
-      )
+      const okAqui = new Set(resultados.filter((r) => r.ok && !r.t.loja && r.t.tipo === 'item').map((r) => r.t.id))
+      setItens((prev) => prev.map((i) => (okAqui.has(i.itemId) ? { ...i, status } : i)))
       const ok = resultados.filter((r) => r.ok).length
       const total = resultados.length
-      const acao = status === 'UNAVAILABLE' ? 'pausados' : 'despausados'
+      const acao = status === 'UNAVAILABLE' ? 'pausados' : 'reativados'
       if (ok < total) {
-        notificar('aviso', `${ok} de ${total} itens ${acao}. ${total - ok} falharam.`)
+        const falhas = resultados.filter((r) => !r.ok).map((r) => `${r.t.nome}${r.t.loja ? ` (${r.t.loja.nome})` : ''}`)
+        notificar('aviso', `${ok} de ${total} ${acao}. Falharam: ${falhas.slice(0, 3).join(', ')}${falhas.length > 3 ? '...' : ''}`)
       } else {
-        notificar('sucesso', `${ok} itens ${acao}.`)
+        notificar('sucesso', `${ok} ${ok === 1 ? 'item' : 'itens'} ${acao}.`)
       }
       carregarAuditoria()
+      carregarPausas()
     } catch (e) {
       notificar('erro', e.message)
     } finally {
@@ -667,14 +748,52 @@ function Painel({ sessao, onSair, tema, setTema }) {
     }
   }
 
+  // Pausa multicanal: acha o mesmo item nas outras lojas pelo código PDV (é o único identificador
+  // que o iFood e o 99 compartilham) e devolve as tarefas extras. Loja que falhar ao carregar
+  // vira aviso, não bloqueia a pausa na loja atual.
+  async function tarefasEmOutrasLojas(alvos, lojasExtras) {
+    const pdvs = new Set(alvos.filter((a) => a.tipo === 'item' && a.codigo_pdv).map((a) => a.codigo_pdv))
+    const tarefas = []
+    for (const loja of lojasExtras) {
+      try {
+        const base = loja.plataforma === '99food' ? '/99food/catalogo' : '/catalogo'
+        const data = await apiFetch(`${base}?loja=${encodeURIComponent(loja.merchant_id)}`)
+        const achados = (data.itens || []).filter((i) => i.codigo_pdv && pdvs.has(i.codigo_pdv))
+        if (!achados.length) notificar('aviso', `${loja.nome}: nenhum item com os mesmos códigos PDV.`)
+        achados.forEach((i) => tarefas.push({ ...alvoDoItem(i), loja }))
+      } catch (e) {
+        notificar('aviso', `Não consegui ler o cardápio de ${loja.nome}: ${e.message}`)
+      }
+    }
+    return tarefas
+  }
+
+  async function confirmarPausa({ alvos, minutos, motivo, lojasExtras }) {
+    const extras = lojasExtras.length ? await tarefasEmOutrasLojas(alvos, lojasExtras) : []
+    setModalPausar(null)
+    setSelecionados(new Set())
+    setModalAcoesMassa(false)
+    await executarStatusEmLote([...alvos, ...extras], 'UNAVAILABLE', { minutos, motivo })
+  }
+
   function paraAlvos(ids) {
-    return ids.map((id) => ({ item_id: id, nome: itens.find((i) => i.itemId === id)?.nome || '' }))
+    return ids.map((id) => alvoDoItem(itens.find((i) => i.itemId === id) || { itemId: id, nome: '' }))
+  }
+
+  function pausarSelecionados() {
+    const alvos = paraAlvos(Array.from(selecionados)).map((a) => ({ ...a, marcado: true }))
+    if (!alvos.length) return
+    abrirPausar(alvos, { titulo: `Pausar ${alvos.length} ${alvos.length === 1 ? 'item' : 'itens'}` })
   }
 
   async function acaoEmMassa(status) {
+    if (status === 'UNAVAILABLE') {
+      pausarSelecionados()
+      return
+    }
     const ids = Array.from(selecionados)
     if (!ids.length) return
-    await pausarComIds(paraAlvos(ids), status)
+    await executarStatusEmLote(paraAlvos(ids), status)
     setSelecionados(new Set())
     setModalAcoesMassa(false)
   }
@@ -683,7 +802,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
     const { item, novoStatus, selecionados: sel } = modalRelacionados
     const ids = [item.itemId, ...Array.from(sel)]
     setModalRelacionados(null)
-    await pausarComIds(paraAlvos(ids), novoStatus)
+    await executarStatusEmLote(paraAlvos(ids), novoStatus)
   }
 
   function confirmarSoItemAtualModal() {
@@ -995,13 +1114,21 @@ function Painel({ sessao, onSair, tema, setTema }) {
   const totalDisponiveis = useMemo(() => itens.filter((i) => i.status === 'AVAILABLE').length, [itens])
   const totalPausados = itens.length - totalDisponiveis
 
+  const outrasLojas = useMemo(() => lojas.filter((l) => l.merchant_id !== lojaAtual?.merchant_id), [lojas, lojaAtual])
+  const pausasPorItem = useMemo(
+    () => Object.fromEntries(pausasAtivas.filter((p) => p.tipo === 'item').map((p) => [p.alvo_id, p])),
+    [pausasAtivas],
+  )
+  // Badge de Rupturas: itens pausados + complementos pausados pelo painel (esses não estão em `itens`).
+  const totalRupturas = totalPausados + pausasAtivas.filter((p) => p.tipo === 'opcao').length
+
   const inputCls = 'w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all'
   const inputStyle = { background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }
 
   const CORES_TOAST = {
     sucesso: C.good,
     erro: C.bad,
-    aviso: '#f59e0b',
+    aviso: C.neutral,
   }
   const ICONES_TOAST = {
     sucesso: CheckCircle2,
@@ -1068,11 +1195,11 @@ function Painel({ sessao, onSair, tema, setTema }) {
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{
-                    background: (confirmacao.perigo ? C.bad : '#F56C35') + '18',
-                    border: `1px solid ${(confirmacao.perigo ? C.bad : '#F56C35')}30`,
+                    background: (confirmacao.perigo ? C.bad : C.marca) + '18',
+                    border: `1px solid ${(confirmacao.perigo ? C.bad : C.marca)}30`,
                   }}
                 >
-                  <AlertTriangle size={16} color={confirmacao.perigo ? C.bad : '#F56C35'} />
+                  <AlertTriangle size={16} color={confirmacao.perigo ? C.bad : C.marca} />
                 </div>
                 <h3 className="text-sm font-bold" style={{ color: C.text1 }}>
                   {confirmacao.titulo}
@@ -1120,8 +1247,8 @@ function Painel({ sessao, onSair, tema, setTema }) {
                     key={l.id}
                     className="rounded-xl px-3.5 py-3 flex items-center gap-3"
                     style={{
-                      background: ativa ? 'rgba(245,108,53,0.12)' : C.inputBg,
-                      border: `1px solid ${ativa ? '#F56C35' : C.cardBorder}`,
+                      background: ativa ? C.marca + '1F' : C.inputBg,
+                      border: `1px solid ${ativa ? C.marca : C.cardBorder}`,
                     }}
                   >
                     <button
@@ -1141,7 +1268,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                       <span className="flex items-center gap-1.5">
                         <span
                           className="text-[9px] font-bold uppercase tracking-wider"
-                          style={{ color: l.plataforma === '99food' ? '#e0a44c' : '#F56C35' }}
+                          style={{ color: C.text2 }}
                         >
                           {l.plataforma === '99food' ? '99Food' : 'iFood'}
                         </span>
@@ -1149,7 +1276,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                           verificacaoIfood.ids.has(String(l.merchant_id)) ? (
                             <span
                               className="text-[9px] font-semibold px-1.5 py-0.5 rounded inline-flex items-center gap-1"
-                              style={{ color: C.good, background: 'rgba(34,197,94,0.12)' }}
+                              style={{ color: C.good, background: C.goodBg }}
                               title="Loja reconhecida pelo GET /merchants do iFood (vinculada às credenciais)"
                             >
                               <Check size={9} /> verificada no iFood
@@ -1157,7 +1284,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                           ) : (
                             <span
                               className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                              style={{ color: '#e0a44c', background: 'rgba(224,164,76,0.12)' }}
+                              style={{ color: C.neutral, background: C.neutralBg }}
                               title="O iFood não retornou essa loja no GET /merchants pras credenciais atuais"
                             >
                               não encontrada no iFood
@@ -1184,7 +1311,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                         onClick={() => pedirConfirmacaoRemoverLoja(l)}
                         title="Remover loja"
                         className="w-7 h-7 inline-flex items-center justify-center rounded-lg flex-shrink-0"
-                        style={{ color: C.bad, background: 'rgba(239,68,68,0.1)' }}
+                        style={{ color: C.bad, background: C.badBg }}
                       >
                         <Trash2 size={12} />
                       </button>
@@ -1469,7 +1596,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
               {erroMinhaSenha && (
                 <p
                   className="text-xs rounded-lg px-3 py-2"
-                  style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+                  style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}` }}
                 >
                   {erroMinhaSenha}
                 </p>
@@ -1518,7 +1645,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                   notificar('sucesso', 'Senha copiada.')
                 }}
                 className="text-xs font-semibold px-2.5 py-1.5 rounded-lg flex-shrink-0"
-                style={{ color: '#F56C35', background: 'rgba(245,108,53,0.12)' }}
+                style={{ color: C.marcaTinta, background: C.marca + '1F' }}
               >
                 Copiar
               </button>
@@ -1657,7 +1784,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                             className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
                             style={
                               ativo
-                                ? { background: 'rgba(245,108,53,0.15)', color: '#F56C35', border: '1px solid rgba(245,108,53,0.35)' }
+                                ? { background: C.marca + '26', color: C.marcaTinta, border: '1px solid ${C.marca}59' }
                                 : { background: C.inputBg, color: C.text3, border: `1px solid ${C.cardBorder}` }
                             }
                           >
@@ -1727,7 +1854,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                 disabled={executandoMassa}
                 onClick={() => acaoEmMassa('UNAVAILABLE')}
                 className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                style={{ color: C.bad, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+                style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}` }}
               >
                 {executandoMassa && progressoMassa?.status === 'UNAVAILABLE' && <Loader2 size={12} className="animate-spin" />}
                 {executandoMassa && progressoMassa?.status === 'UNAVAILABLE'
@@ -1739,7 +1866,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
                 disabled={executandoMassa}
                 onClick={() => acaoEmMassa('AVAILABLE')}
                 className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                style={{ color: C.good, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}
+                style={{ color: C.good, background: C.goodBg, border: `1px solid ${C.goodBd}` }}
               >
                 {executandoMassa && progressoMassa?.status === 'AVAILABLE' && <Loader2 size={12} className="animate-spin" />}
                 {executandoMassa && progressoMassa?.status === 'AVAILABLE'
@@ -1879,6 +2006,67 @@ function Painel({ sessao, onSair, tema, setTema }) {
           />
         )}
 
+        {modalPausar && (
+          <PausarModal
+            titulo={modalPausar.titulo}
+            descricao={modalPausar.descricao}
+            alvos={modalPausar.alvos}
+            motivoInicial={modalPausar.motivoInicial}
+            outrasLojas={outrasLojas}
+            executando={executandoMassa}
+            onConfirmar={confirmarPausa}
+            onClose={() => setModalPausar(null)}
+            C={C}
+            inputCls={inputCls}
+            inputStyle={inputStyle}
+          />
+        )}
+
+        {modalInsumo && (
+          <PausaInsumoModal
+            itens={itens}
+            plataforma={lojaAtual?.plataforma}
+            apiFetch={apiFetch}
+            onContinuar={(alvos, termo) => {
+              setModalInsumo(false)
+              abrirPausar(alvos, {
+                titulo: `Ruptura de "${termo}"`,
+                descricao: 'Já desmarcamos o que está pausado. Revise antes de confirmar.',
+                motivoInicial: `Acabou: ${termo}`,
+              })
+            }}
+            onClose={() => setModalInsumo(false)}
+            C={C}
+            inputStyle={inputStyle}
+          />
+        )}
+
+        {modalRupturas && (
+          <RupturasModal
+            pausas={pausasAtivas}
+            itens={itens}
+            carregando={carregandoPausas}
+            erro={erroPausas}
+            registroDisponivel={registroPausas}
+            executando={executandoMassa}
+            onRecarregar={carregarPausas}
+            onReativar={(alvos) => executarStatusEmLote(alvos, 'AVAILABLE')}
+            onClose={() => setModalRupturas(false)}
+            C={C}
+          />
+        )}
+
+        {modalMarca && (
+          <MarcaModal
+            onClose={() => setModalMarca(false)}
+            apiFetch={apiFetch}
+            notificar={notificar}
+            C={C}
+            inputCls={inputCls}
+            inputStyle={inputStyle}
+          />
+        )}
+
         {modalInterrupcoes && (
           <InterrupcoesModal
             onClose={() => setModalInterrupcoes(false)}
@@ -1896,6 +2084,10 @@ function Painel({ sessao, onSair, tema, setTema }) {
             view={view}
             onMudarView={setView}
             totalPausados={totalPausados}
+            lojaNome={lojaAtual?.nome}
+            lojaPlataforma={lojaAtual?.plataforma}
+            totalLojas={lojas.length}
+            podeTrocarLoja={lojas.length > 1 || sessao.usuario.papel === 'administrador'}
             userNome={sessao.usuario.nome}
             userIniciais={iniciaisDe(sessao.usuario.nome)}
             userPapel={sessao.usuario.papel}
@@ -1903,72 +2095,89 @@ function Painel({ sessao, onSair, tema, setTema }) {
             podeGerenciarCatalogoAvancado={podeCriarItem}
             onAbrirUsuarios={abrirModalUsuarios}
             onAbrirLojas={() => setModalLojas(true)}
+            onAbrirMarca={() => setModalMarca(true)}
             onAbrirCategorias={() => setModalCategorias(true)}
             onAbrirGruposOpcao={() => setModalGruposOpcao(true)}
             onAbrirHorario={() => setModalHorario(true)}
             onAbrirInterrupcoes={() => setModalInterrupcoes(true)}
+            totalRupturas={totalRupturas}
+            onAbrirRupturas={() => {
+              setModalRupturas(true)
+              carregarPausas()
+            }}
+            onAbrirInsumo={() => setModalInsumo(true)}
             onMinhaSenha={() => setModalMinhaSenha(true)}
             onSair={onSair}
           />
 
           <div className="flex-1 min-w-0 flex flex-col">
             <header
-              className="sticky top-0 z-20 flex items-center gap-4 px-6 py-4 flex-wrap"
-              style={{ background: C.headerBg, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${C.cardBorder}` }}
+              className="sticky top-0 z-20 flex items-center gap-4 px-6 flex-wrap flex-shrink-0"
+              style={{ minHeight: 74, background: C.headerBg, borderBottom: `1px solid ${C.cardBorder}` }}
             >
-              <div>
-                <h1 className="text-base font-extrabold" style={{ color: C.text1 }}>
+              <div className="py-3">
+                <h1 className="font-bold" style={{ color: C.text1, fontSize: 21, letterSpacing: '-0.02em' }}>
                   {TITULOS_VIEW[view].t}
                 </h1>
-                <p className="text-[11.5px] mt-0.5" style={{ color: C.text3 }}>
+                <p className="mt-0.5" style={{ color: C.text2, fontSize: 13 }}>
                   {TITULOS_VIEW[view].sub}
+                  {lojaAtual?.nome ? ` · ${lojaAtual.nome}` : ''}
                 </p>
               </div>
-              <div className="ml-auto flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setModalLojas(true)}
-                  className="botao-icone-fantasma flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold"
-                  style={{ color: C.text2, border: `1px solid ${C.cardBorder}` }}
-                  title="Trocar de loja"
-                >
-                  <Store size={13} />
-                  {lojaAtual?.nome || 'Selecionar loja'}
-                </button>
+              <div className="ml-auto flex items-center gap-2.5">
+                {AO_VIVO[view] && (
+                  <span
+                    className="inline-flex items-center gap-2 rounded-full px-3 font-semibold"
+                    style={{
+                      height: 32,
+                      fontSize: 12.5,
+                      color: C.good,
+                      background: C.goodBg,
+                      border: `1px solid ${C.goodBd}`,
+                    }}
+                    title={`A tela relê os pedidos a cada ${AO_VIVO[view]}`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full pulso-vivo" style={{ background: C.good }} />
+                    Ao vivo · {AO_VIVO[view]}
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
-                  className="botao-icone-fantasma w-9 h-9 inline-flex items-center justify-center rounded-lg"
+                  className="botao-icone-fantasma w-10 h-10 inline-flex items-center justify-center rounded-xl"
                   style={{ color: C.text2, border: `1px solid ${C.cardBorder}` }}
                   title={tema === 'escuro' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+                  aria-label={tema === 'escuro' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
                 >
-                  {tema === 'escuro' ? <Sun size={15} /> : <Moon size={15} />}
+                  {tema === 'escuro' ? <Sun size={16} /> : <Moon size={16} />}
                 </button>
               </div>
             </header>
 
             {progressoMassa && (
               <div
-                className="px-6 py-2.5"
-                style={{ background: C.headerBg, backdropFilter: 'blur(20px)', borderBottom: `1px solid ${C.cardBorder}` }}
+                className="px-6 py-3 flex-shrink-0"
+                style={{ background: C.headerBg, borderBottom: `1px solid ${C.cardBorder}` }}
               >
-                <div className="flex items-center gap-3">
-                  <Loader2 size={14} className="animate-spin flex-shrink-0" style={{ color: '#F56C35' }} />
-                  <span className="text-xs font-semibold flex-shrink-0" style={{ color: C.text1 }}>
-                    {progressoMassa.status === 'UNAVAILABLE' ? 'Pausando' : 'Despausando'} itens: {progressoMassa.atual}/
-                    {progressoMassa.total}
+                <div className="flex items-center gap-3.5">
+                  <Loader2 size={17} className="animate-spin flex-shrink-0" style={{ color: C.marcaTinta }} />
+                  <span className="font-semibold flex-shrink-0" style={{ color: C.text1, fontSize: 14 }}>
+                    {progressoMassa.status === 'UNAVAILABLE' ? 'Pausando' : 'Despausando'} itens
                   </span>
-                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: C.inputBg }}>
+                  <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: C.inputBg }}>
                     <div
                       className="h-full rounded-full transition-all duration-200 ease-out"
                       style={{
                         width: `${(progressoMassa.atual / progressoMassa.total) * 100}%`,
-                        background: 'linear-gradient(90deg,#F56C35,#FBB34A)',
+                        background: C.marca,
                       }}
                     />
                   </div>
-                  <span className="text-[11px] font-mono flex-shrink-0" style={{ color: C.text3 }}>
-                    {Math.round((progressoMassa.atual / progressoMassa.total) * 100)}%
+                  <span
+                    className="fonte-mono font-semibold flex-shrink-0"
+                    style={{ color: C.text2, fontSize: 13.5 }}
+                  >
+                    {progressoMassa.atual} / {progressoMassa.total}
                   </span>
                 </div>
               </div>
@@ -2067,10 +2276,21 @@ function Painel({ sessao, onSair, tema, setTema }) {
                   linhaSalvando={linhaSalvando}
                   linhaSalva={linhaSalva}
                   onAbrirAcoesMassa={() => setModalAcoesMassa(true)}
+                  onPausarSelecionados={pausarSelecionados}
+                  onAbrirInsumo={() => setModalInsumo(true)}
+                  pausasPorItem={pausasPorItem}
                   C={C}
                   inputCls={inputCls}
                   inputStyle={inputStyle}
                 />
+              )}
+
+              {view === 'lojas' && (
+                <StatusLojasView apiFetch={apiFetch} C={C} notificar={notificar} podeGerenciar={podeCriarItem} />
+              )}
+
+              {view === 'financeiro' && podeCriarItem && (
+                <FinanceiroView apiFetch={apiFetch} C={C} notificar={notificar} lojaAtual={lojaAtual} />
               )}
 
               {view === 'auditoria' && (
@@ -2082,8 +2302,8 @@ function Painel({ sessao, onSair, tema, setTema }) {
                 />
               )}
 
-              <p className="text-xs text-center pt-6" style={{ color: tema === 'escuro' ? '#334155' : '#94a3b8' }}>
-                Cajupar · Automação iFood · {itens.length} itens sincronizados
+              <p className="text-xs text-center pt-6" style={{ color: C.text3, fontSize: 12.5 }}>
+                {itens.length} itens sincronizados
               </p>
             </main>
           </div>
@@ -2096,7 +2316,7 @@ function Painel({ sessao, onSair, tema, setTema }) {
 function TelaCarregando({ C }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3">
-      <Loader2 size={22} className="animate-spin" style={{ color: '#F56C35' }} />
+      <Loader2 size={22} className="animate-spin" style={{ color: C.marcaTinta }} />
       <p className="text-xs" style={{ color: C.text2 }}>
         Carregando...
       </p>
@@ -2118,13 +2338,36 @@ export default function App() {
     if (!erro) return ''
     return MENSAGEM_ERRO_LINK[erro.codigo] || erro.descricao?.replaceAll('+', ' ') || 'Esse link não é mais válido.'
   })
-  const [tema, setTema] = useState(() => localStorage.getItem('tema') || 'escuro')
-  const C = PALETAS[tema]
+  // Tema claro é o padrão do produto (tela de balcão/cozinha iluminada); o escuro fica a um clique.
+  const [tema, setTema] = useState(() => localStorage.getItem('tema') || 'claro')
+  const [marca, setMarca] = useState(lerMarcaEmCache)
+  const C = useMemo(() => ({ ...PALETAS[tema], ...tokensDaMarca(marca.cor, tema) }), [tema, marca.cor])
+  const valorMarca = useMemo(() => ({ marca, setMarca }), [marca])
 
   useEffect(() => {
-    document.body.classList.toggle('tema-claro', tema === 'claro')
+    document.documentElement.classList.toggle('tema-escuro', tema === 'escuro')
     localStorage.setItem('tema', tema)
   }, [tema])
+
+  // A marca da empresa cliente: abre na hora com a do cache e confirma com o servidor.
+  useEffect(() => {
+    fetch(`${API}/marca`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((m) => {
+        if (!m) return
+        const nova = { ...MARCA_PADRAO, ...m }
+        setMarca(nova)
+        guardarMarcaEmCache(nova)
+      })
+      .catch(() => {
+        // servidor fora: segue com a marca do cache/padrão
+      })
+  }, [])
+
+  useEffect(() => {
+    aplicarMarcaNoDocumento(marca.cor, tema)
+    document.title = `${marca.nome} · Operação delivery`
+  }, [marca, tema])
 
   useEffect(() => {
     if (avisoLink) limparHashDaUrl()
@@ -2177,27 +2420,35 @@ export default function App() {
     setSessao(null)
   }
 
-  if (verificando) return <TelaCarregando C={C} />
-  if (convite)
-    return (
-      <TelaDefinirSenha
-        accessToken={convite.accessToken}
-        eyebrow={convite.tipo === 'invite' ? 'Bem-vindo(a)' : 'Recuperar acesso'}
-        onDefinida={aoDefinirSenha}
-        C={C}
-      />
-    )
-  if (!sessao) return <TelaLogin onLogar={aoLogar} avisoInicial={avisoLink} C={C} />
-  if (sessao.usuario.senha_temporaria)
-    return (
-      <TelaDefinirSenha
-        accessToken={sessao.accessToken}
-        eyebrow="Segurança da conta"
-        aviso="Você entrou com uma senha temporária, definida por um administrador. Por segurança, escolha agora uma senha só sua antes de continuar."
-        onDefinida={aoTrocarSenhaObrigatoria}
-        onSair={sair}
-        C={C}
-      />
-    )
-  return <Painel sessao={sessao} onSair={sair} tema={tema} setTema={setTema} />
+  return (
+    <MarcaContext.Provider value={valorMarca}>
+      <CoresContext.Provider value={C}>{renderizarTela()}</CoresContext.Provider>
+    </MarcaContext.Provider>
+  )
+
+  function renderizarTela() {
+    if (verificando) return <TelaCarregando C={C} />
+    if (convite)
+      return (
+        <TelaDefinirSenha
+          accessToken={convite.accessToken}
+          eyebrow={convite.tipo === 'invite' ? 'Bem-vindo(a)' : 'Recuperar acesso'}
+          onDefinida={aoDefinirSenha}
+          C={C}
+        />
+      )
+    if (!sessao) return <TelaLogin onLogar={aoLogar} avisoInicial={avisoLink} C={C} />
+    if (sessao.usuario.senha_temporaria)
+      return (
+        <TelaDefinirSenha
+          accessToken={sessao.accessToken}
+          eyebrow="Segurança da conta"
+          aviso="Você entrou com uma senha temporária, definida por um administrador. Por segurança, escolha agora uma senha só sua antes de continuar."
+          onDefinida={aoTrocarSenhaObrigatoria}
+          onSair={sair}
+          C={C}
+        />
+      )
+    return <Painel sessao={sessao} onSair={sair} tema={tema} setTema={setTema} C={C} />
+  }
 }

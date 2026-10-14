@@ -1,10 +1,10 @@
 @echo off
 setlocal
-title Cajupar - Automacao iFood
+title PausaFast - Operacao delivery
 color 0A
 echo.
 echo  ================================================
-echo          CAJUPAR - AUTOMACAO IFOOD
+echo          PAUSAFAST - OPERACAO DELIVERY
 echo  ================================================
 echo.
 echo  Liberando portas do projeto (5000 e 5173)...
@@ -71,13 +71,16 @@ if not exist "%~dp0viewer\node_modules" (
 )
 
 echo.
-echo  [1/2] Iniciando BACKEND - API iFood (porta 5000)...
+echo  [1/3] Iniciando BACKEND - API iFood (porta 5000)...
 start "Backend - API iFood" cmd /k "cd /d "%~dp0" && ".venv\Scripts\python.exe" server\app.py"
 timeout /t 3 /nobreak >nul
 
-echo  [2/2] Iniciando FRONTEND - Painel (porta 5173)...
+echo  [2/3] Iniciando FRONTEND - Painel (porta 5173)...
 start "Frontend - Painel" cmd /k "cd /d "%~dp0viewer" && npm run dev"
 timeout /t 4 /nobreak >nul
+
+echo  [3/3] Iniciando MONITOR - pedidos + loja aberta/fechada (fica rodando)...
+start "Monitor - Pedidos e Lojas" cmd /k "cd /d "%~dp0" && ".venv\Scripts\python.exe" worker\monitor.py"
 
 echo.
 echo  ================================================
@@ -94,7 +97,7 @@ start http://localhost:5173
 
 echo.
 echo  Sistema rodando! Pode fechar esta janela.
-echo  (as janelas do Backend e do Painel precisam continuar abertas)
+echo  (as janelas do Backend, do Painel e do Monitor precisam continuar abertas)
 echo.
 endlocal
 exit /b 0

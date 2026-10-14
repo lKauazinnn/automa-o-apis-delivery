@@ -1,3 +1,7 @@
+> ⚠️ **Desatualizado — use [`DESIGN_CONTEXT.md`](./DESIGN_CONTEXT.md).** Este briefing foi
+> escrito antes de existirem a Sidebar, as views de Pedidos e KDS e o suporte ao 99Food, e
+> descreve um layout de coluna dupla que não é mais o do sistema. Mantido só como registro.
+
 # Briefing do sistema — pra quem for redesenhar
 
 Isso aqui descreve **o que existe hoje** no painel (funcionalidade, telas, dados),
@@ -8,7 +12,7 @@ não sobre cor de botão.
 
 ## O que é
 
-Painel interno (uso da equipe Cajupar, não do cliente final) pra gerenciar o
+Painel interno (uso da equipe da empresa cliente, não do consumidor final) pra gerenciar o
 catálogo de itens de uma ou mais lojas no iFood: pausar/despausar item quando
 falta insumo, criar item novo, ajustar preço e código PDV, e acompanhar quem
 mexeu em quê. Roda local (`localhost:5173` + backend Flask em `localhost:5000`,
@@ -50,7 +54,7 @@ novo. Só admin gerencia lojas e usuários (criar, trocar papel, definir senha).
 
 ## O painel logado — layout de cima pra baixo
 
-**Header** (fixo no topo): logo Cajupar, título "Catálogo iFood / Gestão de
+**Header** (fixo no topo): logo da marca, título "Catálogo iFood / Gestão de
 itens", e à direita: toggle de tema claro/escuro, botão da loja ativa (abre
 "Gerenciar lojas"), botão "Usuários" (só admin, abre "Gerenciar usuários"),
 nome+papel da pessoa logada, botão "Trocar minha senha", botão "Sair". Uma linha

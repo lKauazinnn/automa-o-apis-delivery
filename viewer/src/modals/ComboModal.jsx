@@ -184,7 +184,7 @@ export function ComboModal({ onClose, onCriado, apiFetch, notificar, categorias,
           </div>
 
           {erro && (
-            <p className="text-xs rounded-lg px-3 py-2" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
+            <p className="text-xs rounded-lg px-3 py-2" style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}` }}>
               {erro}
             </p>
           )}

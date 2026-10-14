@@ -78,7 +78,7 @@ function CartaoGrafico({ titulo, subtitulo, icon: Icon, C, vazio, mensagemVazia,
   return (
     <div className="rounded-2xl border p-5" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
       <div className="flex items-center gap-2 mb-0.5">
-        <Icon size={14} color="#F56C35" />
+        <Icon size={14} color={C.marcaTinta} />
         <h2 className="text-sm font-bold" style={{ color: C.text1 }}>
           {titulo}
         </h2>
@@ -233,7 +233,7 @@ export function GraficoItensReincidentes({ auditoria, C }) {
             tickLine={false}
           />
           <Tooltip content={<TooltipCartao C={C} />} cursor={{ fill: C.inputBg }} />
-          <Bar dataKey="vezes" name="Vezes pausado" fill="#F56C35" radius={[0, 4, 4, 0]} maxBarSize={20}>
+          <Bar dataKey="vezes" name="Vezes pausado" fill={C.marca} radius={[0, 4, 4, 0]} maxBarSize={20}>
             <LabelList dataKey="vezes" position="right" formatter={(valor) => `${valor}x`} fill={C.text2} fontSize={11} />
           </Bar>
         </BarChart>

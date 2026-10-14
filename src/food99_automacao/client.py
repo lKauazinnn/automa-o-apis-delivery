@@ -71,6 +71,26 @@ def order_delivered(app_shop_id: str, order_id: int):
     return _get("/v1/order/order/delivered", {"auth_token": get_auth_token(app_shop_id), "order_id": order_id})
 
 
+# ------------------------------------------------------------------ Loja
+
+# sub_biz_status do ShopModel (swagger oficial) — estado em tempo real da loja.
+SUB_STATUS_LOJA = {
+    0: "Padrão",
+    1: "Loja aberta",
+    2: "Operação pausada",
+    3: "Loja fechada",
+    4: "Loja desconectada",
+    5: "Fechada pelo resto do dia",
+    6: "Loja bloqueada",
+    7: "Fechada pelo sistema (sem entregador)",
+}
+
+
+def shop_detail(app_shop_id: str) -> dict:
+    """Detalhe da loja, incluindo `biz_status` e `sub_biz_status` (ver SUB_STATUS_LOJA)."""
+    return _get("/v1/shop/shop/detail", {"auth_token": get_auth_token(app_shop_id)})
+
+
 # ------------------------------------------------------------------ Itens / cardápio
 
 def list_items(app_shop_id: str) -> dict:

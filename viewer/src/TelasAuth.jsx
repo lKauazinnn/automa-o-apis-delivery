@@ -1,33 +1,36 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { CheckCircle2, Loader2, Lock, LogIn, Mail } from 'lucide-react'
 import { definirSenha, login, recuperarSenha } from './auth'
+import { LogoMarca } from './Logo'
+import { MarcaContext } from './marca'
 
 function Casca({ children, C }) {
+  const { marca } = useContext(MarcaContext)
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-6">
-          <img src="/brand/logo-cajupar.png" alt="Cajupar" className="h-10 w-auto object-contain" />
+          <LogoMarca tamanho={44} corTexto={C.text1} />
         </div>
-        <div className="rounded-2xl border p-6" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
+        <div className="rounded-2xl border p-7" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
           {children}
         </div>
-        <p className="text-center text-[11px] mt-5" style={{ color: C.text3 }}>
-          Cajupar · Automação iFood
+        <p className="text-center mt-6" style={{ color: C.text3, fontSize: 12.5 }}>
+          {marca.nome === 'PausaFast' ? 'PausaFast · Operação delivery' : `${marca.nome} · Operação delivery com PausaFast`}
         </p>
       </div>
     </div>
   )
 }
 
-const inputCls = 'w-full rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none'
-const estiloInput = (C) => ({ background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` })
+const inputCls = 'w-full rounded-xl pl-11 pr-3.5 outline-none'
+const estiloInput = (C) => ({ background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}`, height: 48, fontSize: 15 })
 
 function AvisoErro({ children, C }) {
   return (
     <p
-      className="text-xs rounded-lg px-3 py-2 mb-3.5"
-      style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}` }}
+      className="rounded-xl px-3.5 py-2.5 mb-4 leading-relaxed"
+      style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}`, fontSize: 13.5 }}
     >
       {children}
     </p>
@@ -61,7 +64,7 @@ function PainelEsqueciSenha({ onVoltar, C }) {
         <p className="text-sm" style={{ color: C.text1 }}>
           Se esse e-mail tiver uma conta, um link de recuperação foi enviado.
         </p>
-        <button type="button" onClick={onVoltar} className="text-xs font-semibold" style={{ color: '#F56C35' }}>
+        <button type="button" onClick={onVoltar} className="text-xs font-semibold" style={{ color: C.marcaTinta }}>
           Voltar pro login
         </button>
       </div>
@@ -69,14 +72,14 @@ function PainelEsqueciSenha({ onVoltar, C }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <p className="text-xs" style={{ color: C.text2 }}>
         Informe seu e-mail. Se preferir não esperar o e-mail chegar (às vezes o filtro de
         segurança corporativo derruba o link), peça pra um administrador redefinir sua senha
         direto pelo painel de Usuários.
       </p>
       <div className="relative">
-        <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
+        <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
         <input
           className={inputCls}
           style={estiloInput(C)}
@@ -93,7 +96,8 @@ function PainelEsqueciSenha({ onVoltar, C }) {
       <button
         type="submit"
         disabled={carregando}
-        className="botao-primario flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
+        className="botao-primario flex items-center justify-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-40"
+            style={{ height: 50, fontSize: 15 }}
       >
         {carregando ? <Loader2 key="icone" size={15} className="animate-spin" /> : null}
         {carregando ? 'Enviando...' : 'Enviar link de recuperação'}
@@ -128,10 +132,10 @@ export function TelaLogin({ onLogar, avisoInicial, C }) {
 
   return (
     <Casca C={C}>
-      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#F56C35' }}>
-        Catálogo iFood
+      <p className="font-bold uppercase tracking-widest mb-1.5" style={{ color: C.marcaTinta, fontSize: 11.5 }}>
+        Operação delivery
       </p>
-      <h1 className="text-lg font-bold mb-5" style={{ color: C.text1 }}>
+      <h1 className="font-bold mb-6" style={{ color: C.text1, fontSize: 23, letterSpacing: '-0.022em' }}>
         {modoRecuperar ? 'Recuperar senha' : 'Entrar'}
       </h1>
 
@@ -142,7 +146,7 @@ export function TelaLogin({ onLogar, avisoInicial, C }) {
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
           <div className="relative">
-            <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
+            <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
             <input
               className={inputCls}
               style={estiloInput(C)}
@@ -156,7 +160,7 @@ export function TelaLogin({ onLogar, avisoInicial, C }) {
             />
           </div>
           <div className="relative">
-            <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
+            <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
             <input
               className={inputCls}
               style={estiloInput(C)}
@@ -172,24 +176,28 @@ export function TelaLogin({ onLogar, avisoInicial, C }) {
           <button
             type="submit"
             disabled={carregando}
-            className="botao-primario flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
+            className="botao-primario flex items-center justify-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-40"
+            style={{ height: 50, fontSize: 15 }}
           >
             {carregando ? <Loader2 key="carregando" size={15} className="animate-spin" /> : <LogIn key="entrar" size={15} />}
             {carregando ? 'Entrando...' : 'Entrar'}
           </button>
-          <div className="flex items-center justify-between">
+          <div className="text-right -mt-1">
             <button
               type="button"
               onClick={() => setModoRecuperar(true)}
-              className="text-[11px] font-semibold"
-              style={{ color: '#F56C35' }}
+              className="font-semibold"
+              style={{ color: C.marcaTinta, fontSize: 13.5 }}
             >
               Esqueci minha senha
             </button>
-            <p className="text-[11px]" style={{ color: C.text2 }}>
-              Sem conta? Peça pra um administrador criar a sua.
-            </p>
           </div>
+          <p
+            className="mt-1 pt-4 border-t leading-relaxed"
+            style={{ borderColor: C.cardBorder, color: C.text3, fontSize: 13 }}
+          >
+            Não existe cadastro aberto. Peça pra um administrador criar a sua conta.
+          </p>
         </form>
       )}
     </Casca>
@@ -229,7 +237,7 @@ export function TelaDefinirSenha({ accessToken, eyebrow, aviso, onDefinida, onSa
 
   return (
     <Casca C={C}>
-      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#F56C35' }}>
+      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: C.marcaTinta }}>
         {eyebrow}
       </p>
       <h1 className="text-lg font-bold mb-2" style={{ color: C.text1 }}>
@@ -242,7 +250,7 @@ export function TelaDefinirSenha({ accessToken, eyebrow, aviso, onDefinida, onSa
       )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
         <div className="relative">
-          <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
+          <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
           <input
             className={inputCls}
             style={estiloInput(C)}
@@ -256,7 +264,7 @@ export function TelaDefinirSenha({ accessToken, eyebrow, aviso, onDefinida, onSa
           />
         </div>
         <div className="relative">
-          <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
+          <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: C.text2 }} />
           <input
             className={inputCls}
             style={estiloInput(C)}
@@ -272,7 +280,8 @@ export function TelaDefinirSenha({ accessToken, eyebrow, aviso, onDefinida, onSa
         <button
           type="submit"
           disabled={carregando}
-          className="botao-primario flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider px-4 py-3 rounded-xl disabled:opacity-40"
+          className="botao-primario flex items-center justify-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-40"
+            style={{ height: 50, fontSize: 15 }}
         >
           {carregando && <Loader2 size={15} className="animate-spin" />}
           {carregando ? 'Salvando...' : 'Salvar e entrar'}

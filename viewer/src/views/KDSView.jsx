@@ -1,22 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Clock, LayoutGrid, Loader2, Plus, RefreshCw, X } from 'lucide-react'
-import { Modal, Pill } from '../ui'
+import { AlertTriangle, ArrowRight, CalendarClock, Clock, Handshake, LayoutGrid, Loader2, Plus, RefreshCw, X } from 'lucide-react'
+import { Esqueleto, Modal } from '../ui'
 import { DetalhesPedidoModal } from '../DetalhesPedidoModal'
 
 const INTERVALO_ATUALIZACAO_MS = 10000
 
-const COLUNAS = [
+// Só o trabalho ATIVO ganha faixa larga. Concluído e cancelado vão pro trilho estreito de
+// "Finalizados" à direita — antes as cinco colunas tinham a mesma largura, e as duas que
+// ninguém precisa olhar durante o serviço comiam 2/5 da tela.
+const LANES_ATIVAS = [
   { status: 'NOVO', titulo: 'Novo' },
   { status: 'CONFIRMADO', titulo: 'Confirmado' },
   { status: 'DESPACHADO', titulo: 'Despachado' },
-  { status: 'CONCLUIDO', titulo: 'Concluído' },
-  { status: 'CANCELADO', titulo: 'Cancelado' },
 ]
+const STATUS_FINALIZADOS = ['CONCLUIDO', 'CANCELADO']
+// Avançar o pedido direto do card: no rush, abrir o modal só pra mudar de coluna custa caro.
+const PROXIMO_STATUS = { NOVO: 'CONFIRMADO', CONFIRMADO: 'DESPACHADO', DESPACHADO: 'CONCLUIDO' }
+const ACAO_PROXIMA = { NOVO: 'Confirmar', CONFIRMADO: 'Despachar', DESPACHADO: 'Concluir' }
+// Retirada/mesa não "despacha": no iFood vira readyToPickup ("pronto pra retirada").
+const acaoProxima = (p) => (p.status === 'CONFIRMADO' && p.tipo !== 'ENTREGA' ? 'Pronto p/ retirada' : ACAO_PROXIMA[p.status])
 const TIPO_LABEL = { ENTREGA: 'Entrega', RETIRADA: 'Retirada', MESA: 'Mesa' }
-const STATUS_LABEL = { NOVO: 'Novo', CONFIRMADO: 'Confirmado', DESPACHADO: 'Despachado', CONCLUIDO: 'Concluído', CANCELADO: 'Cancelado' }
 // Cor por status: novo=azul, em preparo=âmbar, a caminho=azul, concluído=verde, cancelado=vermelho.
 const STATUS_COR = (C) => ({ NOVO: C.info, CONFIRMADO: C.neutral, DESPACHADO: C.info, CONCLUIDO: C.good, CANCELADO: C.bad })
-const STATUS_ATIVO = { NOVO: true, CONFIRMADO: true, DESPACHADO: true }
 
 function horaCurta(iso) {
   try {
@@ -26,18 +31,24 @@ function horaCurta(iso) {
   }
 }
 
-// Cronômetro de preparo: tempo decorrido desde que o pedido chegou (mm:ss).
+// Cronômetro de preparo: tempo desde que o pedido chegou. `mm:ss` só faz sentido dentro da
+// primeira hora — num pedido de teste parado há semanas o formato antigo imprimia coisas como
+// "60653:53" (42 dias contados em minutos), que não diz nada pra quem olha o quadro.
 function tempoDecorrido(iso, agora) {
   if (!iso) return null
   const seg = Math.max(0, Math.floor((agora - new Date(iso).getTime()) / 1000))
   const min = Math.floor(seg / 60)
-  return { min, texto: `${String(min).padStart(2, '0')}:${String(seg % 60).padStart(2, '0')}` }
+  let texto
+  if (min < 60) texto = `${String(min).padStart(2, '0')}:${String(seg % 60).padStart(2, '0')}`
+  else if (min < 1440) texto = `${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}`
+  else texto = `${Math.floor(min / 1440)}d`
+  return { min, texto }
 }
 
 // Cor do cronômetro — alerta de atraso: >=20min vermelho, >=10min âmbar, antes neutro.
 function corTempo(min, C) {
   if (min >= 20) return C.bad
-  if (min >= 10) return '#e0a44c'
+  if (min >= 10) return C.neutral
   return C.text2
 }
 
@@ -128,14 +139,14 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
     })
   }
 
-  async function alterarStatus(pedido, novo) {
+  async function alterarStatus(pedido, novo, extra = {}) {
     const anterior = pedido.status
     moverStatusLocal(pedido.id, novo, true) // instantâneo
     try {
       await apiFetchRef.current(`/pedidos/${pedido.id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: novo }),
+        body: JSON.stringify({ status: novo, ...extra }),
       })
     } catch (e) {
       moverStatusLocal(pedido.id, anterior, false) // desfaz se o servidor recusar
@@ -246,6 +257,7 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
   }
 
   const visiveis = pedidos.filter((p) => !p.oculto_kds)
+  const finalizados = visiveis.filter((p) => STATUS_FINALIZADOS.includes(p.status))
   const catalogoFiltrado = catalogo
     .filter((it) => (it.nome || '').toLowerCase().includes(buscaItem.trim().toLowerCase()))
     .slice(0, 80)
@@ -254,20 +266,19 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <LayoutGrid size={15} color="#F56C35" />
-          <h2 className="text-sm font-bold" style={{ color: C.text1 }}>KDS</h2>
-          <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ color: C.text2, background: C.inputBg }}>
-            atualiza sozinho a cada 10s
-          </span>
+        <div className="flex items-center gap-2.5">
+          <LayoutGrid size={17} color={C.marcaTinta} />
+          <h2 className="font-bold" style={{ color: C.text1, fontSize: 15.5, letterSpacing: '-0.01em' }}>
+            Quadro de preparo
+          </h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {onAbrirHistorico && (
             <button
               type="button"
               onClick={onAbrirHistorico}
-              className="text-xs font-semibold px-3.5 py-2 rounded-xl"
-              style={{ color: C.text1, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+              className="font-semibold px-4 rounded-xl"
+              style={{ color: C.text1, background: C.inputBg, border: `1px solid ${C.cardBorder}`, height: 40, fontSize: 14 }}
             >
               Histórico
             </button>
@@ -278,139 +289,290 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
               onClick={abrirPicker}
               disabled={criandoTeste}
               title="Cria um pedido de teste com itens reais do seu cardápio (via o mesmo fluxo do webhook)"
-              className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl disabled:opacity-60"
-              style={{ color: '#e0a44c', background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+              className="flex items-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-60"
+              style={{ color: C.neutral, background: C.neutralBg, border: `1px solid ${C.neutralBd}`, height: 40, fontSize: 14 }}
             >
-              {criandoTeste ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
-              Criar pedido teste
+              {criandoTeste ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
+              Pedido teste
             </button>
           )}
           <button
             type="button"
             onClick={atualizarDoIfood}
             disabled={atualizando}
-            className="botao-primario flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl disabled:opacity-60"
+            className="botao-primario flex items-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-60"
+            style={{ height: 40, fontSize: 14 }}
           >
-            <RefreshCw size={13} className={atualizando ? 'animate-spin' : ''} />
-            {ehNoveNove ? 'Atualizar' : 'Atualizar pedidos'}
+            <RefreshCw size={15} className={atualizando ? 'animate-spin' : ''} />
+            Atualizar
           </button>
         </div>
       </div>
 
       {carregando ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-xs" style={{ color: C.text2 }}>
-          <Loader2 size={14} className="animate-spin" />
-          Carregando quadro...
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr)) 300px' }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl border p-3" style={{ background: C.bg2, borderColor: C.cardBorder, minHeight: 220 }}>
+              <div className="flex items-center gap-2.5 pb-3 mb-3 border-b" style={{ borderColor: C.rowBorder }}>
+                <Esqueleto w={9} h={9} style={{ borderRadius: 999 }} />
+                <Esqueleto w={80} h={13} />
+                <div className="ml-auto">
+                  <Esqueleto w={26} h={24} style={{ borderRadius: 8 }} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {[0, 1].map((k) => (
+                  <div key={k} className="rounded-xl border p-3.5" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
+                    <div className="flex justify-between mb-3">
+                      <Esqueleto w={90} h={15} />
+                      <Esqueleto w={58} h={17} style={{ borderRadius: 8 }} />
+                    </div>
+                    <Esqueleto w="60%" h={12} />
+                    <div className="mt-3 pt-3 border-t" style={{ borderColor: C.cardBorder }}>
+                      <Esqueleto w="88%" h={12} />
+                      <div className="mt-2">
+                        <Esqueleto w="64%" h={12} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
-        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
-          {COLUNAS.map((col) => {
+        <div className="grid gap-3.5 items-start" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr)) 300px' }}>
+          {LANES_ATIVAS.map((col) => {
             const doColuna = visiveis.filter((p) => p.status === col.status)
+            const cor = STATUS_COR(C)[col.status]
             return (
-              <div key={col.status} className="rounded-2xl border p-3" style={{ background: C.bg2, borderColor: C.cardBorder, minHeight: 180 }}>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.text2 }}>{col.titulo}</h4>
-                  <span className="text-[11px] font-bold rounded-lg px-2 py-0.5" style={{ background: C.inputBg, color: C.text1 }}>
+              <div
+                key={col.status}
+                className="rounded-2xl border p-3 flex flex-col gap-2.5"
+                style={{ background: C.bg2, borderColor: C.cardBorder, minHeight: 220 }}
+              >
+                <div className="flex items-center gap-2.5 pb-2.5 border-b" style={{ borderColor: C.rowBorder }}>
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: cor }} />
+                  <h4 className="font-bold" style={{ color: C.text1, fontSize: 14.5, letterSpacing: '-0.01em' }}>
+                    {col.titulo}
+                  </h4>
+                  <span
+                    className="ml-auto font-bold rounded-lg px-2 inline-flex items-center justify-center"
+                    style={{ background: cor + '24', color: cor, minWidth: 26, height: 24, fontSize: 14 }}
+                  >
                     {doColuna.length}
                   </span>
                 </div>
+
                 {doColuna.length === 0 && (
-                  <p className="text-[11px] text-center py-6" style={{ color: C.text3 }}>Nenhum pedido</p>
+                  <p className="text-center py-8" style={{ color: C.text3, fontSize: 13 }}>
+                    Nenhum pedido
+                  </p>
                 )}
-                <div className="flex flex-col gap-2">
-                  {doColuna.map((p) => {
-                    const podeLimpar = p.status === 'CONCLUIDO' || p.status === 'CANCELADO'
-                    // Preview dos itens no card, normalizado pela API de CADA plataforma (iFood lê
-                    // detalhes_brutos.items; 99, detalhes_brutos.itens) — ver itensNormalizados.
-                    const itensCard = itensNormalizados(p)
-                    return (
-                      <div
-                        key={p.id}
-                        role="button"
-                        onClick={() => abrirDetalhes(p)}
-                        className="rounded-xl border p-3 transition-all hover:brightness-110"
-                        style={{
-                          background: C.cardBg,
-                          borderColor: C.cardBorder,
-                          borderLeft: `3px solid ${STATUS_COR(C)[p.status] || C.cardBorder}`,
-                          cursor: 'pointer',
-                        }}
-                      >
+
+                {doColuna.map((p) => {
+                  const itensCard = itensNormalizados(p)
+                  const t = tempoDecorrido(p.recebido_em, agora)
+                  const atrasado = t && t.min >= 20
+                  const proximo = PROXIMO_STATUS[p.status]
+                  return (
+                    <div
+                      key={p.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => abrirDetalhes(p)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          abrirDetalhes(p)
+                        }
+                      }}
+                      className="rounded-xl border transition-all hover:brightness-110 cursor-pointer"
+                      style={{
+                        background: C.cardBg,
+                        borderColor: atrasado ? C.badBd : C.cardBorder,
+                        borderLeft: `4px solid ${atrasado ? C.bad : cor}`,
+                      }}
+                    >
+                      <div className="p-3.5">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-xs font-bold" style={{ color: C.text1 }}>{p.ifood_order_id}</span>
-                          {(() => {
-                            const t = STATUS_ATIVO[p.status] ? tempoDecorrido(p.recebido_em, agora) : null
-                            return t ? (
-                              <span
-                                className="text-[11px] font-bold fonte-mono inline-flex items-center gap-1 flex-shrink-0"
-                                style={{ color: corTempo(t.min, C) }}
-                                title={`Há ${t.min} min no quadro`}
-                              >
-                                <Clock size={11} />{t.texto}
-                                {t.min >= 20 && <AlertTriangle size={11} />}
-                              </span>
-                            ) : (
-                              <span className="text-[11px] flex-shrink-0" style={{ color: C.text3 }}>{horaCurta(p.recebido_em)}</span>
-                            )
-                          })()}
-                        </div>
-                        {p.cliente?.name && (
-                          <p className="text-[11px] mt-1 font-semibold truncate" style={{ color: C.text1 }}>{p.cliente.name}</p>
-                        )}
-                        <p className="text-[11px] mt-0.5 flex items-center justify-between gap-2" style={{ color: C.text2 }}>
-                          <span>{TIPO_LABEL[p.tipo] || p.tipo}</span>
-                          {p.total != null && (
-                            <span className="fonte-mono">R$ {Number(p.total).toFixed(2).replace('.', ',')}</span>
+                          <span className="fonte-mono font-bold" style={{ color: C.text1, fontSize: 17, letterSpacing: '-0.02em' }}>
+                            {p.ifood_order_id}
+                          </span>
+                          {t ? (
+                            <span
+                              className="fonte-mono font-bold inline-flex items-center gap-1.5 flex-shrink-0 rounded-lg"
+                              style={{
+                                color: corTempo(t.min, C),
+                                fontSize: 19,
+                                padding: t.min >= 10 ? '2px 8px' : '2px 2px',
+                                background: t.min >= 10 ? corTempo(t.min, C) + '24' : 'transparent',
+                                border: `1px solid ${t.min >= 10 ? corTempo(t.min, C) + '55' : 'transparent'}`,
+                              }}
+                              title={`Há ${t.min} min no quadro`}
+                            >
+                              {atrasado ? <AlertTriangle size={15} /> : <Clock size={15} />}
+                              {t.texto}
+                            </span>
+                          ) : (
+                            <span className="fonte-mono flex-shrink-0" style={{ color: C.text3, fontSize: 14 }}>
+                              {horaCurta(p.recebido_em)}
+                            </span>
                           )}
+                        </div>
+
+                        <p className="mt-2 font-semibold truncate" style={{ color: C.text1, fontSize: 14.5 }}>
+                          {p.cliente?.name || p.cliente?.nome || 'Cliente'}{' '}
+                          <span style={{ color: C.text3, fontWeight: 400 }}>· {TIPO_LABEL[p.tipo] || p.tipo}</span>
                         </p>
+
+                        {p.detalhes_brutos?.disputa?.id && (
+                          <div
+                            className="mt-2 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-bold"
+                            style={{ color: C.bad, background: C.bad + '1f', border: `1px solid ${C.bad}55`, fontSize: 13 }}
+                          >
+                            <Handshake size={14} /> Cliente pediu cancelamento — responder
+                          </div>
+                        )}
+                        {p.detalhes_brutos?.orderTiming === 'SCHEDULED' && (
+                          <div
+                            className="mt-2 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold"
+                            style={{ color: C.info, background: C.info + '1f', fontSize: 13 }}
+                          >
+                            <CalendarClock size={14} /> Agendado · {horaCurta(p.detalhes_brutos?.schedule?.deliveryDateTimeStart)}
+                          </div>
+                        )}
+
                         {itensCard.length > 0 && (
-                          <div className="mt-2 pt-2 flex flex-col gap-0.5 border-t" style={{ borderColor: C.cardBorder }}>
+                          <div className="mt-3 pt-3 flex flex-col gap-2 border-t" style={{ borderColor: C.cardBorder }}>
                             {itensCard.slice(0, 4).map((it, idx) => (
-                              <div key={idx} className="text-[11px] leading-snug" style={{ color: C.text1 }}>
-                                <span className="font-bold" style={{ color: '#F56C35' }}>{it.quantidade || 1}×</span> {it.nome}
+                              <div key={idx} style={{ fontSize: 14.5, lineHeight: 1.35, color: C.text1 }}>
+                                <span className="font-bold" style={{ color: C.marcaTinta }}>
+                                  {it.quantidade || 1}×
+                                </span>{' '}
+                                {it.nome}
                                 {it.complementos?.length > 0 && (
-                                  <span style={{ color: C.text3 }}> · {it.complementos.map((c) => c.nome).join(', ')}</span>
+                                  <div style={{ color: C.text3, fontSize: 13, marginTop: 2 }}>
+                                    + {it.complementos.map((c) => c.nome).join(', ')}
+                                  </div>
                                 )}
                                 {it.obs && (
-                                  <div className="flex items-start gap-1 mt-0.5 font-semibold" style={{ color: '#e0a44c' }}>
-                                    <AlertTriangle size={11} className="flex-shrink-0" style={{ marginTop: 1 }} />
+                                  <div
+                                    className="flex items-start gap-2 mt-1.5 rounded-lg px-2.5 py-2 font-semibold"
+                                    style={{
+                                      color: C.neutral,
+                                      background: C.neutralBg,
+                                      border: `1px solid ${C.neutralBd}`,
+                                      fontSize: 13.5,
+                                      lineHeight: 1.35,
+                                    }}
+                                  >
+                                    <AlertTriangle size={15} className="flex-shrink-0" style={{ marginTop: 1 }} />
                                     <span>{it.obs}</span>
                                   </div>
                                 )}
                               </div>
                             ))}
                             {itensCard.length > 4 && (
-                              <div className="text-[10px]" style={{ color: C.text3 }}>+{itensCard.length - 4} item(ns)</div>
+                              <div style={{ color: C.text3, fontSize: 13 }}>+{itensCard.length - 4} item(ns)</div>
                             )}
                           </div>
                         )}
-                        <div className="flex items-center justify-between mt-2 gap-1.5">
-                          <Pill color={STATUS_COR(C)[p.status] || C.text2} dot>{STATUS_LABEL[p.status] || p.status}</Pill>
-                          {!podeLimpar && (
-                            <span className="text-[10px] font-semibold flex-shrink-0" style={{ color: C.text3 }}>ver detalhes →</span>
+
+                        <div className="flex items-center gap-2.5 mt-3.5">
+                          {p.total != null && (
+                            <span className="fonte-mono font-semibold" style={{ color: C.text2, fontSize: 15 }}>
+                              R$ {Number(p.total).toFixed(2).replace('.', ',')}
+                            </span>
                           )}
-                          {podeLimpar && (
+                          {proximo && (
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                pedirLimparCard(p)
+                                alterarStatus(p, proximo)
                               }}
-                              title="Limpar do quadro"
-                              className="botao-icone-fantasma w-6 h-6 rounded-lg inline-flex items-center justify-center ml-auto"
-                              style={{ color: C.text3 }}
+                              className="botao-primario ml-auto flex items-center gap-1.5 font-semibold px-3.5 rounded-lg"
+                              style={{ height: 36, fontSize: 13.5 }}
                             >
-                              <X size={12} />
+                              {acaoProxima(p)}
+                              <ArrowRight size={15} />
                             </button>
                           )}
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })}
               </div>
             )
           })}
+
+          {/* Trilho de finalizados: concluído e cancelado não disputam mais largura com o que
+              está em preparo. Nada some do sistema — só para de ocupar 2/5 da tela. */}
+          <div
+            className="rounded-2xl border p-3 flex flex-col gap-2.5"
+            style={{ background: C.bg2, borderColor: C.cardBorder, minHeight: 220 }}
+          >
+            <div className="flex items-center gap-2.5 pb-2.5 border-b" style={{ borderColor: C.rowBorder }}>
+              <h4 className="font-bold" style={{ color: C.text2, fontSize: 14.5, letterSpacing: '-0.01em' }}>
+                Finalizados
+              </h4>
+              <span className="ml-auto font-semibold" style={{ color: C.text3, fontSize: 13 }}>
+                {finalizados.length}
+              </span>
+            </div>
+
+            {finalizados.length === 0 && (
+              <p className="text-center py-8" style={{ color: C.text3, fontSize: 13 }}>
+                Nada finalizado ainda
+              </p>
+            )}
+
+            {finalizados.map((p) => (
+              <div
+                key={p.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => abrirDetalhes(p)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    abrirDetalhes(p)
+                  }
+                }}
+                className="flex items-center gap-2.5 rounded-xl border px-3 py-2.5 cursor-pointer hover:brightness-110"
+                style={{ background: C.cardBg, borderColor: C.cardBorder }}
+              >
+                <span className="w-1 rounded-full flex-shrink-0" style={{ height: 28, background: STATUS_COR(C)[p.status] }} />
+                <div className="min-w-0 flex-1">
+                  <div className="fonte-mono font-semibold truncate" style={{ color: C.text1, fontSize: 14 }}>
+                    {p.ifood_order_id}
+                  </div>
+                  <div className="truncate" style={{ color: C.text3, fontSize: 12.5 }}>
+                    {p.cliente?.name || p.cliente?.nome || '—'}
+                    {p.status === 'CANCELADO' ? ' · cancelado' : ''}
+                  </div>
+                </div>
+                <span className="fonte-mono flex-shrink-0" style={{ color: C.text3, fontSize: 13 }}>
+                  {horaCurta(p.recebido_em)}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    pedirLimparCard(p)
+                  }}
+                  title="Limpar do quadro"
+                  aria-label={`Limpar ${p.ifood_order_id} do quadro`}
+                  className="botao-icone-fantasma w-7 h-7 rounded-lg inline-flex items-center justify-center flex-shrink-0"
+                  style={{ color: C.text3 }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -421,26 +583,45 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
           onClose={() => setSelecionado(null)}
           onAlterarStatus={alterarStatus}
           alterando={false}
+          apiFetch={apiFetchRef.current}
+          notificar={notificar}
+          onAtualizado={() => {
+            carregarPedidos()
+            const id = selecionado.id
+            apiFetchRef.current(`/pedidos/${id}`)
+              .then((completo) => setSelecionado((atual) => (atual && atual.id === id ? completo : atual)))
+              .catch(() => {})
+          }}
         />
       )}
 
       {mostrarPicker && (
         <Modal titulo="Criar pedido de teste" eyebrow="99Food" onClose={() => setMostrarPicker(false)} largura="max-w-lg">
-          <div className="flex flex-col gap-3">
-            <p className="text-xs" style={{ color: C.text2 }}>
-              Escolha itens do cardápio real da loja (ou clique em "Aleatório" pra um item real qualquer).
+          <div className="flex flex-col gap-3.5">
+            <p style={{ color: C.text2, fontSize: 13.5, lineHeight: 1.55 }}>
+              Escolha itens do cardápio real da loja, ou use "Aleatório" pra um item real qualquer.
             </p>
             <input
               value={buscaItem}
               onChange={(e) => setBuscaItem(e.target.value)}
               placeholder="Buscar item do cardápio..."
-              className="w-full text-sm px-3 py-2 rounded-xl"
-              style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}`, color: C.text1 }}
+              className="w-full px-3.5 rounded-xl outline-none"
+              style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}`, color: C.text1, height: 44, fontSize: 14.5 }}
             />
             <div className="max-h-72 overflow-y-auto rounded-xl border" style={{ borderColor: C.cardBorder }}>
               {carregandoCat ? (
-                <div className="flex items-center justify-center gap-2 py-10 text-xs" style={{ color: C.text2 }}>
-                  <Loader2 size={14} className="animate-spin" /> Carregando cardápio...
+                <div className="flex flex-col gap-3 p-3.5">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <Esqueleto w="60%" h={13} />
+                        <div className="mt-2">
+                          <Esqueleto w={70} h={11} />
+                        </div>
+                      </div>
+                      <Esqueleto w={92} h={26} style={{ borderRadius: 8 }} />
+                    </div>
+                  ))}
                 </div>
               ) : (
                 catalogoFiltrado.map((it) => {
@@ -448,36 +629,62 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
                   return (
                     <div
                       key={it.itemId}
-                      className="flex items-center justify-between gap-2 px-3 py-2 text-xs border-b last:border-0"
-                      style={{ borderColor: C.cardBorder, background: q > 0 ? 'rgba(245,108,53,0.08)' : 'transparent' }}
+                      className="flex items-center justify-between gap-3 px-3.5 py-2.5 border-b last:border-0"
+                      style={{ borderColor: C.cardBorder, background: q > 0 ? C.marca + '14' : 'transparent' }}
                     >
                       <div className="min-w-0">
-                        <p className="truncate" style={{ color: C.text1 }}>{it.nome}</p>
-                        <p className="fonte-mono" style={{ color: C.text3 }}>R$ {Number(it.preco).toFixed(2).replace('.', ',')}</p>
+                        <p className="truncate" style={{ color: C.text1, fontSize: 14 }}>
+                          {it.nome}
+                        </p>
+                        <p className="fonte-mono" style={{ color: C.text3, fontSize: 13 }}>
+                          R$ {Number(it.preco).toFixed(2).replace('.', ',')}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <button type="button" onClick={() => mudarQtd(it, -1)} disabled={q === 0} className="w-6 h-6 rounded-lg disabled:opacity-30" style={{ background: C.inputBg, color: C.text1 }}>−</button>
-                        <span className="w-4 text-center font-bold" style={{ color: C.text1 }}>{q}</span>
-                        <button type="button" onClick={() => mudarQtd(it, +1)} className="w-6 h-6 rounded-lg" style={{ background: C.inputBg, color: C.text1 }}>+</button>
+                      <div className="flex items-center gap-2.5 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => mudarQtd(it, -1)}
+                          disabled={q === 0}
+                          aria-label="Diminuir quantidade"
+                          className="w-8 h-8 rounded-lg disabled:opacity-30"
+                          style={{ background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }}
+                        >
+                          −
+                        </button>
+                        <span className="w-5 text-center font-bold" style={{ color: C.text1, fontSize: 14 }}>
+                          {q}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => mudarQtd(it, +1)}
+                          aria-label="Aumentar quantidade"
+                          className="w-8 h-8 rounded-lg"
+                          style={{ background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }}
+                        >
+                          +
+                        </button>
                       </div>
                     </div>
                   )
                 })
               )}
               {!carregandoCat && catalogoFiltrado.length === 0 && (
-                <p className="text-xs text-center py-8" style={{ color: C.text3 }}>Nenhum item encontrado.</p>
+                <p className="text-center py-8" style={{ color: C.text3, fontSize: 13.5 }}>
+                  Nenhum item encontrado.
+                </p>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               <button
                 type="button"
                 disabled={criandoTeste || totalEscolhidos === 0}
                 onClick={() =>
                   criarPedido(Object.entries(escolhidos).map(([id, v]) => ({ item_id: id, nome: v.nome, preco: v.preco, qtd: v.qtd })))
                 }
-                className="botao-primario flex-1 flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl disabled:opacity-50"
+                className="botao-primario flex-1 flex items-center justify-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-50"
+                style={{ height: 46, fontSize: 14.5 }}
               >
-                {criandoTeste && <Loader2 size={13} className="animate-spin" />}
+                {criandoTeste && <Loader2 size={15} className="animate-spin" />}
                 Criar pedido{totalEscolhidos > 0 ? ` (${totalEscolhidos} item(ns))` : ''}
               </button>
               <button
@@ -485,8 +692,8 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
                 disabled={criandoTeste}
                 onClick={() => criarPedido([])}
                 title="Cria com um item real aleatório do cardápio"
-                className="text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-50"
-                style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
+                className="font-semibold px-4 rounded-xl disabled:opacity-50"
+                style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}`, height: 46, fontSize: 14 }}
               >
                 Aleatório
               </button>

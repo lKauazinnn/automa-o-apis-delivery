@@ -11,10 +11,10 @@ from app.enums import OrderStatus, OrderType
 from app.schemas import ComplementIn, ItemIn, OrderCreate
 
 STORES = [
-    ("Cajupar Burger - Centro", "Av. Central, 100 - Centro"),
-    ("Cajupar Pizza - Zona Sul", "Rua das Flores, 250 - Jardim"),
-    ("Cajupar Açaí - Praia", "Av. Beira Mar, 900 - Orla"),
-    ("Cajupar Sushi - Norte", "Rua do Porto, 45 - Setor Norte"),
+    ("Burger da Vila - Centro", "Av. Central, 100 - Centro"),
+    ("Forno da Vila - Zona Sul", "Rua das Flores, 250 - Jardim"),
+    ("Açaí da Orla - Praia", "Av. Beira Mar, 900 - Orla"),
+    ("Sushi do Porto - Norte", "Rua do Porto, 45 - Setor Norte"),
 ]
 
 # (nome, preço, código PDV, [(complemento, nível, preço)])

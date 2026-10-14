@@ -25,6 +25,31 @@ function horaParaMinutos(hora) {
 
 const faixaPadrao = () => ({ inicio: '08:00', fim: '22:00' })
 
+// Converte a lista de `shifts` da API do iFood no estado por dia do modal.
+function shiftsParaDias(shifts) {
+  const novo = Object.fromEntries(DIAS.map((d) => [d.chave, { aberto: false, faixas: [] }]))
+  for (const turno of shifts || []) {
+    const dia = novo[turno.dayOfWeek]
+    if (!dia) continue
+    const inicioMin = horaParaMinutos(turno.start.slice(0, 5))
+    dia.aberto = true
+    dia.faixas.push({ inicio: turno.start.slice(0, 5), fim: minutosParaHora(inicioMin + turno.duration) })
+  }
+  for (const d of DIAS) {
+    const dia = novo[d.chave]
+    if (dia.faixas.length === 0) dia.faixas = [faixaPadrao()]
+  }
+  return novo
+}
+
+// Assinatura normalizada de um conjunto de turnos, pra comparar o que salvamos com o que a
+// API devolve na releitura (a leitura do iFood é eventualmente consistente e demora a refletir).
+const assinaturaHorario = (arr) =>
+  (arr || [])
+    .map((s) => `${s.dayOfWeek}|${String(s.start).slice(0, 5)}|${s.duration}`)
+    .sort()
+    .join(',')
+
 export function HorarioFuncionamentoModal({ onClose, apiFetch, notificar, podeEditar, C, inputStyle }) {
   const [carregando, setCarregando] = useState(true)
   // cada dia tem uma LISTA de faixas — o iFood aceita vários turnos no mesmo dia
@@ -32,25 +57,12 @@ export function HorarioFuncionamentoModal({ onClose, apiFetch, notificar, podeEd
     Object.fromEntries(DIAS.map((d) => [d.chave, { aberto: false, faixas: [faixaPadrao()] }]))
   )
   const [salvando, setSalvando] = useState(false)
+  // status da propagação do iFood após salvar: null | { tipo: 'aguardando'|'ok'|'demorou', texto }
+  const [statusProp, setStatusProp] = useState(null)
 
   useEffect(() => {
     apiFetch('/horario-funcionamento')
-      .then((data) => {
-        const novo = Object.fromEntries(DIAS.map((d) => [d.chave, { aberto: false, faixas: [] }]))
-        for (const turno of data.shifts || []) {
-          const dia = novo[turno.dayOfWeek]
-          if (!dia) continue
-          const inicioMin = horaParaMinutos(turno.start.slice(0, 5))
-          dia.aberto = true
-          dia.faixas.push({ inicio: turno.start.slice(0, 5), fim: minutosParaHora(inicioMin + turno.duration) })
-        }
-        // dias sem turno ficam com uma faixa padrão pronta pra quando forem abertos
-        for (const d of DIAS) {
-          const dia = novo[d.chave]
-          if (dia.faixas.length === 0) dia.faixas = [faixaPadrao()]
-        }
-        setDias(novo)
-      })
+      .then((data) => setDias(shiftsParaDias(data.shifts)))
       .catch((e) => notificar('erro', e.message))
       .finally(() => setCarregando(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,10 +116,37 @@ export function HorarioFuncionamentoModal({ onClose, apiFetch, notificar, podeEd
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ turnos }),
       })
-      notificar('sucesso', 'Horário de funcionamento atualizado.')
-      onClose()
+      // A escrita foi aceita, mas a LEITURA do iFood é eventualmente consistente (leva de
+      // ~10s a >40s pra refletir). Em vez de fechar às cegas, reconsultamos até o horário
+      // gravado aparecer de volta — aí o próprio modal mostra o dado persistido (a "consulta"
+      // da homologação), sem depender do usuário cronometrar e reabrir.
+      setStatusProp({ tipo: 'aguardando', texto: 'Salvo! Confirmando no iFood (a leitura pode levar até ~40s)…' })
+      const alvo = assinaturaHorario(turnos)
+      let confirmado = false
+      for (let i = 0; i < 16; i++) {
+        await new Promise((r) => setTimeout(r, 3000))
+        let data
+        try {
+          data = await apiFetch('/horario-funcionamento')
+        } catch {
+          continue
+        }
+        if (assinaturaHorario(data.shifts) === alvo) {
+          setDias(shiftsParaDias(data.shifts))
+          confirmado = true
+          break
+        }
+      }
+      if (confirmado) {
+        setStatusProp({ tipo: 'ok', texto: 'Confirmado no iFood — o horário acima é exatamente o que está gravado.' })
+        notificar('sucesso', 'Horário atualizado e confirmado no iFood.')
+      } else {
+        setStatusProp({ tipo: 'demorou', texto: 'Salvo. A propagação do iFood está demorando mais que o normal — reabra este modal em alguns segundos para conferir.' })
+        notificar('sucesso', 'Horário salvo (a confirmação de leitura está demorando no iFood).')
+      }
     } catch (e) {
       notificar('erro', e.message)
+      setStatusProp(null)
     } finally {
       setSalvando(false)
     }
@@ -174,7 +213,7 @@ export function HorarioFuncionamentoModal({ onClose, apiFetch, notificar, podeEd
                           type="button"
                           onClick={() => adicionarFaixa(d.chave)}
                           className="self-start inline-flex items-center gap-1 text-[11px] font-semibold mt-0.5"
-                          style={{ color: '#F56C35' }}
+                          style={{ color: C.marcaTinta }}
                         >
                           <Plus size={12} /> adicionar faixa
                         </button>
@@ -197,8 +236,17 @@ export function HorarioFuncionamentoModal({ onClose, apiFetch, notificar, podeEd
               className="botao-primario w-full flex items-center justify-center gap-2 text-sm font-bold px-4 py-3 rounded-xl disabled:opacity-40"
             >
               {salvando && <Loader2 size={14} className="animate-spin" />}
-              {salvando ? 'Salvando...' : 'Salvar horário'}
+              {salvando ? (statusProp?.tipo === 'aguardando' ? 'Confirmando no iFood…' : 'Salvando...') : 'Salvar horário'}
             </button>
+          )}
+          {statusProp && (
+            <p
+              className="text-xs mt-2 flex items-center gap-1.5 leading-relaxed"
+              style={{ color: statusProp.tipo === 'ok' ? C.good : statusProp.tipo === 'demorou' ? C.neutral : C.text2 }}
+            >
+              {statusProp.tipo === 'aguardando' && <Loader2 size={12} className="animate-spin flex-shrink-0" />}
+              {statusProp.texto}
+            </p>
           )}
         </>
       )}

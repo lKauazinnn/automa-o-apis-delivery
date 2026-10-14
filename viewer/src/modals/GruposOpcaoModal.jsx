@@ -157,15 +157,18 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
   const [excluindoGrupo, setExcluindoGrupo] = useState(null)
   const [novaOpcao, setNovaOpcao] = useState({ nome: '', preco: '', codigo_pdv: '', foto: '' })
   const [criandoOpcao, setCriandoOpcao] = useState(false)
-  // A listagem de grupos do iFood não devolve as opções já cadastradas dentro de cada
-  // grupo (a API sempre volta "options: []", mesmo quando existem) — então só temos como
-  // mostrar as que a gente mesmo criou aqui, nesta sessão.
+  // A listagem de grupos do iFood não devolve as opções já cadastradas dentro de cada grupo
+  // (a API sempre volta "options: []"). O backend completa com o espelho local
+  // (`public.complementos`), então aqui vêm todas as criadas pelo painel — inclusive depois
+  // de recarregar a página.
   const [opcoesCriadasAqui, setOpcoesCriadasAqui] = useState({})
 
   async function carregar() {
     setCarregando(true)
     try {
-      setGrupos(await apiFetch('/grupos-opcao'))
+      const lista = await apiFetch('/grupos-opcao')
+      setGrupos(lista)
+      setOpcoesCriadasAqui(Object.fromEntries(lista.map((g) => [g.id, g.options || []])))
     } catch (e) {
       notificar('erro', e.message)
     } finally {
@@ -379,7 +382,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
                   </span>
                 </button>
                 <span className="text-[10px] flex-shrink-0" style={{ color: C.text3 }}>
-                  {opcoesDoGrupo.length} complementos nesta sessão
+                  {opcoesDoGrupo.length} complemento{opcoesDoGrupo.length === 1 ? '' : 's'}
                 </span>
                 {souAdministrador && (
                   <button
@@ -396,8 +399,8 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
               {aberto && (
                 <div className="px-2.5 pb-2.5 flex flex-col gap-1.5">
                   <p className="text-[10px] px-1 leading-relaxed" style={{ color: C.text3 }}>
-                    O iFood não devolve os complementos já cadastrados num grupo — só mostramos
-                    aqui os que você criar agora, nesta sessão.
+                    Aparecem aqui os complementos criados por este painel. Os cadastrados direto
+                    no Portal do Parceiro não aparecem (o iFood não devolve essa lista).
                   </p>
                   {opcoesDoGrupo.map((opcao) => (
                     <LinhaOpcao
@@ -435,7 +438,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
                           type="submit"
                           disabled={criandoOpcao}
                           className="botao-icone-fantasma w-8 h-8 rounded-md inline-flex items-center justify-center flex-shrink-0 disabled:opacity-40"
-                          style={{ color: '#F56C35', border: `1px solid ${C.cardBorder}` }}
+                          style={{ color: C.marcaTinta, border: `1px solid ${C.cardBorder}` }}
                           title="Adicionar complemento"
                         >
                           {criandoOpcao ? <Loader2 size={12} className="animate-spin" /> : <Plus size={13} />}

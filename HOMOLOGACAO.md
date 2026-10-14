@@ -111,26 +111,67 @@ pro suporte técnico do iFood.
 Não tentei ainda — campo simples mas não confirmei o nome exato/localização no payload.
 (Upload de imagem saiu da lista de bloqueados — ver seção 2026-07-21 acima.)
 
+## Módulo de Pedidos (Order + Events) — atualizado 2026-10-09
+
+| Capacidade | Onde | Endpoint real do iFood | Confiança |
+|---|---|---|---|
+| Polling a cada 30s, 24h, várias lojas numa chamada | `worker/monitor.py` → `_processar_eventos` | `GET events/v1.0/events:polling` (`x-polling-merchants` com várias lojas) | 🟢 |
+| Ack de TODOS os eventos recebidos (inclusive os que falharam ao processar) | `_processar_eventos` | `POST events/v1.0/events/acknowledgment` | 🟢 |
+| Evento duplicado no mesmo lote processado uma vez só; pedido não duplica | `_processar_eventos` / `_criar_pedido_local` | — | 🟢 |
+| Confirmar pedido | `POST /api/pedidos/<id>/status` (CONFIRMADO) | `POST order/v1.0/orders/{id}/confirm` | 🟡 |
+| Despachar (entrega) / Pronto pra retirada (TAKEOUT/mesa) | idem (DESPACHADO, decide pelo tipo) | `.../dispatch` ou `.../readyToPickup` | 🟡 |
+| Motivos de cancelamento válidos do pedido | `GET /api/pedidos/<id>/motivos-cancelamento` | `GET order/v1.0/orders/{id}/cancellationReasons` (rota confirmada: 403 com id falso) | 🟡 |
+| Cancelar com motivo escolhido pelo operador | `POST /api/pedidos/<id>/status` (CANCELADO + `motivo_codigo`) | `POST .../requestCancellation` | 🟡 |
+| Negociação (cliente pede cancelamento/reembolso) | evento `HANDSHAKE_DISPUTE` → alerta no KDS; `POST /api/pedidos/<id>/disputa/aceitar` e `/recusar` | `POST order/v1.0/disputes/{id}/accept` e `/reject` (rotas confirmadas ao vivo; reject exige `reason`) | 🟡 |
+| Exibir: agendado, troco, cobrar na entrega, cupons, código de coleta, localizador, documento, obs. de entrega | `DetalhesPedidoModal.jsx` (`resumoIfood`) | campos do `GET orders/{id}` (conferidos num pedido real do sandbox) | 🟢 |
+| Webhook com validação de assinatura | `POST /webhook/ifood` | HMAC-SHA256 do corpo cru com o clientSecret, header `X-IFood-Signature` | 🟡 |
+
+🟡 aqui = rota existe e foi confirmada no sandbox, mas o fluxo completo ainda não foi
+exercitado com um pedido de teste VIVO (o pedido de teste do Portal expira em poucas horas).
+**Antes da homologação:** suba o monitor, gere pedidos de teste no Developer Portal e passe
+por: confirmar → despachar (entrega) / pronto (retirada) → cancelar com motivo → negociação.
+
+### Por que o monitor (worker) é obrigatório
+`GET merchants/{id}/status` do sandbox hoje responde **"Loja fechada — Gestor de Pedidos ou
+PDV desconectado"** (`is-connected = ERROR`), mesmo dentro do horário. O iFood considera a loja
+conectada só enquanto alguém faz polling a cada 30s. Na Vercel (serverless) isso só acontecia
+com a tela aberta. `worker/monitor.py` resolve: rode com `iniciar_monitor.bat` (PC sempre
+ligado) ou `Dockerfile.monitor` (VPS/Railway/Fly). Com ele ativo, a rota `/api/pedidos/buscar`
+para de fazer polling próprio (evita processar o mesmo evento duas vezes).
+
+## Status da loja (aberta/fechada)
+
+| Capacidade | Onde | Confiança |
+|---|---|---|
+| Estado de todas as lojas (iFood + 99) com motivo e validações | `GET /api/lojas/status` + tela "Status das lojas" | 🟢 iFood / 🟡 99 (`shop/detail`, não testado ao vivo) |
+| Histórico de cada abertura/fechamento | `status_lojas_historico` (gravado pelo monitor) | 🟢 |
+| Fechar agora por X minutos / reabrir (iFood) | tela → `/api/interrupcoes` | 🟢 |
+
+## Financeiro
+
+| Capacidade | Onde | Endpoint | Confiança |
+|---|---|---|---|
+| Faturamento por dia/plataforma/loja/pagamento/tipo (pedidos do painel) | `GET /api/financeiro/resumo` | Supabase `pedidos` | 🟢 |
+| Vendas oficiais do iFood (bruto, entrega, cupons, saldo) | `GET /api/financeiro/ifood` | `GET financial/v3.0/merchants/{id}/sales` (janela máx. 8 dias — o cliente quebra sozinho) | 🟢 (3 vendas reais do sandbox) |
+| Repasses | idem | `GET financial/v3.0/.../settlements` | 🟡 (sandbox sem repasse — campos de cada linha ainda não vistos) |
+| Eventos financeiros (comissão, taxas, ajustes) | idem | `GET financial/v3.0/.../financial-events` (janela máx. 33 dias) | 🟡 (sandbox vazio) |
+| Financeiro 99Food | — | a API aberta do 99 não tem endpoint financeiro | 🔴 |
+
 ## O que ainda NÃO está na interface (`viewer/`)
 
-Atualizado 2026-07-21 — a maior parte já tem tela: categoria (`CategoriasModal`), combo
-(`ComboModal`), grupos de opção/opções com foto e pausa (`GruposOpcaoModal`), horário de
-funcionamento (`HorarioFuncionamentoModal`), interrupções (`InterrupcoesModal`), e
-detalhes/disponibilidade da loja (dentro de "Gerenciar lojas").
-
-Ainda faltam tela pra:
-- **Editar categoria** (a rota `PATCH /api/categorias/<id>` existe, mas não tem botão de
-  editar nome/status no `CategoriasModal`, só criar/excluir).
 - **Turnos por item** fora do modal de edição do item (já dá pra definir turno ao editar
   um item, mas não tem visão em lista de "quais itens têm turno restrito").
-- Promoção e tags do item — bloqueados no backend também (ver seção acima), então nem
-  faz sentido ter tela ainda.
+- Promoção e tags do item — bloqueados no backend também (ver seção acima).
 
-### Limitação conhecida: opções (complementos) somem da tela após recarregar
-O iFood não devolve as opções já cadastradas dentro de um grupo (`GET
-/optionGroups` sempre volta sem a lista de opções) — o `GruposOpcaoModal` só mostra as
-que você criar durante a sessão atual do navegador. Um refresh de página faz elas
-sumirem da tela (embora continuem existindo de verdade no catálogo do iFood). Isso
-afeta a gravação do vídeo de homologação: não dê refresh no meio da gravação do
-Cenário 2/3 do Catalog, ou a opção que você quer pausar/editar não vai aparecer na
-lista pra clicar.
+(Editar categoria já existe no `CategoriasModal` — renomear e pausar/reativar.)
+
+### Complementos agora persistem após recarregar
+O iFood continua devolvendo `options: []` vazio ao listar grupos. Desde 2026-10-09 o backend
+grava cada complemento criado pelo painel em `public.complementos` (migration 009) e mescla
+na listagem — então não somem mais no refresh. Complementos criados direto no Portal do
+Parceiro continuam sem aparecer (a API não devolve).
+
+### Endpoints deprecados ainda em uso
+`PATCH .../items/status`, `.../items/price` e `.../items/externalCode` estão marcados como
+deprecados pelo iFood (ainda funcionam). Trocar exige testar o substituto contra o sandbox
+alterando item real — pendente. Se o avaliador apontar, é a próxima troca a fazer.

@@ -15,14 +15,28 @@ cada cenário antes de gravar de verdade**.
 
 ## ⚠️ Armadilhas que reprovam (decoradas do teste ao vivo)
 
-1. **Horário — espere ~5s antes de consultar.** Depois de "Salvar horário", o iFood
-   leva 2-3s pra propagar; se reabrir na hora, mostra "dia inteiro" (errado). Espere.
-2. **Complementos somem no refresh.** O iFood não devolve os complementos já criados
+> **Atualização (2026-09-01, testado ao vivo contra a loja sandbox "Teste - MULT COMERCIO"):**
+> a **leitura** do iFood no módulo Merchant é *eventualmente consistente* — a escrita é aceita na
+> hora, mas o GET/lista leva de **~10s a mais de 40s** (variável) pra refletir. O sistema agora
+> **trata isso sozinho** (o modal de horário reconsulta e confirma; o de interrupção reconsulta
+> em silêncio; a remoção de interrupção re-tenta o cooldown). Ainda assim, na gravação **dê o
+> tempo à interface** — espere a confirmação aparecer antes de seguir.
+
+1. **Horário — a leitura demora (10-40s), não 5s.** Depois de "Salvar horário" o modal agora
+   fica aberto mostrando **"Confirmando no iFood…"** e só troca pra **"Confirmado no iFood — o
+   horário acima é exatamente o que está gravado"** quando o iFood devolve o dado certo. **Grave
+   até aparecer essa confirmação verde** (é a "consulta" do cenário) — não precisa mais fechar e
+   reabrir no susto. Se aparecer o aviso laranja de "propagação demorando", espere e reabra.
+2. **Interrupção — espere a lista atualizar.** Ao criar/remover, a lista leva ~10-15s pra
+   refletir; o modal reconsulta sozinho algumas vezes. A **remoção** logo após criar era
+   recusada pelo iFood (cooldown de ~5s) — o backend agora **re-tenta automaticamente**, então o
+   botão "Remover" funciona mesmo se você clicar rápido; só aguarde o spinner terminar.
+3. **Complementos somem no refresh.** O iFood não devolve os complementos já criados
    no GET — eles só ficam visíveis na **mesma sessão** em que você criou. **NÃO
    recarregue a página** entre o Catalog Cenário 2 e o 3.
-3. **Editar complemento EXIGE foto.** O iFood recusa a edição de opção sem imagem —
+4. **Editar complemento EXIGE foto.** O iFood recusa a edição de opção sem imagem —
    sempre suba uma foto ao editar um complemento.
-4. **"Detalhes" da loja só aparece na loja ativa.** Selecione a loja primeiro (isso
+5. **"Detalhes" da loja só aparece na loja ativa.** Selecione a loja primeiro (isso
    fecha o modal), depois reabra "Gerenciar lojas" pra ver o botão "Detalhes".
 
 ---
@@ -40,9 +54,11 @@ cada cenário antes de gravar de verdade**.
 ## Cenário 2 — Interrupção na Loja  (Portal do Parceiro aberto ao lado)
 1. Barra lateral → Cardápio avançado → **"Interrupções"**.
 2. Em **"Nova interrupção"**: Motivo = `Teste homologação`; início e fim (ex: agora até +2h).
-3. Clique **"Fechar loja nesse período"** → toast de sucesso; a pausa aparece na lista de ativas.
+3. Clique **"Fechar loja nesse período"** → toast de sucesso; a pausa aparece na lista de ativas
+   (pode levar alguns segundos — o modal reconsulta sozinho).
 4. **Valide no Portal do Parceiro** que a loja consta pausada/fechada.
-5. Volte ao sistema, clique a **lixeira "Remover interrupção"** → some da lista.
+5. Volte ao sistema, clique a **lixeira "Remover interrupção"** → **aguarde o spinner** (o backend
+   trata o cooldown do iFood sozinho); a interrupção some da lista em ~10-15s (a tela reconsulta).
 6. **Valide no Portal do Parceiro** que a loja voltou. → **Grave tudo.**
 
 ## Cenário 3 — Horário de Funcionamento  ⚠️ (Portal do Parceiro aberto ao lado)
@@ -53,10 +69,14 @@ cada cenário antes de gravar de verdade**.
    - clique **"adicionar faixa"** → faixa 2: `13:00` até `16:00`
    - clique **"adicionar faixa"** → faixa 3: `17:00` até `23:00`
    *(O checklist só cita Sábado e Domingo; pode deixar os outros dias como "Fechado".)*
-4. Clique **"Salvar horário"** → toast de sucesso (o modal fecha).
-5. ⚠️ **ESPERE ~5 SEGUNDOS** (propagação do iFood).
-6. Reabra **"Horário de funcionamento"** → mostre Sábado (1 faixa) e Domingo (3 faixas) persistidos = **consulta**.
-7. **Valide no Portal do Parceiro**. → **Grave tudo** (inclusive a espera; ou corte a espera na edição).
+4. Clique **"Salvar horário"** → o modal **continua aberto** mostrando **"Confirmando no iFood…"**.
+5. **Aguarde a confirmação** (pode levar de ~10s a ~40s) até aparecer o texto verde **"Confirmado
+   no iFood — o horário acima é exatamente o que está gravado"**. Os campos acima já mostram
+   Sábado (1 faixa) e Domingo (3 faixas) **relidos da API** — essa é a **consulta** do cenário,
+   sem precisar fechar e reabrir. (Se vier o aviso laranja "propagação demorando", feche e reabra
+   o modal após alguns segundos que ele mostra o horário persistido.)
+6. **Valide no Portal do Parceiro**. → **Grave tudo** (a espera da confirmação faz parte da prova;
+   se quiser, corte só o tempo morto durante a edição, nunca a confirmação).
 
 ---
 

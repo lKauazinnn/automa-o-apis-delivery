@@ -18,8 +18,8 @@ export class ErroFatal extends Component {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-          <AlertTriangle size={28} style={{ color: '#ef4444' }} />
-          <p className="text-sm" style={{ color: '#f1f5f9' }}>
+          <AlertTriangle size={28} style={{ color: '#C8322B' }} />
+          <p className="text-sm">
             Algo travou a tela. Isso não deveria ter acontecido.
           </p>
           <button

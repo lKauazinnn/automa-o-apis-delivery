@@ -67,10 +67,12 @@ https://SEU-PROJETO.vercel.app/webhook/ifood
 Essa URL **não muda mais**. Depois crie um pedido de teste no sandbox → ele cai no KDS.
 
 ## Observações
-- **Polling vs webhook:** os dois caminhos usam o mesmo pipeline. Na Vercel (serverless)
-  o **webhook é o modo certo** — não precisa de processo rodando 24/7. O polling contínuo
-  precisaria de um worker/cron (a fazer, se um dia quiser).
+- **Polling vs webhook:** os dois caminhos usam o mesmo pipeline. Mesmo usando webhook, o
+  iFood só mostra a loja como conectada com polling a cada 30s — por isso existe o
+  `worker/monitor.py`, que roda FORA da Vercel (PC ligado com `iniciar_monitor.bat`, ou
+  `Dockerfile.monitor` num VPS/Railway/Fly). Ele também grava o status aberta/fechada.
 - **Frontend (viewer):** continua sendo um deploy separado (a pasta `viewer/`). Pra ele
   falar com este backend, aponte a URL da API do viewer pra `https://SEU-PROJETO.vercel.app`.
-- **Assinatura do webhook:** hoje não valido o header `x-ifood-signature`. Se quiser, adiciono
-  a validação HMAC com o `IFOOD_CLIENT_SECRET`.
+- **Assinatura do webhook:** `/webhook/ifood` valida o header `X-IFood-Signature`
+  (HMAC-SHA256 do corpo com o `IFOOD_CLIENT_SECRET`) e responde 401 se não bater. Pra testar
+  com curl localmente, defina `IFOOD_WEBHOOK_VALIDAR_ASSINATURA=0` (nunca em produção).

@@ -4,23 +4,19 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      colors: {
-        primary: {
-          50: '#fff4ed',
-          100: '#ffe4d2',
-          200: '#ffc49f',
-          300: '#ffa06b',
-          400: '#fb8142',
-          500: '#f56c35',
-          600: '#dd5220',
-          700: '#af2d0a',
-          800: '#7a2008',
-          900: '#451205',
-        },
-      },
+      // Sem escala de cor de marca aqui: a cor de destaque é da empresa cliente (white-label) e
+      // chega em tempo de execução — use C.marca no JSX ou var(--marca) no CSS.
       fontFamily: {
-        display: ['Roboto Slab', 'serif'],
-        sans: ['Barlow', 'sans-serif'],
+        sans: ['IBM Plex Sans', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+      },
+      // Cantos do design system PausaFast: mais retos que o padrão do Tailwind, cara de
+      // ferramenta de operação. Redefinir a escala muda o app inteiro sem tocar nas telas.
+      borderRadius: {
+        md: '5px',
+        lg: '7px',
+        xl: '9px',
+        '2xl': '12px',
       },
     },
   },

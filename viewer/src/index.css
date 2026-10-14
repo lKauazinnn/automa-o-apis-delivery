@@ -1,8 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Design system PausaFast — ver DESIGN_SYSTEM.md. Tema claro na raiz; `.tema-escuro` no <html>
+   redefine só os tokens. As variáveis --marca* são escritas em tempo de execução por
+   aplicarMarcaNoDocumento() (marca.js) com a cor da empresa cliente; os valores abaixo são o
+   padrão PausaFast, usados até a marca carregar. */
+:root {
+  --fundo: #f4f5f7;
+  --texto: #12151b;
+  --borda-rolagem: #c9ced6;
+  --borda-rolagem-hover: #aeb4be;
+  --esqueleto: #e3e6eb;
+  --perigo: #c8322b;
+  --perigo-texto: #ffffff;
+  --perigo-hover: #ab2a24;
+  --hover-fantasma: rgba(17, 20, 27, 0.06);
+
+  --marca: #2b59c3;
+  --marca-tinta: #2b59c3;
+  --marca-texto: #ffffff;
+  --marca-hover: #254da8;
+  --marca-suave: #2b59c31a;
+  --marca-borda: #2b59c347;
+  --marca-anel: #2b59c340;
+
+  color-scheme: light;
+}
+
+:root.tema-escuro {
+  --fundo: #0d0f13;
+  --texto: #f1f3f6;
+  --borda-rolagem: #2e343e;
+  --borda-rolagem-hover: #434a56;
+  --esqueleto: #222731;
+  --perigo: #f26a5f;
+  --perigo-texto: #0f1115;
+  --perigo-hover: #f5867d;
+  --hover-fantasma: rgba(255, 255, 255, 0.07);
+  color-scheme: dark;
+}
 
 html {
   scroll-behavior: smooth;
@@ -10,21 +49,17 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Geist', system-ui, sans-serif;
-  background: #0a0a0d;
-  color: #f5f5f7;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
   min-height: 100vh;
   font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-body.tema-claro {
-  background: #f4f4f6;
-  color: #15151a;
-}
-
 .fonte-mono {
-  font-family: 'Geist Mono', monospace;
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 * {
@@ -32,33 +67,25 @@ body.tema-claro {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0806;
-  border-radius: 4px;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3a2e24;
-  border-radius: 4px;
+  background: var(--borda-rolagem);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4d3d2e;
-}
-
-body.tema-claro ::-webkit-scrollbar-track {
-  background: #e8edf3;
-}
-body.tema-claro ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-}
-body.tema-claro ::-webkit-scrollbar-thumb:hover {
-  background: #aab8c9;
+  background: var(--borda-rolagem-hover);
+  background-clip: content-box;
 }
 
 ::selection {
-  background: rgba(245, 108, 53, 0.25);
+  background: var(--marca-anel);
   color: inherit;
 }
 
@@ -72,12 +99,28 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #f56c35;
-  box-shadow: 0 0 0 3px rgba(245, 108, 53, 0.15);
+  border-color: var(--marca);
+  box-shadow: 0 0 0 3px var(--marca-anel);
+}
+
+/* Foco de teclado visível em TUDO que é focável, não só nos campos. Antes só input/select/
+   textarea tinham indicador — botão, toggle, linha clicável e item de menu não tinham nenhum,
+   o que deixava a navegação por Tab invisível. `:focus-visible` só aparece no teclado, então
+   o clique de mouse continua sem anel. */
+:where(button, a, [role='button'], [role='switch'], [tabindex]):focus-visible {
+  outline: 2px solid var(--marca-tinta);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 2px solid var(--marca-tinta);
+  outline-offset: 2px;
 }
 
 button {
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 button:active:not(:disabled) {
   transform: scale(0.98);
@@ -95,25 +138,29 @@ tr {
   transition: background-color 0.15s ease;
 }
 .botao-icone-fantasma:hover:not(:disabled) {
-  background: rgba(148, 163, 184, 0.16);
+  background: var(--hover-fantasma);
 }
 
 /* Botões sólidos, cor lisa — sem gradiente nem glow. Uma ação principal por tela já chama
-   atenção sozinha; gradiente+sombra colorida em todo botão "Salvar" é ruído, não hierarquia. */
+   atenção sozinha.
+
+   A cor é da empresa cliente, então o RÓTULO não é fixo: --marca-texto é branco ou quase-preto,
+   o que der mais contraste com a cor escolhida, e --marca-hover anda na direção que aumenta esse
+   contraste (ver tokensDaMarca em marca.js). Nunca escreva a cor do botão como literal. */
 .botao-primario {
-  background: #f56c35;
-  color: #fff;
+  background: var(--marca);
+  color: var(--marca-texto);
 }
 .botao-primario:hover:not(:disabled) {
-  background: #e0491a;
+  background: var(--marca-hover);
 }
 
 .botao-perigo {
-  background: #f0473f;
-  color: #fff;
+  background: var(--perigo);
+  color: var(--perigo-texto);
 }
 .botao-perigo:hover:not(:disabled) {
-  background: #d33530;
+  background: var(--perigo-hover);
 }
 
 @keyframes toast-entrar {
@@ -160,16 +207,6 @@ tr {
   animation: modal-entrar 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes glow-fundo {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.9;
-  }
-}
-
 @keyframes barra-flutuante-entrar {
   from {
     opacity: 0;
@@ -209,5 +246,39 @@ tr {
   }
   100% {
     opacity: 0;
+  }
+}
+
+/* Skeleton de carregamento: substitui o spinner central em lista/tabela. Com refresh
+   automático a cada 10–15s no KDS e em Pedidos, o spinner fazia a tela inteira piscar a
+   cada ciclo. */
+@keyframes esqueleto-brilho {
+  0% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.45;
+  }
+}
+
+.esqueleto {
+  background: var(--esqueleto);
+  border-radius: 6px;
+  animation: esqueleto-brilho 1.4s ease-in-out infinite;
+}
+
+/* Quem pediu menos movimento no sistema não deveria ver o pontinho "pausados agora" pulsando
+   nem a barra do toast correndo. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
