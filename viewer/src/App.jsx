@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Check, Clock, Layers, Loader2, PowerOff, Tag, Tags, Trash2 } from 'lucide-react'
+import { AlertTriangle, Check, Clock, Layers, Loader2, Plus, PowerOff, Tag, Tags, Trash2 } from 'lucide-react'
 import {
   API,
   buscarEu,
@@ -21,7 +21,8 @@ import { PausarModal } from './modals/PausarModal'
 import { RupturasModal } from './modals/RupturasModal'
 import { Sidebar } from './Sidebar'
 import { BannerConexao, BarraProgresso, Header, Toasts } from './Shell'
-import { Botao, Dialogo, MONO } from './ds'
+import { Botao, Dialogo, EstadoVazio, MONO, OpcaoMarcavel } from './ds'
+import { ItemEditarGaveta, ItemNovoGaveta } from './modals/ItemGaveta'
 import { encontrarRelacionados } from './pausas'
 import { TelaDefinirSenha, TelaLogin } from './TelasAuth'
 import { Avatar, CoresContext, iniciaisDe, lerImagemComoDataUrl, Modal, ModalEmbutidoContext, PALETAS, Pill } from './ui'
@@ -600,7 +601,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const precoNumerico = Number(String(form.preco).replace(',', '.'))
 
   const requisitos = [
-    { chave: 'nome', label: 'Nome do material', ok: campoPreenchido(form.nome) },
+    { chave: 'nome', label: 'Nome do item', ok: campoPreenchido(form.nome) },
     { chave: 'categoria', label: 'Categoria', ok: campoPreenchido(categoriaFinal) },
     { chave: 'codigo_pdv', label: 'Código PDV', ok: campoPreenchido(form.codigo_pdv) },
     { chave: 'preco', label: 'Preço maior que zero', ok: campoPreenchido(form.preco) && precoNumerico > 0 },
@@ -833,7 +834,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   }
 
   function pausarSelecionados() {
-    const alvos = paraAlvos(Array.from(selecionados)).map((a) => ({ ...a, marcado: true }))
+    const disponiveis = Array.from(selecionados).filter((id) => itens.find((i) => i.itemId === id)?.status === 'AVAILABLE')
+    const alvos = paraAlvos(disponiveis).map((a) => ({ ...a, marcado: true }))
     if (!alvos.length) return
     abrirPausar(alvos, { titulo: `Pausar ${alvos.length} ${alvos.length === 1 ? 'item' : 'itens'}` })
   }
@@ -843,7 +845,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       pausarSelecionados()
       return
     }
-    const ids = Array.from(selecionados)
+    const ids = Array.from(selecionados).filter((id) => itens.find((i) => i.itemId === id)?.status !== status)
     if (!ids.length) return
     await executarStatusEmLote(paraAlvos(ids), status)
     setSelecionados(new Set())
@@ -890,7 +892,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     setModalEdicao({
       item,
       nome: item.nome || '',
-      preco: String(item.preco ?? ''),
+      preco: item.preco == null ? '' : Number(item.preco).toFixed(2).replace('.', ','),
       codigoPdv: item.codigo_pdv || '',
       foto: item.foto || '',
       fotoNova: '',
@@ -951,10 +953,11 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
   function pedirConfirmacaoExcluirItem(item) {
     setConfirmacao({
-      titulo: 'Excluir item?',
-      mensagem: `Isso remove "${item.nome}" de vez do catálogo no iFood — diferente de pausar, não dá pra desfazer com um clique.`,
-      textoConfirmar: 'Excluir',
+      titulo: `Excluir "${item.nome}"?`,
+      mensagem: 'Isso tira o item do cardápio de vez, na plataforma também. Se só acabou, use Pausar — dá pra reativar depois.',
+      textoConfirmar: 'Excluir item',
       perigo: true,
+      alternativa: item.status === 'AVAILABLE' ? { texto: 'Pausar em vez disso', aoEscolher: () => prepararAlternarStatus(item) } : null,
       aoConfirmar: () => {
         setItemExcluindo(item.itemId)
         excluirItemDeVerdade(item)
@@ -1102,7 +1105,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     if (atual.campo === 'preco') {
       const precoNum = Number(String(atual.valor).replace(',', '.'))
       if (!precoNum || precoNum <= 0 || precoNum === Number(item.preco)) return
-      setLinhaSalvando(item.itemId)
+      setLinhaSalvando(`${item.itemId}:${atual.campo}`)
       try {
         await apiFetch(lojaAtual?.plataforma === '99food' ? `/99food/itens/${item.itemId}/preco` : `/itens/${item.itemId}/preco`, {
           method: 'PATCH',
@@ -1115,9 +1118,9 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         })
         setItens((prev) => prev.map((i) => (i.itemId === item.itemId ? { ...i, preco: precoNum } : i)))
         notificar('sucesso', `Preço de "${item.nome}" atualizado.`)
-        setLinhaSalva(item.itemId)
+        setLinhaSalva(`${item.itemId}:${atual.campo}`)
         carregarAuditoria()
-        setTimeout(() => setLinhaSalva((atualId) => (atualId === item.itemId ? null : atualId)), 1700)
+        setTimeout(() => setLinhaSalva((atualId) => (atualId === `${item.itemId}:${atual.campo}` ? null : atualId)), 1700)
       } catch (e) {
         notificar('erro', `Não consegui salvar: ${e.message}`)
       } finally {
@@ -1128,7 +1131,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
     const codigo = String(atual.valor).trim()
     if (!codigo || codigo === item.codigo_pdv) return
-    setLinhaSalvando(item.itemId)
+    setLinhaSalvando(`${item.itemId}:${atual.campo}`)
     try {
       await apiFetch(lojaAtual?.plataforma === '99food' ? `/99food/itens/${item.itemId}/codigo-pdv` : `/itens/${item.itemId}/codigo-pdv`, {
         method: 'PATCH',
@@ -1137,9 +1140,9 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       })
       setItens((prev) => prev.map((i) => (i.itemId === item.itemId ? { ...i, codigo_pdv: codigo } : i)))
       notificar('sucesso', `Código PDV de "${item.nome}" atualizado.`)
-      setLinhaSalva(item.itemId)
+      setLinhaSalva(`${item.itemId}:${atual.campo}`)
       carregarAuditoria()
-      setTimeout(() => setLinhaSalva((atualId) => (atualId === item.itemId ? null : atualId)), 1700)
+      setTimeout(() => setLinhaSalva((atualId) => (atualId === `${item.itemId}:${atual.campo}` ? null : atualId)), 1700)
     } catch (e) {
       notificar('erro', `Não consegui salvar: ${e.message}`)
     } finally {
@@ -1682,295 +1685,94 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         )}
 
         {modalEdicao && (
-          <Modal titulo={`Editar "${modalEdicao.item.nome}"`} onClose={() => setModalEdicao(null)}>
-            <div className="flex flex-col gap-3.5">
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                  Nome do material
-                </label>
-                <input
-                  className={inputCls}
-                  style={inputStyle}
-                  type="text"
-                  autoFocus
-                  value={modalEdicao.nome}
-                  onChange={(e) => setModalEdicao({ ...modalEdicao, nome: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                  Preço (R$)
-                </label>
-                <input
-                  className={inputCls}
-                  style={inputStyle}
-                  type="text"
-                  inputMode="decimal"
-                  value={modalEdicao.preco}
-                  onChange={(e) => setModalEdicao({ ...modalEdicao, preco: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                  Código PDV
-                </label>
-                <input
-                  className={inputCls}
-                  style={inputStyle}
-                  type="text"
-                  value={modalEdicao.codigoPdv}
-                  onChange={(e) => setModalEdicao({ ...modalEdicao, codigoPdv: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                  Foto
-                </label>
-                <div className="flex items-center gap-3">
-                  {(modalEdicao.fotoNova || modalEdicao.foto) && (
-                    <img
-                      src={modalEdicao.fotoNova || modalEdicao.foto}
-                      alt=""
-                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-                      style={{ border: `1px solid ${C.cardBorder}` }}
-                    />
-                  )}
-                  <input
-                    className={`${inputCls} py-1.5`}
-                    style={inputStyle}
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    onChange={async (e) => {
-                      const arquivo = e.target.files?.[0]
-                      if (!arquivo) return
-                      try {
-                        const dataUrl = await lerImagemComoDataUrl(arquivo)
-                        setModalEdicao((prev) => (prev ? { ...prev, fotoNova: dataUrl } : prev))
-                      } catch (err) {
-                        notificar('erro', err.message)
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="border-t pt-3.5" style={{ borderColor: C.cardBorder }}>
-                <label className="flex items-center gap-2 text-xs font-semibold mb-2.5 cursor-pointer" style={{ color: C.text1 }}>
-                  <input
-                    type="checkbox"
-                    checked={modalEdicao.turnoAtivo}
-                    onChange={(e) => setModalEdicao({ ...modalEdicao, turnoAtivo: e.target.checked })}
-                  />
-                  Só vende em turno específico (ex: só no almoço)
-                </label>
-                {modalEdicao.turnoAtivo && (
-                  <div className="flex flex-col gap-2.5 mb-1">
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <input
-                        type="time"
-                        value={modalEdicao.turnoInicio}
-                        onChange={(e) => setModalEdicao({ ...modalEdicao, turnoInicio: e.target.value })}
-                        className="rounded-xl px-3 py-2 text-xs outline-none"
-                        style={inputStyle}
-                      />
-                      <input
-                        type="time"
-                        value={modalEdicao.turnoFim}
-                        onChange={(e) => setModalEdicao({ ...modalEdicao, turnoFim: e.target.value })}
-                        className="rounded-xl px-3 py-2 text-xs outline-none"
-                        style={inputStyle}
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {[
-                        ['monday', 'Seg'],
-                        ['tuesday', 'Ter'],
-                        ['wednesday', 'Qua'],
-                        ['thursday', 'Qui'],
-                        ['friday', 'Sex'],
-                        ['saturday', 'Sáb'],
-                        ['sunday', 'Dom'],
-                      ].map(([chave, label]) => {
-                        const ativo = modalEdicao.turnoDias.has(chave)
-                        return (
-                          <button
-                            key={chave}
-                            type="button"
-                            onClick={() => {
-                              const novo = new Set(modalEdicao.turnoDias)
-                              if (novo.has(chave)) novo.delete(chave)
-                              else novo.add(chave)
-                              setModalEdicao({ ...modalEdicao, turnoDias: novo })
-                            }}
-                            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
-                            style={
-                              ativo
-                                ? { background: C.marca + '26', color: C.marcaTinta, border: '1px solid ${C.marca}59' }
-                                : { background: C.inputBg, color: C.text3, border: `1px solid ${C.cardBorder}` }
-                            }
-                          >
-                            {label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  disabled={salvandoTurnos}
-                  onClick={salvarTurnos}
-                  className="text-xs font-semibold px-3.5 py-2 rounded-xl disabled:opacity-40 flex items-center gap-1.5"
-                  style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-                >
-                  {salvandoTurnos && <Loader2 size={12} className="animate-spin" />}
-                  {salvandoTurnos ? 'Salvando turno...' : 'Salvar turno'}
-                </button>
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  type="button"
-                  disabled={salvandoEdicao}
-                  onClick={salvarEdicao}
-                  className="botao-primario flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                >
-                  {salvandoEdicao && <Loader2 size={12} className="animate-spin" />}
-                  {salvandoEdicao ? 'Salvando...' : 'Salvar alterações'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModalEdicao(null)}
-                  className="text-xs font-semibold px-3.5 py-2.5 rounded-xl"
-                  style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </Modal>
+          <ItemEditarGaveta
+            estado={modalEdicao}
+            setEstado={setModalEdicao}
+            plataforma={lojaAtual?.plataforma}
+            salvando={salvandoEdicao}
+            salvandoTurno={salvandoTurnos}
+            podeExcluir={podeCriarItem}
+            onSalvar={salvarEdicao}
+            onSalvarTurno={salvarTurnos}
+            onFoto={async (arquivo) => {
+              try {
+                const dataUrl = await lerImagemComoDataUrl(arquivo)
+                setModalEdicao((prev) => (prev ? { ...prev, fotoNova: dataUrl } : prev))
+              } catch (err) {
+                notificar('erro', err.message)
+              }
+            }}
+            onExcluir={() => {
+              const item = modalEdicao.item
+              setModalEdicao(null)
+              pedirConfirmacaoExcluirItem(item)
+            }}
+            onClose={() => setModalEdicao(null)}
+          />
         )}
 
-        {modalAcoesMassa && (
-          <Modal titulo={`Ações em massa (${itensSelecionados.length} itens)`} onClose={() => setModalAcoesMassa(false)} largura="max-w-lg">
-            <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto mb-4">
-              {itensSelecionados.map((i) => (
-                <div
-                  key={i.itemId}
-                  className="text-xs rounded-lg px-2.5 py-2 flex items-center justify-between gap-2"
-                  style={{ background: C.inputBg }}
-                >
-                  <span className="truncate" style={{ color: C.text1 }}>
-                    {i.nome}
-                  </span>
-                  <Pill color={i.status === 'AVAILABLE' ? C.good : C.neutral} dot>
-                    {i.status === 'AVAILABLE' ? 'Disponível' : 'Pausado'}
-                  </Pill>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                disabled={executandoMassa}
-                onClick={() => acaoEmMassa('UNAVAILABLE')}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}` }}
-              >
-                {executandoMassa && progressoMassa?.status === 'UNAVAILABLE' && <Loader2 size={12} className="animate-spin" />}
-                {executandoMassa && progressoMassa?.status === 'UNAVAILABLE'
-                  ? `Pausando ${progressoMassa.atual}/${progressoMassa.total}...`
-                  : 'Pausar todos'}
-              </button>
-              <button
-                type="button"
-                disabled={executandoMassa}
-                onClick={() => acaoEmMassa('AVAILABLE')}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                style={{ color: C.good, background: C.goodBg, border: `1px solid ${C.goodBd}` }}
-              >
-                {executandoMassa && progressoMassa?.status === 'AVAILABLE' && <Loader2 size={12} className="animate-spin" />}
-                {executandoMassa && progressoMassa?.status === 'AVAILABLE'
-                  ? `Despausando ${progressoMassa.atual}/${progressoMassa.total}...`
-                  : 'Despausar todos'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalAcoesMassa(false)}
-                className="text-xs font-semibold px-3.5 py-2.5 rounded-xl ml-auto"
-                style={{ color: C.text2, background: 'transparent' }}
-              >
-                Fechar
-              </button>
-            </div>
-          </Modal>
+        {modalNovoItem && (
+          <ItemNovoGaveta
+            form={form}
+            setForm={setForm}
+            categorias={categorias}
+            requisitos={requisitos}
+            formValido={formValido}
+            salvando={salvando}
+            erro={erroForm}
+            onFoto={async (arquivo) => {
+              try {
+                const dataUrl = await lerImagemComoDataUrl(arquivo)
+                setForm((prev) => ({ ...prev, foto: dataUrl }))
+              } catch (err) {
+                notificar('erro', err.message)
+              }
+            }}
+            onCriar={handleSubmit}
+            onClose={() => {
+              setModalNovoItem(false)
+              setErroForm('')
+            }}
+          />
         )}
 
         {modalRelacionados && (
-          <Modal
-            titulo={`${modalRelacionados.novoStatus === 'UNAVAILABLE' ? 'Pausar' : 'Despausar'} itens parecidos?`}
+          <Dialogo
+            largura={560}
+            eyebrow="Reativar"
+            titulo="Reativar os parecidos também?"
+            descricao={
+              <>
+                {modalRelacionados.relacionados.length} {modalRelacionados.relacionados.length === 1 ? 'item parecido com' : 'itens parecidos com'}{' '}
+                <b style={{ color: 'var(--t1)' }}>{modalRelacionados.item.nome}</b> {modalRelacionados.relacionados.length === 1 ? 'está pausado' : 'estão pausados'} — provavelmente pelo mesmo insumo. Desmarque o que ainda não voltou.
+              </>
+            }
             onClose={() => setModalRelacionados(null)}
-            largura="max-w-lg"
+            rodape={
+              <>
+                <span style={{ flex: 1 }} />
+                <Botao variante="secundario" tamanho="lg" disabled={executandoMassa} onClick={confirmarSoItemAtualModal}>
+                  Só este item
+                </Botao>
+                <Botao variante="primario" tamanho="lg" disabled={executandoMassa} onClick={confirmarModalRelacionados}>
+                  Reativar {modalRelacionados.selecionados.size + 1} itens
+                </Botao>
+              </>
+            }
           >
-            <p className="text-xs mb-3 leading-relaxed" style={{ color: C.text2 }}>
-              Encontramos {modalRelacionados.relacionados.length}{' '}
-              {modalRelacionados.relacionados.length === 1 ? 'item parecido' : 'itens parecidos'} com{' '}
-              <span style={{ color: C.text1, fontWeight: 600 }}>"{modalRelacionados.item.nome}"</span> — útil pra
-              ruptura de um insumo que afeta várias variações do mesmo prato (ex: tamanhos diferentes). Desmarque o
-              que não fizer sentido.
-            </p>
-            <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto mb-4">
+            <div style={{ border: '1px solid var(--borda)', borderRadius: 9, overflow: 'hidden' }}>
               {modalRelacionados.relacionados.map((r) => (
-                <label
+                <OpcaoMarcavel
                   key={r.itemId}
-                  className="flex items-center gap-2.5 text-xs rounded-lg px-2.5 py-2 cursor-pointer"
-                  style={{ background: C.inputBg }}
+                  marcado={modalRelacionados.selecionados.has(r.itemId)}
+                  onClick={() => alternarSelecaoModalRelacionados(r.itemId)}
+                  extra={<span style={{ fontFamily: MONO, fontSize: 12.5, color: 'var(--t3)' }}>{r.codigo_pdv}</span>}
                 >
-                  <input
-                    type="checkbox"
-                    checked={modalRelacionados.selecionados.has(r.itemId)}
-                    onChange={() => alternarSelecaoModalRelacionados(r.itemId)}
-                  />
-                  <span className="truncate" style={{ color: C.text1 }}>
-                    {r.nome}
-                  </span>
-                  <Pill color={r.status === 'AVAILABLE' ? C.good : C.neutral} dot>
-                    {r.status === 'AVAILABLE' ? 'Disponível' : 'Pausado'}
-                  </Pill>
-                  <span className="ml-auto font-mono flex-shrink-0" style={{ color: C.text3 }}>
-                    {r.codigo_pdv}
-                  </span>
-                </label>
+                  <span style={{ fontWeight: 500 }}>{r.nome}</span>
+                </OpcaoMarcavel>
               ))}
             </div>
-            <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                disabled={executandoMassa}
-                onClick={confirmarModalRelacionados}
-                className="botao-primario text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-              >
-                {modalRelacionados.novoStatus === 'UNAVAILABLE' ? 'Pausar' : 'Despausar'}{' '}
-                {modalRelacionados.selecionados.size + 1} itens
-              </button>
-              <button
-                type="button"
-                disabled={executandoMassa}
-                onClick={confirmarSoItemAtualModal}
-                className="text-xs font-semibold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-              >
-                Só este item
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalRelacionados(null)}
-                className="text-xs font-semibold px-3.5 py-2.5 rounded-xl ml-auto"
-                style={{ color: C.text2, background: 'transparent' }}
-              >
-                Cancelar
-              </button>
-            </div>
-          </Modal>
+          </Dialogo>
         )}
 
         {modalCategorias && (
@@ -2220,10 +2022,32 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                         </button>
                       )
                     })}
+                    <span style={{ flex: 1 }} />
+                    {abaCardapio === 'itens' && (
+                      <Botao variante="primario" onClick={() => setModalNovoItem(true)} style={{ alignSelf: 'center', marginBottom: 6 }}>
+                        <Plus size={16} />
+                        Adicionar item
+                      </Botao>
+                    )}
                   </div>
                 )}
 
-                {podeCriarItem && abaCardapio !== 'itens' && (
+                {podeCriarItem && abaCardapio !== 'itens' && lojaAtual?.plataforma === '99food' && (
+                  <section style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12, maxWidth: 960 }}>
+                    <EstadoVazio
+                      icone={<Tags size={22} />}
+                      titulo={`${ABAS_CARDAPIO.find((a) => a.chave === abaCardapio)?.label} ainda é só do iFood`}
+                      texto={`A API do 99Food que o painel usa não tem essa gestão. Para "${lojaAtual?.nome}", ajuste pelo portal do 99Food — itens, preço, PDV e pausas continuam funcionando aqui.`}
+                      acao={
+                        <Botao variante="secundario" tamanho="sm" onClick={() => setAbaCardapio('itens')}>
+                          Voltar pros itens
+                        </Botao>
+                      }
+                    />
+                  </section>
+                )}
+
+                {podeCriarItem && abaCardapio !== 'itens' && lojaAtual?.plataforma !== '99food' && (
                   <ModalEmbutidoContext.Provider value={true}>
                     {abaCardapio === 'categorias' && (
                       <CategoriasModal
@@ -2276,7 +2100,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                 {(abaCardapio === 'itens' || !podeCriarItem) && (
                 <CatalogoView
                   itens={itens}
-                  categorias={categorias}
                   categoriasFiltro={categoriasFiltro}
                   busca={busca}
                   onBusca={setBusca}
@@ -2298,32 +2121,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   onAlternarStatus={prepararAlternarStatus}
                   onAbrirEdicaoModal={abrirEdicao}
                   onExcluirItem={pedirConfirmacaoExcluirItem}
-                  itemExcluindo={itemExcluindo}
-                  onAbrirCombo={() => setModalCombo(true)}
-                  totalDisponiveis={totalDisponiveis}
-                  totalPausados={totalPausados}
                   podeCriarItem={podeCriarItem}
-                  modalNovoItem={modalNovoItem}
-                  onAbrirNovoItem={() => setModalNovoItem(true)}
-                  onFecharNovoItem={() => {
-                    setModalNovoItem(false)
-                    setErroForm('')
-                  }}
-                  form={form}
-                  setForm={setForm}
-                  onCriarItem={handleSubmit}
-                  onSelecionarFoto={async (arquivo) => {
-                    try {
-                      const dataUrl = await lerImagemComoDataUrl(arquivo)
-                      setForm((prev) => ({ ...prev, foto: dataUrl }))
-                    } catch (err) {
-                      notificar('erro', err.message)
-                    }
-                  }}
-                  requisitos={requisitos}
-                  formValido={formValido}
-                  salvando={salvando}
-                  erroForm={erroForm}
                   edicaoInline={edicaoInline}
                   onAbrirEdicaoInline={abrirEdicaoInline}
                   onEdicaoInlineInput={onEdicaoInlineInput}
@@ -2331,13 +2129,12 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   onCancelarEdicaoInline={() => setEdicaoInline(null)}
                   linhaSalvando={linhaSalvando}
                   linhaSalva={linhaSalva}
-                  onAbrirAcoesMassa={() => setModalAcoesMassa(true)}
                   onPausarSelecionados={pausarSelecionados}
+                  onReativarSelecionados={() => acaoEmMassa('AVAILABLE')}
                   onAbrirInsumo={() => setModalInsumo(true)}
+                  executando={executandoMassa}
                   pausasPorItem={pausasPorItem}
-                  C={C}
-                  inputCls={inputCls}
-                  inputStyle={inputStyle}
+                  plataforma={lojaAtual?.plataforma}
                 />
                 )}
                 </div>

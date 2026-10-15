@@ -597,3 +597,12 @@ textarea.ds-input {
 .ds-corpo > * {
   flex-shrink: 0;
 }
+
+.ds-celula-editavel:hover {
+  background: var(--input) !important;
+  border-color: var(--borda) !important;
+  color: var(--t1) !important;
+}
+.ds-opcao-perigo:hover {
+  background: var(--bad-bg) !important;
+}
