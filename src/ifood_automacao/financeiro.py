@@ -18,7 +18,7 @@ from datetime import date, timedelta
 
 import requests
 
-from .auth import auth_headers
+from .auth import auth_headers, auth_headers_financeiro, tem_credencial_financeira
 
 FINANCIAL_BASE = "https://merchant-api.ifood.com.br/financial/v3.0"
 
@@ -36,7 +36,12 @@ def _janelas(inicio: date, fim: date, dias: int):
 
 
 def _get(caminho: str, params: dict):
-    resp = requests.get(f"{FINANCIAL_BASE}{caminho}", headers=auth_headers(), params=params, timeout=30)
+    url = f"{FINANCIAL_BASE}{caminho}"
+    resp = requests.get(url, headers=auth_headers_financeiro(), params=params, timeout=30)
+    # O app financeiro (escopo conciliator) só enxerga as lojas que o autorizaram. Pra uma loja
+    # fora dele, tenta a credencial principal antes de desistir — é o comportamento de antes.
+    if resp.status_code in (401, 403) and tem_credencial_financeira():
+        resp = requests.get(url, headers=auth_headers(), params=params, timeout=30)
     resp.raise_for_status()
     if resp.status_code == 204 or not resp.content:
         return None

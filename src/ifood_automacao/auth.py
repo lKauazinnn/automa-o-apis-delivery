@@ -1,4 +1,11 @@
-"""Autenticação OAuth2 (client_credentials) com a Merchant API do iFood."""
+"""Autenticação OAuth2 (client_credentials) com a Merchant API do iFood.
+
+Duas credenciais possíveis:
+- principal (`IFOOD_CLIENT_ID`/`IFOOD_CLIENT_SECRET`): catálogo, pedidos, eventos, loja;
+- financeira (`IFOOD_FIN_CLIENT_ID`/`IFOOD_FIN_CLIENT_SECRET`, opcional): um app com escopo
+  `conciliator` (audience `financial`), que só enxerga a Financial API. Sem ela, o financeiro
+  usa a principal.
+"""
 import os
 import time
 
@@ -9,19 +16,16 @@ load_dotenv()
 
 TOKEN_URL = "https://merchant-api.ifood.com.br/authentication/v1.0/oauth/token"
 
-_cached_token = None
-_cached_expires_at = 0.0
+# client_id -> (token, expira_em). Um cache por credencial, pra principal e financeira não se
+# sobrescreverem.
+_cache: dict[str, tuple[str, float]] = {}
 
 
-def get_access_token() -> str:
+def _token(client_id: str, client_secret: str) -> str:
     """Retorna um access token válido, reaproveitando o cache em memória enquanto não expirar."""
-    global _cached_token, _cached_expires_at
-
-    if _cached_token and time.monotonic() < _cached_expires_at:
-        return _cached_token
-
-    client_id = os.environ["IFOOD_CLIENT_ID"]
-    client_secret = os.environ["IFOOD_CLIENT_SECRET"]
+    em_cache = _cache.get(client_id)
+    if em_cache and time.monotonic() < em_cache[1]:
+        return em_cache[0]
 
     response = requests.post(
         TOKEN_URL,
@@ -36,11 +40,26 @@ def get_access_token() -> str:
     response.raise_for_status()
     payload = response.json()
 
-    _cached_token = payload["accessToken"]
     # Renova com 60s de margem antes do vencimento real.
-    _cached_expires_at = time.monotonic() + int(payload["expiresIn"]) - 60
-    return _cached_token
+    _cache[client_id] = (payload["accessToken"], time.monotonic() + int(payload["expiresIn"]) - 60)
+    return payload["accessToken"]
+
+
+def get_access_token() -> str:
+    return _token(os.environ["IFOOD_CLIENT_ID"], os.environ["IFOOD_CLIENT_SECRET"])
 
 
 def auth_headers() -> dict:
     return {"Authorization": f"Bearer {get_access_token()}"}
+
+
+def tem_credencial_financeira() -> bool:
+    return bool(os.environ.get("IFOOD_FIN_CLIENT_ID") and os.environ.get("IFOOD_FIN_CLIENT_SECRET"))
+
+
+def auth_headers_financeiro() -> dict:
+    """Header da credencial financeira, ou da principal se ela não estiver configurada."""
+    if not tem_credencial_financeira():
+        return auth_headers()
+    token = _token(os.environ["IFOOD_FIN_CLIENT_ID"], os.environ["IFOOD_FIN_CLIENT_SECRET"])
+    return {"Authorization": f"Bearer {token}"}

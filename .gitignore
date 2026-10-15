@@ -23,3 +23,6 @@ viewer/src/catalogo.json
 # `graphify update .` e `python scripts/gerar_cerebro.py`
 graphify-out/
 cerebro-sistema/
+
+# cache local da CLI do Supabase
+supabase/.temp/
