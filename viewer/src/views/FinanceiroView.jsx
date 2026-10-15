@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Ban, Download, Landmark, Loader2, Receipt, ShoppingBag, Wallet } from 'lucide-react'
-import { Esqueleto, formatarTimestamp, StatCard } from '../ui'
+import { AlertTriangle, Download, Landmark, Loader2, Wallet } from 'lucide-react'
+import { Botao, EstadoVazio, Esqueleto, MONO, Segmentado } from '../ds'
+import { formatarTimestamp } from '../ui'
 import { rotularPagamento, TIPO_LABEL } from '../rotulos'
-import { GraficoFaturamentoDiario } from '../Graficos'
 
 const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const STATUS_VENDA = { CONCLUDED: 'Concluída', CANCELLED: 'Cancelada', CONFIRMED: 'Confirmada', DISPATCHED: 'Despachada', PLACED: 'Recebida' }
+const CORES_QUEBRA = ['var(--marca)', 'var(--info)', 'var(--warn)', 'var(--t3)', 'var(--good)', 'var(--bad)']
 
 function isoLocal(d) {
   const off = d.getTimezoneOffset()
@@ -21,6 +22,8 @@ function periodoPreset(chave) {
   if (chave === 'mes') return { inicio: isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), 1)), fim }
   return null
 }
+
+const br = (iso) => (iso ? iso.split('-').reverse().slice(0, 2).join('/') : '')
 
 function diaCurto(iso) {
   const [a, m, d] = iso.split('-')
@@ -39,73 +42,79 @@ function baixarCsv(nome, linhas) {
   URL.revokeObjectURL(url)
 }
 
-function Cartao({ C, titulo, Icone, acao, children }) {
+const cartao = { background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12 }
+
+// Uma quebra (por pagamento, plataforma...) como barra empilhada + lista com valor e %.
+function Quebra({ titulo, linhas, formatarChave = (k) => k }) {
+  const total = (linhas || []).reduce((s, l) => s + Number(l.faturamento || 0), 0)
+  const rows = (linhas || [])
+    .filter((l) => l.faturamento > 0)
+    .sort((a, b) => b.faturamento - a.faturamento)
+    .map((l, i) => ({ ...l, cor: CORES_QUEBRA[i % CORES_QUEBRA.length], pct: total ? (l.faturamento / total) * 100 : 0 }))
   return (
-    <div className="rounded-2xl border min-w-0" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-      <div className="px-5 py-3.5 border-b flex items-center gap-2" style={{ borderColor: C.cardBorder }}>
-        {Icone && <Icone size={15} color={C.marcaTinta} />}
-        <h3 className="font-bold" style={{ color: C.text1, fontSize: 14.5 }}>{titulo}</h3>
-        {acao && <div className="ml-auto">{acao}</div>}
-      </div>
-      <div className="overflow-x-auto">{children}</div>
+    <section style={{ ...cartao, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <h3 style={{ margin: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--t1)' }}>{titulo}</h3>
+      {rows.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--t3)' }}>Sem vendas no período.</div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', height: 10, borderRadius: 99, overflow: 'hidden', gap: 2 }}>
+            {rows.map((r) => (
+              <div key={r.chave} title={`${formatarChave(r.chave)}: ${Math.round(r.pct)}%`} style={{ width: `${r.pct}%`, background: r.cor }} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {rows.map((r) => (
+              <div key={r.chave} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 3, background: r.cor, flexShrink: 0 }} />
+                <span style={{ flex: 1, minWidth: 0, color: 'var(--t2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {formatarChave(r.chave)} <span style={{ color: 'var(--t3)' }}>· {r.pedidos} ped.</span>
+                </span>
+                <span style={{ fontFamily: MONO, fontSize: 13, color: 'var(--t1)' }}>{brl(r.faturamento)}</span>
+                <span style={{ fontFamily: MONO, fontSize: 12.5, color: 'var(--t3)', width: 38, textAlign: 'right' }}>{Math.round(r.pct)}%</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+  )
+}
+
+// Repasses e eventos ainda chegam com campos que variam por loja/contrato: mostra as colunas
+// simples que vierem, sem inventar formato.
+function TabelaCrua({ linhas, vazio }) {
+  if (!linhas?.length) return <div style={{ padding: '24px 20px', fontSize: 13, color: 'var(--t3)' }}>{vazio}</div>
+  const colunas = [...new Set(linhas.flatMap((l) => Object.keys(l).filter((k) => l[k] == null || typeof l[k] !== 'object')))].slice(0, 8)
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <thead>
+          <tr>
+            {colunas.map((c) => (
+              <th key={c} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--t3)', background: 'var(--card2)', borderBottom: '1px solid var(--linha)', whiteSpace: 'nowrap' }}>
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {linhas.map((l, i) => (
+            <tr key={i}>
+              {colunas.map((c) => (
+                <td key={c} style={{ padding: '10px 16px', borderBottom: '1px solid var(--linha)', color: 'var(--t1)', whiteSpace: 'nowrap', fontFamily: typeof l[c] === 'number' ? MONO : undefined }}>
+                  {String(l[c] ?? '—')}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
 
-function TabelaAgrupada({ C, linhas, rotulo, formatarChave = (k) => k }) {
-  if (!linhas?.length) return <p className="text-xs px-5 py-6" style={{ color: C.text3 }}>Sem dados no período.</p>
-  return (
-    <table className="w-full text-xs">
-      <thead>
-        <tr style={{ color: C.text3 }}>
-          <th className="text-left font-semibold px-5 py-2">{rotulo}</th>
-          <th className="text-right font-semibold px-3 py-2">Pedidos</th>
-          <th className="text-right font-semibold px-3 py-2">Faturamento</th>
-          <th className="text-right font-semibold px-3 py-2">Ticket médio</th>
-          <th className="text-right font-semibold px-5 py-2">Cancelados</th>
-        </tr>
-      </thead>
-      <tbody>
-        {linhas.map((l) => (
-          <tr key={l.chave} className="border-t" style={{ borderColor: C.rowBorder, color: C.text1 }}>
-            <td className="px-5 py-2">{formatarChave(l.chave)}</td>
-            <td className="text-right px-3 py-2 fonte-mono">{l.pedidos}</td>
-            <td className="text-right px-3 py-2 fonte-mono font-semibold">{brl(l.faturamento)}</td>
-            <td className="text-right px-3 py-2 fonte-mono" style={{ color: C.text2 }}>{l.pedidos ? brl(l.faturamento / l.pedidos) : '—'}</td>
-            <td className="text-right px-5 py-2 fonte-mono" style={{ color: l.cancelados ? C.bad : C.text3 }}>
-              {l.cancelados ? `${l.cancelados} · ${brl(l.valor_cancelado)}` : '0'}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-}
-
-// Tabela genérica pros blocos da Financial API cujos campos ainda não vimos com dado real
-// (repasses e eventos financeiros): mostra os campos simples de cada linha.
-function TabelaCrua({ C, linhas }) {
-  if (!linhas?.length) return <p className="text-xs px-5 py-6" style={{ color: C.text3 }}>Nada no período.</p>
-  const colunas = [...new Set(linhas.flatMap((l) => Object.keys(l).filter((k) => l[k] == null || typeof l[k] !== 'object')))].slice(0, 8)
-  return (
-    <table className="w-full text-xs">
-      <thead>
-        <tr style={{ color: C.text3 }}>
-          {colunas.map((c) => <th key={c} className="text-left font-semibold px-4 py-2 whitespace-nowrap">{c}</th>)}
-        </tr>
-      </thead>
-      <tbody>
-        {linhas.map((l, i) => (
-          <tr key={i} className="border-t" style={{ borderColor: C.rowBorder, color: C.text1 }}>
-            {colunas.map((c) => <td key={c} className="px-4 py-2 whitespace-nowrap">{String(l[c] ?? '—')}</td>)}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-}
-
-export function FinanceiroView({ apiFetch, C, notificar, lojaAtual }) {
+export function FinanceiroView({ apiFetch, notificar, lojaAtual }) {
   const [preset, setPreset] = useState('7d')
   const [periodo, setPeriodo] = useState(periodoPreset('7d'))
   const [todas, setTodas] = useState(false)
@@ -147,206 +156,253 @@ export function FinanceiroView({ apiFetch, C, notificar, lojaAtual }) {
   }, [periodo.inicio, periodo.fim, todas, lojaAtual?.merchant_id])
 
   const t = resumo?.totais
-  const inputStyle = { background: C.inputBg, border: `1px solid ${C.cardBorder}`, color: C.text1, height: 34 }
+  const porDia = resumo?.por_dia || []
+  const mx = Math.max(1, ...porDia.map((d) => Number(d.faturamento || 0)))
+  const vazio = !carregando && t && !t.pedidos && !t.cancelados
+  const rotuloPeriodo = periodo.inicio === periodo.fim ? `${br(periodo.inicio)}` : `${br(periodo.inicio)} a ${br(periodo.fim)}`
+
+  function exportar() {
+    baixarCsv(`financeiro_${periodo.inicio}_${periodo.fim}.csv`, [
+      ['Dia', 'Pedidos', 'Faturamento', 'Cancelados', 'Valor cancelado'],
+      ...porDia.map((l) => [l.chave, l.pedidos, Number(l.faturamento).toFixed(2).replace('.', ','), l.cancelados, Number(l.valor_cancelado).toFixed(2).replace('.', ',')]),
+    ])
+  }
+
+  const kpis = [
+    ifood?.totais
+      ? { l: 'Saldo das vendas', v: brl(ifood.totais.saldo_vendas), s: 'após comissão e taxas do iFood' }
+      : { l: 'Saldo das vendas', v: '—', s: ehIfood && !todas ? (carregandoIfood ? 'buscando no iFood…' : 'sem extrato do iFood no período') : 'só no extrato do iFood (loja única)' },
+    { l: 'Pedidos', v: (t?.pedidos ?? 0).toLocaleString('pt-BR'), s: 'válidos, sem cancelados' },
+    { l: 'Ticket médio', v: brl(t?.ticket_medio), s: 'por pedido válido' },
+    { l: 'Cancelados', v: String(t?.cancelados ?? 0), s: `${brl(t?.valor_cancelado)} · ${String(t?.taxa_cancelamento ?? 0).replace('.', ',')}% dos pedidos`, fg: t?.cancelados ? 'var(--bad)' : undefined },
+  ]
 
   return (
-    <div className="mx-auto flex flex-col gap-4" style={{ maxWidth: 1200 }}>
-      <div className="flex items-center gap-2.5 flex-wrap">
-        {[['hoje', 'Hoje'], ['7d', '7 dias'], ['30d', '30 dias'], ['mes', 'Este mês']].map(([chave, rotulo]) => (
-          <button
-            key={chave}
-            type="button"
-            onClick={() => {
-              setPreset(chave)
-              setPeriodo(periodoPreset(chave))
-            }}
-            className="text-xs font-semibold px-3 rounded-lg"
-            style={{
-              height: 34,
-              color: preset === chave ? C.marcaTexto : C.text1,
-              background: preset === chave ? C.marca : C.inputBg,
-              border: `1px solid ${preset === chave ? C.marca : C.cardBorder}`,
-            }}
-          >
-            {rotulo}
-          </button>
-        ))}
-        <input
-          type="date"
-          value={periodo.inicio}
-          max={periodo.fim}
-          onChange={(e) => {
-            setPreset('custom')
-            setPeriodo((p) => ({ ...p, inicio: e.target.value }))
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1480 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <Segmentado
+          rotulo="Período"
+          valor={preset}
+          altura={34}
+          onChange={(v) => {
+            setPreset(v)
+            if (v !== 'custom') setPeriodo(periodoPreset(v))
           }}
-          className="rounded-lg px-2 text-xs outline-none"
-          style={inputStyle}
-          aria-label="Data inicial"
+          opcoes={[
+            { valor: 'hoje', rotulo: 'Hoje' },
+            { valor: '7d', rotulo: '7 dias' },
+            { valor: '30d', rotulo: '30 dias' },
+            { valor: 'mes', rotulo: 'Este mês' },
+            { valor: 'custom', rotulo: 'Personalizado' },
+          ]}
         />
-        <span style={{ color: C.text3 }}>até</span>
-        <input
-          type="date"
-          value={periodo.fim}
-          min={periodo.inicio}
-          onChange={(e) => {
-            setPreset('custom')
-            setPeriodo((p) => ({ ...p, fim: e.target.value }))
-          }}
-          className="rounded-lg px-2 text-xs outline-none"
-          style={inputStyle}
-          aria-label="Data final"
-        />
-        <label className="ml-auto flex items-center gap-2 text-xs cursor-pointer" style={{ color: C.text1 }}>
-          <input type="checkbox" checked={todas} onChange={(e) => setTodas(e.target.checked)} />
+        {preset === 'custom' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="date" value={periodo.inicio} max={periodo.fim} onChange={(e) => setPeriodo((p) => ({ ...p, inicio: e.target.value }))} className="ds-input" style={{ width: 'auto', height: 40, background: 'var(--card)' }} aria-label="Data inicial" />
+            <span style={{ color: 'var(--t3)' }}>até</span>
+            <input type="date" value={periodo.fim} min={periodo.inicio} onChange={(e) => setPeriodo((p) => ({ ...p, fim: e.target.value }))} className="ds-input" style={{ width: 'auto', height: 40, background: 'var(--card)' }} aria-label="Data final" />
+          </div>
+        )}
+        <span style={{ fontSize: 13.5, color: 'var(--t2)' }}>{rotuloPeriodo}</span>
+        <span style={{ flex: 1 }} />
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--t1)', cursor: 'pointer' }}>
+          <input type="checkbox" checked={todas} onChange={(e) => setTodas(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--marca)' }} />
           Somar todas as lojas
         </label>
+        <Botao variante="secundario" onClick={exportar} disabled={!porDia.length}>
+          <Download size={16} /> Exportar CSV
+        </Botao>
       </div>
 
-      <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        {carregando && !t ? (
-          [0, 1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl border p-5" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-              <Esqueleto w="50%" h={26} />
-              <div className="mt-2"><Esqueleto w="70%" h={12} /></div>
+      {vazio ? (
+        <section style={cartao}>
+          <EstadoVazio
+            icone={<Wallet size={22} />}
+            titulo="Nenhuma venda nesse período"
+            texto={`Entre ${br(periodo.inicio)} e ${br(periodo.fim)} não houve pedido válido ${todas ? 'em nenhuma loja' : `em ${lojaAtual?.nome || 'esta loja'}`}. Os repasses e eventos do iFood também aparecem aqui quando existirem.`}
+            acao={
+              preset !== '7d' && (
+                <Botao
+                  variante="primario"
+                  onClick={() => {
+                    setPreset('7d')
+                    setPeriodo(periodoPreset('7d'))
+                  }}
+                >
+                  Ver últimos 7 dias
+                </Botao>
+              )
+            }
+          />
+        </section>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 480px), 1fr))', gap: 16 }}>
+            <section style={{ ...cartao, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <div style={{ fontSize: 13, color: 'var(--t2)', fontWeight: 500 }}>Faturamento</div>
+                {carregando && !t ? (
+                  <Esqueleto w="55%" h={40} style={{ marginTop: 6 }} />
+                ) : (
+                  <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.1, marginTop: 4, color: 'var(--t1)' }}>{brl(t?.faturamento)}</div>
+                )}
+                <div style={{ fontSize: 12.5, color: 'var(--t3)', marginTop: 4 }}>
+                  O que o cliente pagou nos pedidos válidos {todas ? 'de todas as lojas' : `de ${lojaAtual?.nome || 'esta loja'}`} (iFood + 99Food)
+                </div>
+              </div>
+              <div role="img" aria-label="Faturamento por dia" style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 120, borderBottom: '1px solid var(--borda)' }}>
+                {porDia.map((d, i) => (
+                  <div key={d.chave} title={`${diaCurto(d.chave)}: ${brl(d.faturamento)} · ${d.pedidos} pedidos`} style={{ flex: 1, minWidth: 4, height: `${(Number(d.faturamento || 0) / mx) * 100}%`, minHeight: d.faturamento ? 3 : 0, background: i === porDia.length - 1 ? 'var(--marca)' : 'var(--marca-borda)', borderRadius: '4px 4px 0 0' }} />
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 12, color: 'var(--t3)', marginTop: -6 }}>
+                <span>{porDia[0] ? br(porDia[0].chave) : ''}</span>
+                <span>{porDia.length ? br(porDia[porDia.length - 1].chave) : ''}</span>
+              </div>
+            </section>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
+              {kpis.map((k) => (
+                <section key={k.l} style={{ ...cartao, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ fontSize: 13, color: 'var(--t2)', fontWeight: 500 }}>{k.l}</div>
+                  {carregando && !t ? <Esqueleto w="60%" h={26} /> : <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', color: k.fg || 'var(--t1)' }}>{k.v}</div>}
+                  <div style={{ fontSize: 12.5, color: 'var(--t3)' }}>{k.s}</div>
+                </section>
+              ))}
             </div>
-          ))
-        ) : (
-          <>
-            <StatCard icon={Wallet} value={brl(t?.faturamento)} label="Faturamento (pedidos válidos)" color={C.good} destaque />
-            <StatCard icon={ShoppingBag} value={t?.pedidos ?? 0} label="Pedidos" color={C.info} />
-            <StatCard icon={Receipt} value={brl(t?.ticket_medio)} label="Ticket médio" color={C.marcaTinta} />
-            <StatCard
-              icon={Ban}
-              value={`${t?.cancelados ?? 0}`}
-              label={`Cancelados · ${t?.taxa_cancelamento ?? 0}% · ${brl(t?.valor_cancelado)}`}
-              color={C.bad}
-            />
-          </>
-        )}
-      </div>
-      <p className="text-[12px] -mt-1" style={{ color: C.text3 }}>
-        Valores acima = o que o cliente pagou nos pedidos que entraram no painel (iFood + 99Food), {todas ? 'todas as lojas' : `loja ${lojaAtual?.nome || 'atual'}`}.
-        O que a plataforma efetivamente repassa (descontadas comissão e taxas) está no extrato oficial abaixo.
-      </p>
+          </div>
 
-      {!carregando && <GraficoFaturamentoDiario porDia={resumo?.por_dia} C={C} />}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16 }}>
+            <Quebra titulo="Por forma de pagamento" linhas={resumo?.por_pagamento} formatarChave={rotularPagamento} />
+            <Quebra titulo="Por plataforma" linhas={resumo?.por_plataforma} />
+            {todas && <Quebra titulo="Por loja" linhas={resumo?.por_loja} />}
+            <Quebra titulo="Por tipo de pedido" linhas={resumo?.por_tipo} formatarChave={(k) => TIPO_LABEL[k] || k} />
+          </div>
 
-      <Cartao
-        C={C}
-        titulo="Por dia"
-        Icone={Receipt}
-        acao={
-          resumo?.por_dia?.length > 0 && (
-            <button
-              type="button"
-              onClick={() =>
-                baixarCsv(`financeiro_${periodo.inicio}_${periodo.fim}.csv`, [
-                  ['Dia', 'Pedidos', 'Faturamento', 'Cancelados', 'Valor cancelado'],
-                  ...resumo.por_dia.map((l) => [l.chave, l.pedidos, l.faturamento.toFixed(2).replace('.', ','), l.cancelados, l.valor_cancelado.toFixed(2).replace('.', ',')]),
-                ])
-              }
-              className="text-xs font-semibold inline-flex items-center gap-1.5 px-2.5 rounded-lg"
-              style={{ height: 28, color: C.text1, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-            >
-              <Download size={12} /> CSV
-            </button>
-          )
-        }
-      >
-        <TabelaAgrupada C={C} linhas={resumo?.por_dia} rotulo="Dia" formatarChave={diaCurto} />
-      </Cartao>
-
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))' }}>
-        <Cartao C={C} titulo="Por plataforma">
-          <TabelaAgrupada C={C} linhas={resumo?.por_plataforma} rotulo="Plataforma" />
-        </Cartao>
-        <Cartao C={C} titulo="Por forma de pagamento">
-          <TabelaAgrupada C={C} linhas={resumo?.por_pagamento} rotulo="Pagamento" formatarChave={rotularPagamento} />
-        </Cartao>
-        <Cartao C={C} titulo="Por tipo de pedido">
-          <TabelaAgrupada C={C} linhas={resumo?.por_tipo} rotulo="Tipo" formatarChave={(k) => TIPO_LABEL[k] || k} />
-        </Cartao>
-        {todas && (
-          <Cartao C={C} titulo="Por loja">
-            <TabelaAgrupada C={C} linhas={resumo?.por_loja} rotulo="Loja" />
-          </Cartao>
-        )}
-      </div>
+          <section style={{ ...cartao, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 20px', borderBottom: '1px solid var(--linha)' }}>
+              <h3 style={{ margin: 0, fontSize: 15.5, fontWeight: 700, flex: 1, color: 'var(--t1)' }}>Por dia</h3>
+            </div>
+            {porDia.length === 0 ? (
+              <div style={{ padding: '24px 20px', fontSize: 13, color: 'var(--t3)' }}>{carregando ? 'Carregando…' : 'Sem dados no período.'}</div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+                  <thead>
+                    <tr>
+                      {['Dia', 'Pedidos', 'Faturamento', 'Ticket médio', 'Cancelados'].map((c, i) => (
+                        <th key={c} style={{ textAlign: i ? 'right' : 'left', padding: '10px 20px', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t3)', background: 'var(--card2)', borderBottom: '1px solid var(--linha)' }}>
+                          {c}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {porDia.map((l) => (
+                      <tr key={l.chave}>
+                        <td style={{ padding: '10px 20px', borderBottom: '1px solid var(--linha)', color: 'var(--t1)' }}>{diaCurto(l.chave)}</td>
+                        <td style={{ padding: '10px 20px', borderBottom: '1px solid var(--linha)', textAlign: 'right', fontFamily: MONO }}>{l.pedidos}</td>
+                        <td style={{ padding: '10px 20px', borderBottom: '1px solid var(--linha)', textAlign: 'right', fontFamily: MONO, fontWeight: 600 }}>{brl(l.faturamento)}</td>
+                        <td style={{ padding: '10px 20px', borderBottom: '1px solid var(--linha)', textAlign: 'right', fontFamily: MONO, color: 'var(--t2)' }}>{l.pedidos ? brl(l.faturamento / l.pedidos) : '—'}</td>
+                        <td style={{ padding: '10px 20px', borderBottom: '1px solid var(--linha)', textAlign: 'right', fontFamily: MONO, color: l.cancelados ? 'var(--bad)' : 'var(--t3)' }}>{l.cancelados ? `${l.cancelados} · ${brl(l.valor_cancelado)}` : '0'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
       {ehIfood && !todas && (
         <>
-          <div className="flex items-center gap-2 pt-2">
-            <Landmark size={16} color={C.marcaTinta} />
-            <h3 className="font-bold" style={{ color: C.text1, fontSize: 16 }}>Extrato oficial iFood</h3>
-            <span className="text-[12px]" style={{ color: C.text3 }}>Financial API · {lojaAtual?.nome}</span>
-            {carregandoIfood && <Loader2 size={14} className="animate-spin" style={{ color: C.text2 }} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 4 }}>
+            <Landmark size={18} style={{ color: 'var(--marca-tinta)' }} />
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--t1)' }}>Extrato oficial iFood</h2>
+            <span style={{ fontSize: 12.5, color: 'var(--t3)' }}>API financeira · {lojaAtual?.nome}</span>
+            {carregandoIfood && <Loader2 size={16} className="animate-spin" style={{ color: 'var(--t2)' }} />}
           </div>
 
           {ifood?.erros && Object.keys(ifood.erros).length > 0 && (
-            <div className="flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs" style={{ background: C.neutralBg, border: `1px solid ${C.neutralBd}`, color: C.text1 }}>
-              <AlertTriangle size={14} color={C.neutral} className="flex-shrink-0" style={{ marginTop: 1 }} />
+            <div style={{ display: 'flex', gap: 10, padding: '12px 14px', borderRadius: 9, background: 'var(--warn-bg)', border: '1px solid var(--warn-bd)', fontSize: 13, color: 'var(--t1)' }}>
+              <AlertTriangle size={16} style={{ color: 'var(--warn)', flexShrink: 0, marginTop: 1 }} />
               <div>
                 {Object.entries(ifood.erros).map(([k, v]) => (
-                  <p key={k}><strong>{k}:</strong> {String(v).slice(0, 220)}</p>
+                  <div key={k}>
+                    <b>{k}:</b> {String(v).slice(0, 220)}
+                  </div>
                 ))}
               </div>
             </div>
           )}
 
-          {ifood?.totais && (
-            <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-              <StatCard icon={ShoppingBag} value={ifood.totais.vendas} label={`Vendas no iFood${ifood.totais.canceladas ? ` · ${ifood.totais.canceladas} cancelada(s)` : ''}`} color={C.info} />
-              <StatCard icon={Wallet} value={brl(ifood.totais.bruto)} label={`Bruto (itens + entrega) · entrega ${brl(ifood.totais.taxa_entrega)}`} color={C.good} />
-              <StatCard icon={Receipt} value={brl(ifood.totais.saldo_vendas)} label="Saldo das vendas (após comissão/taxas)" color={C.marcaTinta} />
-              <StatCard icon={Landmark} value={brl(ifood.totais.saldo_repasses)} label={`Repasses no período · ${ifood.totais.qtd_repasses} pagamento(s)`} color={C.neutral} />
+          <section style={{ ...cartao, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '16px 20px', borderBottom: '1px solid var(--linha)', flexWrap: 'wrap' }}>
+              <h3 style={{ margin: 0, fontSize: 15.5, fontWeight: 700, flex: 1, color: 'var(--t1)' }}>Vendas no iFood</h3>
+              {ifood?.totais && (
+                <span style={{ fontSize: 12.5, color: 'var(--t3)' }}>
+                  {ifood.totais.vendas} vendas{ifood.totais.canceladas ? ` · ${ifood.totais.canceladas} cancelada(s)` : ''} · bruto {brl(ifood.totais.bruto)} · repasses {brl(ifood.totais.saldo_repasses)} ({ifood.totais.qtd_repasses})
+                </span>
+              )}
             </div>
-          )}
-
-          <Cartao C={C} titulo={`Vendas (${ifood?.vendas?.length || 0})`} Icone={ShoppingBag}>
             {!ifood?.vendas?.length ? (
-              <p className="text-xs px-5 py-6" style={{ color: C.text3 }}>{carregandoIfood ? 'Carregando…' : 'Nenhuma venda no período.'}</p>
+              <div style={{ padding: '24px 20px', fontSize: 13, color: 'var(--t3)' }}>{carregandoIfood ? 'Carregando…' : 'Nenhuma venda no período.'}</div>
             ) : (
-              <table className="w-full text-xs">
-                <thead>
-                  <tr style={{ color: C.text3 }}>
-                    {['Pedido', 'Data', 'Status', 'Itens', 'Entrega', 'Cupons', 'Bruto', 'Saldo', 'Pagamento'].map((c) => (
-                      <th key={c} className={`font-semibold px-3 py-2 whitespace-nowrap ${['Itens', 'Entrega', 'Cupons', 'Bruto', 'Saldo'].includes(c) ? 'text-right' : 'text-left'}`}>{c}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {ifood.vendas.map((v) => (
-                    <tr key={v.id} className="border-t" style={{ borderColor: C.rowBorder, color: v.status === 'CANCELLED' ? C.text3 : C.text1 }}>
-                      <td className="px-3 py-2 fonte-mono">#{v.codigo}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{formatarTimestamp(v.data)}</td>
-                      <td className="px-3 py-2">{STATUS_VENDA[v.status] || v.status}</td>
-                      <td className="px-3 py-2 text-right fonte-mono">{brl(v.itens)}</td>
-                      <td className="px-3 py-2 text-right fonte-mono">{brl(v.taxa_entrega)}</td>
-                      <td className="px-3 py-2 text-right fonte-mono">{v.beneficios ? `− ${brl(v.beneficios)}` : '—'}</td>
-                      <td className="px-3 py-2 text-right fonte-mono font-semibold">{brl(v.bruto)}</td>
-                      <td className="px-3 py-2 text-right fonte-mono">{brl(v.saldo)}</td>
-                      <td className="px-3 py-2 whitespace-nowrap" style={{ color: C.text2 }}>{v.pagamentos}</td>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr>
+                      {['Pedido', 'Data', 'Status', 'Itens', 'Entrega', 'Cupons', 'Bruto', 'Saldo', 'Pagamento'].map((c) => (
+                        <th key={c} style={{ textAlign: ['Itens', 'Entrega', 'Cupons', 'Bruto', 'Saldo'].includes(c) ? 'right' : 'left', padding: '10px 14px', fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--t3)', background: 'var(--card2)', borderBottom: '1px solid var(--linha)', whiteSpace: 'nowrap' }}>
+                          {c}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {ifood.vendas.map((v) => {
+                      const cel = { padding: '10px 14px', borderBottom: '1px solid var(--linha)', color: v.status === 'CANCELLED' ? 'var(--t3)' : 'var(--t1)', whiteSpace: 'nowrap' }
+                      const num = { ...cel, textAlign: 'right', fontFamily: MONO }
+                      return (
+                        <tr key={v.id}>
+                          <td style={{ ...cel, fontFamily: MONO }}>#{v.codigo}</td>
+                          <td style={cel}>{formatarTimestamp(v.data)}</td>
+                          <td style={cel}>{STATUS_VENDA[v.status] || v.status}</td>
+                          <td style={num}>{brl(v.itens)}</td>
+                          <td style={num}>{brl(v.taxa_entrega)}</td>
+                          <td style={num}>{v.beneficios ? `− ${brl(v.beneficios)}` : '—'}</td>
+                          <td style={{ ...num, fontWeight: 600 }}>{brl(v.bruto)}</td>
+                          <td style={num}>{brl(v.saldo)}</td>
+                          <td style={{ ...cel, color: 'var(--t2)' }}>{v.pagamentos}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </Cartao>
+          </section>
 
-          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))' }}>
-            <Cartao C={C} titulo="Repasses (pagamentos do iFood pra loja)" Icone={Landmark}>
-              <TabelaCrua C={C} linhas={ifood?.repasses?.settlements} />
-            </Cartao>
-            <Cartao C={C} titulo="Eventos financeiros (comissão, taxas, ajustes)" Icone={Receipt}>
-              <TabelaCrua C={C} linhas={ifood?.eventos} />
-            </Cartao>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 540px), 1fr))', gap: 16, alignItems: 'start' }}>
+            <section style={{ ...cartao, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '16px 20px', borderBottom: '1px solid var(--linha)' }}>
+                <h3 style={{ margin: 0, fontSize: 15.5, fontWeight: 700, flex: 1, color: 'var(--t1)' }}>Repasses</h3>
+                <span style={{ fontSize: 12.5, color: 'var(--t3)' }}>pagamentos do iFood pra loja</span>
+              </div>
+              <TabelaCrua linhas={ifood?.repasses?.settlements} vazio={carregandoIfood ? 'Carregando…' : 'Nenhum repasse no período.'} />
+            </section>
+            <section style={{ ...cartao, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '16px 20px', borderBottom: '1px solid var(--linha)' }}>
+                <h3 style={{ margin: 0, fontSize: 15.5, fontWeight: 700, flex: 1, color: 'var(--t1)' }}>Eventos financeiros</h3>
+                <span style={{ fontSize: 12.5, color: 'var(--t3)' }}>comissões, taxas e ajustes</span>
+              </div>
+              <TabelaCrua linhas={ifood?.eventos} vazio={carregandoIfood ? 'Carregando…' : 'Nenhum evento no período.'} />
+            </section>
           </div>
         </>
       )}
       {!ehIfood && !todas && (
-        <p className="text-xs" style={{ color: C.text3 }}>
-          Extrato oficial: a API aberta do 99Food não tem endpoint financeiro — os valores acima vêm dos pedidos recebidos.
-        </p>
+        <div style={{ fontSize: 12.5, color: 'var(--t3)' }}>Extrato oficial: a API aberta do 99Food não tem endpoint financeiro — os valores acima vêm dos pedidos recebidos.</div>
       )}
     </div>
   )

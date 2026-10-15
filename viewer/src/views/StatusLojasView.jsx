@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Activity, AlertTriangle, CheckCircle2, History, Loader2, Power, PowerOff, RefreshCw, Store } from 'lucide-react'
-import { Esqueleto, formatarTimestamp, Pill } from '../ui'
+import { Activity, AlertTriangle, ArrowRight, Check, Loader2, RefreshCw, Store, X } from 'lucide-react'
+import { Botao, EstadoVazio, Esqueleto, Etiqueta, MONO, Segmentado, tons } from '../ds'
 
 const INTERVALO_ATUALIZACAO_MS = 30000
 const DURACOES_FECHAMENTO = [15, 30, 60, 120, 240]
@@ -15,30 +15,70 @@ function tempoDesde(iso) {
   return `há ${Math.floor(min / 1440)} dia(s)`
 }
 
-function corEstado(loja, C) {
-  if (loja.aberta === true) return C.good
-  if (loja.aberta === false) return C.bad
-  return C.text3
+function duracao(ms) {
+  const min = Math.max(0, Math.round(ms / 60000))
+  if (min < 60) return `${min} min`
+  if (min < 1440) return `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}`
+  return `${Math.floor(min / 1440)} d`
 }
 
-function CartaoLoja({ loja, C, podeGerenciar, apiFetch, notificar, onMudou }) {
-  const [duracao, setDuracao] = useState(30)
+const hora = (iso) => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+const tipoEstado = (aberta) => (aberta === true ? 'good' : aberta === false ? 'bad' : 'neutro')
+const textoEstado = (aberta) => (aberta === true ? 'Aberta' : aberta === false ? 'Fechada' : 'Sem informação')
+
+// Faixa do dia (00h → agora) montada com as mudanças gravadas em status_lojas_historico. Antes da
+// primeira mudança de hoje vale o estado anterior a ela; sem nenhum registro, a faixa fica vazia.
+function faixaDoDia(loja, historico) {
+  const inicio = new Date()
+  inicio.setHours(0, 0, 0, 0)
+  const ini = inicio.getTime()
+  const fimDia = ini + 86400000
+  const agora = Date.now()
+  const daLoja = historico
+    .filter((h) => h.merchant_id === loja.merchant_id)
+    .map((h) => ({ t: new Date(h.em).getTime(), aberta: h.aberta, motivo: h.motivo }))
+    .sort((a, b) => a.t - b.t)
+  const antes = daLoja.filter((h) => h.t < ini).pop()
+  const hoje = daLoja.filter((h) => h.t >= ini && h.t <= agora)
+  let estado = antes ? antes.aberta : hoje.length ? null : loja.aberta
+  let t = ini
+  const segs = []
+  for (const h of hoje) {
+    segs.push({ de: t, ate: h.t, aberta: estado })
+    t = h.t
+    estado = h.aberta
+  }
+  segs.push({ de: t, ate: agora, aberta: estado })
+  const pct = (v) => `${((v - ini) / (fimDia - ini)) * 100}%`
+  return {
+    segmentos: segs
+      .filter((s) => s.ate > s.de)
+      .map((s) => ({ w: `${((s.ate - s.de) / (fimDia - ini)) * 100}%`, cor: s.aberta === true ? 'var(--good)' : s.aberta === false ? 'var(--bad)' : 'var(--borda)', titulo: `${textoEstado(s.aberta)} · ${hora(new Date(s.de).toISOString())}–${hora(new Date(s.ate).toISOString())}` })),
+    agora: pct(agora),
+    temDado: daLoja.length > 0,
+  }
+}
+
+function CartaoCanal({ loja, historico, podeGerenciar, apiFetch, notificar, onMudou }) {
+  const [minutos, setMinutos] = useState(30)
   const [executando, setExecutando] = useState(null)
-  const cor = corEstado(loja, C)
+  const t = tons(tipoEstado(loja.aberta))
   const ehIfood = loja.plataforma === 'ifood'
   const qs = `?loja=${encodeURIComponent(loja.merchant_id)}`
+  const faixa = faixaDoDia(loja, historico)
+  const fechada = loja.aberta === false
 
   async function fecharAgora() {
     setExecutando('fechar')
     try {
       const inicio = new Date()
-      const fim = new Date(inicio.getTime() + duracao * 60000)
+      const fim = new Date(inicio.getTime() + minutos * 60000)
       await apiFetch(`/interrupcoes${qs}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ descricao: `Fechada pelo painel por ${duracao} min`, inicio: inicio.toISOString(), fim: fim.toISOString() }),
+        body: JSON.stringify({ descricao: `Fechada pelo painel por ${minutos} min`, inicio: inicio.toISOString(), fim: fim.toISOString() }),
       })
-      notificar('sucesso', `${loja.nome} fechada por ${duracao} min no iFood.`)
+      notificar('sucesso', `${loja.nome} fechada por ${minutos} min no iFood.`)
       onMudou()
     } catch (e) {
       notificar('erro', e.message)
@@ -54,7 +94,7 @@ function CartaoLoja({ loja, C, podeGerenciar, apiFetch, notificar, onMudou }) {
       const agora = Date.now()
       const ativas = (interrupcoes || []).filter((i) => new Date(i.end).getTime() > agora)
       if (ativas.length === 0) {
-        notificar('erro', 'Não há interrupção ativa pra remover — o motivo do fechamento é outro (veja abaixo).')
+        notificar('erro', 'Não há interrupção ativa pra remover — o motivo do fechamento é outro (veja no cartão).')
         return
       }
       for (const i of ativas) {
@@ -69,98 +109,101 @@ function CartaoLoja({ loja, C, podeGerenciar, apiFetch, notificar, onMudou }) {
     }
   }
 
+  const problemas = (loja.problemas || []).map((p) => (typeof p === 'string' ? { titulo: p } : p))
+
   return (
-    <div className="rounded-2xl border p-4 flex flex-col gap-3" style={{ background: C.cardBg, borderColor: loja.aberta === false ? C.badBd : C.cardBorder }}>
-      <div className="flex items-start gap-3">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: cor + '20', border: `1px solid ${cor}4D` }}
-        >
-          {loja.aberta ? <Power size={18} color={cor} /> : <PowerOff size={18} color={cor} />}
+    <section style={{ background: 'var(--card)', border: `${fechada ? 2 : 1}px solid ${fechada ? 'var(--bad)' : 'var(--borda)'}`, borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '18px 20px 14px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{loja.nome}</span>
+            <Etiqueta>{PLATAFORMA_LABEL[loja.plataforma] || loja.plataforma}</Etiqueta>
+          </div>
+          <div title={loja.merchant_id} style={{ fontFamily: MONO, fontSize: 12.5, color: 'var(--t3)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {loja.merchant_id}
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold truncate" style={{ color: C.text1, fontSize: 15 }}>{loja.nome}</p>
-          <p style={{ color: C.text3, fontSize: 12.5 }}>
-            {PLATAFORMA_LABEL[loja.plataforma] || loja.plataforma} · <span className="fonte-mono">{loja.merchant_id.slice(0, 13)}…</span>
-          </p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, height: 28, padding: '0 12px', borderRadius: 99, background: t.bg, border: `1px solid ${t.bd}`, color: t.fg, fontSize: 13.5, fontWeight: 700 }}>
+            {loja.aberta === true ? <Check size={14} /> : loja.aberta === false ? <X size={14} /> : null}
+            {textoEstado(loja.aberta)}
+          </span>
+          <span style={{ fontSize: 12.5, color: 'var(--t3)', whiteSpace: 'nowrap' }}>
+            {loja.mudou_em ? `desde ${hora(loja.mudou_em)} · ${tempoDesde(loja.mudou_em)}` : `verificado ${tempoDesde(loja.verificado_em)}`}
+          </span>
         </div>
-        <Pill color={cor} dot>
-          {loja.aberta === true ? 'Aberta' : loja.aberta === false ? 'Fechada' : 'Sem informação'}
-        </Pill>
       </div>
 
-      {loja.motivo && (
-        <p className="text-xs" style={{ color: loja.aberta === false ? C.text1 : C.text2 }}>{loja.motivo}</p>
-      )}
-      {loja.problemas?.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          {loja.problemas.map((p, i) => (
-            <div key={i} className="flex items-start gap-2 rounded-lg px-2.5 py-2 text-xs" style={{ background: C.badBg, color: C.text1 }}>
-              <AlertTriangle size={13} className="flex-shrink-0" style={{ color: C.bad, marginTop: 1 }} />
-              <div>
-                {/* Normalmente o problema é um objeto {id, titulo, detalhe} da validação do iFood.
-                    Aceita string também: quando vinha assim, a caixa de alerta aparecia vazia —
-                    um aviso sem texto é pior que aviso nenhum. */}
-                <p className="font-semibold">{typeof p === 'string' ? p : p.titulo || p.id}</p>
-                {p.detalhe && <p style={{ color: C.text2 }}>{p.detalhe}</p>}
+      {(loja.motivo || problemas.length > 0) && (
+        <div style={{ margin: '0 20px 14px', padding: '10px 12px', borderRadius: 9, background: fechada ? 'var(--bad-bg)' : 'var(--card2)', border: `1px solid ${fechada ? 'var(--bad-bd)' : 'var(--linha)'}`, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <span style={{ color: fechada ? 'var(--bad)' : 'var(--t2)', display: 'flex', paddingTop: 1 }}>
+            <AlertTriangle size={16} />
+          </span>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {loja.motivo && <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t1)' }}>{loja.motivo}</div>}
+            {problemas.map((p, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--t1)' }}>{p.titulo || p.id}</div>
+                {p.detalhe && <div style={{ fontSize: 13, color: 'var(--t2)', lineHeight: 1.45 }}>{p.detalhe}</div>}
                 {p.id === 'is-connected' && (
-                  <p className="mt-0.5" style={{ color: C.neutral }}>
-                    → O iFood só considera a loja conectada enquanto o monitor faz polling a cada 30s.
-                  </p>
+                  <div style={{ fontSize: 13, color: 'var(--t2)', lineHeight: 1.45, marginTop: 2 }}>O iFood só considera a loja conectada enquanto o monitor consulta pedidos a cada 30s.</div>
                 )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
-      <p style={{ color: C.text3, fontSize: 11.5 }}>
-        {loja.mudou_em ? `Neste estado ${tempoDesde(loja.mudou_em)} · ` : ''}verificado {tempoDesde(loja.verificado_em)}
-      </p>
+      <div style={{ padding: '0 20px 16px', marginTop: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--t3)', marginBottom: 6 }}>
+          <span>Hoje</span>
+          <span>{faixa.temDado ? `verificado ${tempoDesde(loja.verificado_em)}` : 'sem mudanças registradas'}</span>
+        </div>
+        <div role="img" aria-label="Linha do tempo de hoje" style={{ position: 'relative', height: 14, borderRadius: 5, background: 'var(--input)', overflow: 'hidden', display: 'flex' }}>
+          {faixa.segmentos.map((s, i) => (
+            <div key={i} title={s.titulo} style={{ width: s.w, background: s.cor, borderRight: '1px solid var(--card)' }} />
+          ))}
+          <div style={{ position: 'absolute', top: -2, bottom: -2, left: faixa.agora, width: 2, background: 'var(--t1)' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 11.5, color: 'var(--t3)', marginTop: 4 }}>
+          <span>00h</span>
+          <span>06h</span>
+          <span>12h</span>
+          <span>18h</span>
+          <span>24h</span>
+        </div>
+      </div>
 
       {podeGerenciar && ehIfood && (
-        <div className="flex items-center gap-2 pt-2 border-t" style={{ borderColor: C.rowBorder }}>
-          <select
-            value={duracao}
-            onChange={(e) => setDuracao(Number(e.target.value))}
-            className="rounded-lg px-2 text-xs outline-none"
-            style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}`, color: C.text1, height: 32 }}
-            aria-label="Duração do fechamento"
-          >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderTop: '1px solid var(--linha)', background: 'var(--card2)', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, color: 'var(--t2)' }}>Fechar por</span>
+          <select value={minutos} onChange={(e) => setMinutos(Number(e.target.value))} className="ds-input" style={{ width: 'auto', height: 34, background: 'var(--card)' }} aria-label="Duração do fechamento">
             {DURACOES_FECHAMENTO.map((d) => (
-              <option key={d} value={d}>{d < 60 ? `${d} min` : `${d / 60}h`}</option>
+              <option key={d} value={d}>
+                {d < 60 ? `${d} min` : `${d / 60}h`}
+              </option>
             ))}
           </select>
-          <button
-            type="button"
-            disabled={!!executando}
-            onClick={fecharAgora}
-            className="botao-perigo text-xs font-bold px-3 rounded-lg disabled:opacity-50 inline-flex items-center gap-1.5"
-            style={{ height: 32 }}
-          >
-            {executando === 'fechar' && <Loader2 size={12} className="animate-spin" />}
+          <Botao variante="secundario" tamanho="sm" disabled={!!executando} onClick={fecharAgora} style={{ color: 'var(--bad)', borderColor: 'var(--bad-bd)' }}>
+            {executando === 'fechar' && <Loader2 size={14} className="animate-spin" />}
             Fechar agora
-          </button>
-          <button
-            type="button"
-            disabled={!!executando}
-            onClick={reabrir}
-            className="text-xs font-semibold px-3 rounded-lg ml-auto disabled:opacity-50 inline-flex items-center gap-1.5"
-            style={{ height: 32, color: C.text1, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-          >
-            {executando === 'reabrir' && <Loader2 size={12} className="animate-spin" />}
-            Reabrir
-          </button>
+          </Botao>
+          <span style={{ flex: 1 }} />
+          <Botao variante="secundario" tamanho="sm" disabled={!!executando} onClick={reabrir}>
+            {executando === 'reabrir' && <Loader2 size={14} className="animate-spin" />}
+            Reabrir já
+          </Botao>
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
-export function StatusLojasView({ apiFetch, C, notificar, podeGerenciar }) {
+export function StatusLojasView({ apiFetch, notificar, podeGerenciar }) {
   const [dados, setDados] = useState(null)
   const [historico, setHistorico] = useState([])
   const [verificando, setVerificando] = useState(false)
+  const [filtro, setFiltro] = useState('todos')
   const apiFetchRef = useRef(apiFetch)
   apiFetchRef.current = apiFetch
 
@@ -172,7 +215,7 @@ export function StatusLojasView({ apiFetch, C, notificar, podeGerenciar }) {
         apiFetchRef.current('/lojas/status/historico?limite=50').catch(() => []),
       ])
       setDados(status)
-      setHistorico(hist)
+      setHistorico(hist || [])
     } catch (e) {
       notificar('erro', e.message)
     } finally {
@@ -191,125 +234,178 @@ export function StatusLojasView({ apiFetch, C, notificar, podeGerenciar }) {
   const abertas = lojas.filter((l) => l.aberta === true).length
   const fechadas = lojas.filter((l) => l.aberta === false).length
   const monitor = dados?.monitor
-  const nomePorLoja = Object.fromEntries(lojas.map((l) => [l.merchant_id, l.nome]))
+  const nomePorLoja = Object.fromEntries(lojas.map((l) => [l.merchant_id, `${l.nome} · ${PLATAFORMA_LABEL[l.plataforma] || l.plataforma}`]))
+
+  // Mudanças com "de → para" e quanto durou cada estado (até a mudança seguinte da mesma loja).
+  const mudancas = [...historico]
+    .sort((a, b) => new Date(b.em) - new Date(a.em))
+    .map((h, i, lista) => {
+      const anterior = lista.slice(i + 1).find((x) => x.merchant_id === h.merchant_id)
+      const seguinte = lista.slice(0, i).reverse().find((x) => x.merchant_id === h.merchant_id)
+      const fim = seguinte ? new Date(seguinte.em).getTime() : Date.now()
+      return { ...h, de: anterior ? anterior.aberta : undefined, duracao: duracao(fim - new Date(h.em).getTime()), emCurso: !seguinte }
+    })
+    .filter((h) => filtro === 'todos' || (filtro === 'fechou' ? h.aberta === false : h.aberta === true))
+
+  const resumoTom = fechadas ? 'bad' : 'good'
 
   return (
-    <div className="mx-auto flex flex-col gap-4" style={{ maxWidth: 1100 }}>
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Store size={17} color={C.marcaTinta} />
-          <h2 className="font-bold" style={{ color: C.text1, fontSize: 18, letterSpacing: '-0.02em' }}>Status das lojas</h2>
-        </div>
-        {dados && (
-          <span style={{ color: C.text2, fontSize: 13.5 }}>
-            <strong style={{ color: C.good }}>{abertas}</strong> aberta{abertas === 1 ? '' : 's'} ·{' '}
-            <strong style={{ color: fechadas ? C.bad : C.text2 }}>{fechadas}</strong> fechada{fechadas === 1 ? '' : 's'}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={() => carregar(true)}
-          disabled={verificando}
-          className="ml-auto text-xs font-semibold px-3.5 rounded-xl inline-flex items-center gap-1.5 disabled:opacity-50"
-          style={{ height: 36, color: C.text1, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-        >
-          <RefreshCw size={13} className={verificando ? 'animate-spin' : ''} />
-          Verificar agora
-        </button>
-      </div>
-
-      {monitor && (
-        <div
-          className="flex items-start gap-2.5 rounded-2xl px-4 py-3 text-xs"
-          style={{
-            background: monitor.ativo ? C.goodBg : C.neutralBg,
-            border: `1px solid ${monitor.ativo ? C.goodBd : C.neutralBd}`,
-            color: C.text1,
-          }}
-        >
-          {monitor.ativo ? (
-            <CheckCircle2 size={16} color={C.good} className="flex-shrink-0" />
-          ) : (
-            <Activity size={16} color={C.neutral} className="flex-shrink-0" />
-          )}
-          <div>
-            {monitor.ativo ? (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1480 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 16 }}>
+        <section style={{ background: 'var(--card)', border: `1px solid ${fechadas ? 'var(--bad-bd)' : 'var(--borda)'}`, borderRadius: 12, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, color: 'var(--t2)', fontWeight: 500 }}>Lojas recebendo pedidos agora</div>
+            {dados ? (
               <>
-                <p className="font-bold">Monitor ativo — último sinal {tempoDesde(monitor.ultimo_ping)}</p>
-                <p style={{ color: C.text2 }}>
-                  Pedidos do iFood consultados a cada 30s e status das lojas a cada 1 min, mesmo com o painel fechado.
-                  {monitor.info?.pedidos_novos_total != null && ` ${monitor.info.pedidos_novos_total} pedido(s) recebido(s) desde que iniciou.`}
-                </p>
-                {monitor.info?.ultimo_erro && <p style={{ color: C.bad }}>Último erro: {monitor.info.ultimo_erro}</p>}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 4 }}>
+                  <span style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--t1)' }}>{abertas}</span>
+                  <span style={{ fontSize: 16, color: 'var(--t3)', fontWeight: 500 }}>de {lojas.length}</span>
+                </div>
+                <div style={{ fontSize: 13.5, color: tons(resumoTom).fg, fontWeight: 600, marginTop: 4 }}>
+                  {fechadas ? `${fechadas} ${fechadas === 1 ? 'loja fechada' : 'lojas fechadas'} — confira o motivo abaixo` : lojas.length ? 'Tudo aberto' : 'Nenhuma loja cadastrada'}
+                </div>
               </>
             ) : (
-              <>
-                <p className="font-bold">Monitor parado{monitor.ultimo_ping ? ` (último sinal ${tempoDesde(monitor.ultimo_ping)})` : ''}</p>
-                <p style={{ color: C.text2 }}>
-                  Sem ele, a loja só fica conectada no iFood enquanto alguém está com as telas de Pedidos/Cozinha abertas — fora
-                  disso aparece "Gestor de Pedidos desconectado" e a loja fecha. Rode <span className="fonte-mono">iniciar_monitor.bat</span>{' '}
-                  num computador que fica ligado, ou suba o <span className="fonte-mono">Dockerfile.monitor</span> num servidor.
-                </p>
-              </>
+              <Esqueleto w="40%" h={34} style={{ marginTop: 6 }} />
             )}
           </div>
-        </div>
-      )}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {lojas.map((l) => (
+              <div key={l.merchant_id} title={nomePorLoja[l.merchant_id]} style={{ width: 14, height: 44, borderRadius: 5, background: tons(tipoEstado(l.aberta)).fg }} />
+            ))}
+          </div>
+          <Botao variante="secundario" tamanho="sm" onClick={() => carregar(true)} disabled={verificando} title="Consultar as plataformas agora">
+            <RefreshCw size={14} className={verificando ? 'animate-spin' : ''} /> Verificar agora
+          </Botao>
+        </section>
+
+        {monitor && (
+          <section style={{ background: 'var(--card)', border: `1px solid ${monitor.ativo ? 'var(--borda)' : 'var(--warn-bd)'}`, borderRadius: 12, padding: '20px 24px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 9, background: monitor.ativo ? 'var(--good-bg)' : 'var(--warn-bg)', border: `1px solid ${monitor.ativo ? 'var(--good-bd)' : 'var(--warn-bd)'}`, color: monitor.ativo ? 'var(--good)' : 'var(--warn)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Activity size={20} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--t1)' }}>{monitor.ativo ? 'Monitor ativo' : 'Monitor parado'}</span>
+                {monitor.ultimo_ping && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, height: 22, padding: '0 8px', borderRadius: 99, background: monitor.ativo ? 'var(--good-bg)' : 'var(--warn-bg)', border: `1px solid ${monitor.ativo ? 'var(--good-bd)' : 'var(--warn-bd)'}`, color: monitor.ativo ? 'var(--good)' : 'var(--warn)', fontSize: 12, fontWeight: 600 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 99, background: 'currentColor' }} />
+                    último sinal {tempoDesde(monitor.ultimo_ping)}
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: 13.5, color: 'var(--t2)', marginTop: 4, lineHeight: 1.5, textWrap: 'pretty' }}>
+                {monitor.ativo ? (
+                  <>
+                    Consulta os pedidos do iFood a cada 30s e o status das lojas a cada 1 min, mesmo com o painel fechado.
+                    {monitor.info?.pedidos_novos_total != null && ` ${monitor.info.pedidos_novos_total} pedido(s) recebido(s) desde que iniciou.`}
+                    {monitor.info?.ultimo_erro && <span style={{ display: 'block', color: 'var(--bad)', marginTop: 4 }}>Último erro: {monitor.info.ultimo_erro}</span>}
+                  </>
+                ) : (
+                  <>
+                    Sem ele, a loja só fica conectada no iFood enquanto alguém está com Pedidos ou Cozinha abertos — fora disso aparece “Gestor de Pedidos desconectado” e a loja fecha. Rode{' '}
+                    <span style={{ fontFamily: MONO, color: 'var(--t1)' }}>iniciar_monitor.bat</span> num computador que fica ligado, ou suba o{' '}
+                    <span style={{ fontFamily: MONO, color: 'var(--t1)' }}>Dockerfile.monitor</span> num servidor.
+                  </>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
 
       {!dados ? (
-        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
-          {[0, 1].map((i) => (
-            <div key={i} className="rounded-2xl border p-4" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-              <Esqueleto w="55%" h={15} />
-              <div className="mt-3"><Esqueleto w="85%" h={12} /></div>
-            </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 520px), 1fr))', gap: 16 }}>
+          {[0, 1].map((k) => (
+            <section key={k} style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Esqueleto w="45%" h={16} />
+              <Esqueleto w="70%" h={12} />
+              <Esqueleto h={14} r={5} />
+            </section>
           ))}
         </div>
       ) : lojas.length === 0 ? (
-        <p className="text-sm py-10 text-center" style={{ color: C.text3 }}>Nenhuma loja cadastrada.</p>
+        <section style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12 }}>
+          <EstadoVazio icone={<Store size={22} />} titulo="Nenhuma loja cadastrada" texto="Cadastre a loja em Administração › Lojas para acompanhar se ela está aberta." />
+        </section>
       ) : (
-        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 520px), 1fr))', gap: 16 }}>
           {lojas.map((loja) => (
-            <CartaoLoja
-              key={loja.merchant_id}
-              loja={loja}
-              C={C}
-              podeGerenciar={podeGerenciar}
-              apiFetch={apiFetchRef.current}
-              notificar={notificar}
-              onMudou={() => setTimeout(() => carregar(true), 1500)}
-            />
+            <CartaoCanal key={loja.merchant_id} loja={loja} historico={historico} podeGerenciar={podeGerenciar} apiFetch={apiFetchRef.current} notificar={notificar} onMudou={() => setTimeout(() => carregar(true), 1500)} />
           ))}
         </div>
       )}
 
-      <div className="rounded-2xl border" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-        <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: C.cardBorder }}>
-          <History size={16} color={C.marcaTinta} />
-          <h3 className="font-bold" style={{ color: C.text1, fontSize: 15.5 }}>Histórico de abre/fecha</h3>
-        </div>
-        <div className="px-5 py-2">
-          {historico.length === 0 && (
-            <p className="text-sm py-8" style={{ color: C.text3 }}>
-              Nenhuma mudança registrada ainda. O histórico é gravado a cada mudança de estado (precisa da migration 009).
-            </p>
-          )}
-          {historico.map((h) => {
-            const cor = corEstado(h, C)
-            return (
-              <div key={h.id} className="flex items-center gap-3 py-2.5 border-b last:border-0 text-xs" style={{ borderColor: C.rowBorder }}>
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cor }} />
-                <span className="font-semibold flex-shrink-0" style={{ color: cor, width: 64 }}>
-                  {h.aberta === true ? 'Abriu' : h.aberta === false ? 'Fechou' : 'Sem info'}
-                </span>
-                <span className="font-semibold truncate" style={{ color: C.text1, maxWidth: 200 }}>{nomePorLoja[h.merchant_id] || h.merchant_id}</span>
-                <span className="truncate flex-1" style={{ color: C.text2 }}>{h.motivo}</span>
-                <span className="flex-shrink-0" style={{ color: C.text3 }}>{formatarTimestamp(h.em)}</span>
-              </div>
-            )
-          })}
-        </div>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 12.5, color: 'var(--t2)' }}>
+        {[
+          ['var(--good)', 'Aberta'],
+          ['var(--bad)', 'Fechada'],
+          ['var(--borda)', 'Sem informação'],
+        ].map(([cor, l]) => (
+          <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: cor }} />
+            {l}
+          </span>
+        ))}
       </div>
+
+      <section style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 20px', borderBottom: '1px solid var(--linha)', flexWrap: 'wrap' }}>
+          <h2 style={{ margin: 0, fontSize: 15.5, fontWeight: 700, flex: 1, color: 'var(--t1)' }}>Mudanças recentes</h2>
+          <Segmentado
+            rotulo="Filtrar mudanças"
+            valor={filtro}
+            onChange={setFiltro}
+            altura={30}
+            opcoes={[
+              { valor: 'todos', rotulo: 'Tudo' },
+              { valor: 'fechou', rotulo: 'Fechamentos' },
+              { valor: 'abriu', rotulo: 'Aberturas' },
+            ]}
+          />
+        </div>
+        {mudancas.length === 0 ? (
+          <EstadoVazio compacto titulo="Nenhuma mudança registrada" texto="O histórico é gravado toda vez que uma loja abre ou fecha." />
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ minWidth: 760 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '110px minmax(160px,1fr) minmax(190px,1.1fr) minmax(200px,1.6fr) 130px', alignItems: 'center', height: 40, padding: '0 20px', background: 'var(--card2)', borderBottom: '1px solid var(--linha)', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t3)' }}>
+                <div>Quando</div>
+                <div>Loja</div>
+                <div>Mudança</div>
+                <div>Motivo</div>
+                <div style={{ textAlign: 'right' }}>Duração</div>
+              </div>
+              {mudancas.map((h) => {
+                const para = tons(tipoEstado(h.aberta))
+                const hoje = new Date(h.em).toDateString() === new Date().toDateString()
+                return (
+                  <div key={h.id} style={{ display: 'grid', gridTemplateColumns: '110px minmax(160px,1fr) minmax(190px,1.1fr) minmax(200px,1.6fr) 130px', alignItems: 'center', minHeight: 52, padding: '0 20px', borderBottom: '1px solid var(--linha)' }}>
+                    <div style={{ fontFamily: MONO, fontSize: 13, color: 'var(--t2)' }}>{hoje ? hora(h.em) : new Date(h.em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nomePorLoja[h.merchant_id] || h.merchant_id}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                      {h.de !== undefined && (
+                        <>
+                          <span style={{ color: 'var(--t2)', fontWeight: 600 }}>{textoEstado(h.de)}</span>
+                          <span style={{ color: 'var(--t3)', display: 'flex' }}>
+                            <ArrowRight size={14} />
+                          </span>
+                        </>
+                      )}
+                      <span style={{ color: para.fg, fontWeight: 700 }}>{textoEstado(h.aberta)}</span>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--t2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 8 }}>{h.motivo || '—'}</div>
+                    <div style={{ fontFamily: MONO, fontSize: 13, textAlign: 'right', color: h.emCurso ? para.fg : 'var(--t2)', fontWeight: h.emCurso ? 600 : 400 }}>
+                      {h.duracao}
+                      {h.emCurso ? ' · em curso' : ''}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   )
 }

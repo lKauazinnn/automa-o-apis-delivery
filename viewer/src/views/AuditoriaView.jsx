@@ -1,90 +1,79 @@
-import { History, Users } from 'lucide-react'
-import { ACAO_LABEL, Avatar, formatarTimestamp } from '../ui'
+import { ArrowRight, History } from 'lucide-react'
+import { EstadoVazio, MONO, Rotulo } from '../ds'
+import { descreverAuditoria, iniciaisDe } from '../ui'
 
-export function AuditoriaView({ auditoria, totalUsuarios, mostrarTotalUsuarios, C }) {
+function rotuloDia(d) {
+  const hoje = new Date()
+  const ontem = new Date(hoje)
+  ontem.setDate(hoje.getDate() - 1)
+  if (d.toDateString() === hoje.toDateString()) return 'Hoje'
+  if (d.toDateString() === ontem.toDateString()) return 'Ontem'
+  return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' })
+}
+
+// Linha do tempo de tudo que a equipe mudou, agrupada por dia (o mais recente em cima).
+export function AuditoriaView({ auditoria }) {
+  const dias = []
+  for (const a of auditoria) {
+    const d = new Date(a.timestamp)
+    const chave = d.toDateString()
+    let grupo = dias[dias.length - 1]
+    if (!grupo || grupo.chave !== chave) {
+      grupo = { chave, rotulo: rotuloDia(d), itens: [] }
+      dias.push(grupo)
+    }
+    grupo.itens.push(a)
+  }
+
+  if (!auditoria.length) {
+    return (
+      <section style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12, maxWidth: 1040 }}>
+        <EstadoVazio icone={<History size={22} />} titulo="Nada registrado ainda" texto="Toda pausa, preço, item criado e pedido movido aparece aqui, com quem fez e quando." />
+      </section>
+    )
+  }
+
   return (
-    <div className="mx-auto flex flex-col gap-4" style={{ maxWidth: 900 }}>
-      <div className={mostrarTotalUsuarios ? 'grid grid-cols-2 gap-3.5' : 'grid grid-cols-1 gap-3.5'}>
-        <div className="flex items-center gap-3.5 rounded-2xl border p-4" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: C.marca + '1F', border: '1px solid ${C.marca}47' }}
-          >
-            <History size={16} color={C.marcaTinta} />
+    <div style={{ maxWidth: 1040, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {dias.map((d) => (
+        <section key={d.chave} style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 24px', background: 'var(--card2)', borderBottom: '1px solid var(--linha)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Rotulo>{d.rotulo}</Rotulo>
+            <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--t3)' }}>{d.itens.length}</span>
           </div>
-          <div>
-            <div className="font-bold leading-none" style={{ color: C.text1, fontSize: 28, letterSpacing: '-0.03em' }}>
-              {auditoria.length}
-            </div>
-            <div className="mt-1.5 text-[13px]" style={{ color: C.text2 }}>
-              Ações registradas
-            </div>
-          </div>
-        </div>
-        {mostrarTotalUsuarios && (
-          <div className="flex items-center gap-3.5 rounded-2xl border p-4" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: C.infoBg, border: '1px solid rgba(91,140,255,0.3)' }}
-            >
-              <Users size={16} color={C.info} />
-            </div>
-            <div>
-              <div className="font-bold leading-none" style={{ color: C.text1, fontSize: 28, letterSpacing: '-0.03em' }}>
-                {totalUsuarios}
-              </div>
-              <div className="mt-1.5 text-[13px]" style={{ color: C.text2 }}>
-                Pessoas com acesso
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-2xl border" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-        <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: C.cardBorder }}>
-          <History size={16} color={C.marcaTinta} />
-          <h3 className="font-bold" style={{ color: C.text1, fontSize: 15.5, letterSpacing: '-0.01em' }}>
-            Linha do tempo completa
-          </h3>
-        </div>
-        <div className="px-5 py-2">
-          {auditoria.length === 0 && (
-            <p className="text-sm py-10" style={{ color: C.text3 }}>
-              Nenhuma ação registrada ainda.
-            </p>
-          )}
-          {auditoria.map((a, idx) => {
+          {d.itens.map((a, idx) => {
+            const f = descreverAuditoria(a)
             const temDelta = !!(a.valor_de && a.valor_para)
             return (
-              <div key={idx} className="flex gap-3.5 py-3">
-                <div className="flex flex-col items-center flex-shrink-0">
-                  <Avatar nome={a.operador} idx={idx} />
-                  {idx < auditoria.length - 1 && (
-                    <div className="flex-1 w-0.5 mt-1" style={{ background: C.rowBorder, minHeight: 12 }} />
-                  )}
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '32px minmax(0,1fr) auto', gap: 14, padding: '14px 24px', borderBottom: '1px solid var(--linha)', alignItems: 'start' }}>
+                <div style={{ width: 32, height: 32, borderRadius: 99, background: 'var(--marca-suave)', color: 'var(--marca-tinta)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
+                  {iniciaisDe(a.operador)}
                 </div>
-                <div className="min-w-0 flex-1 pb-1.5">
-                  <p className="text-[14.5px] leading-relaxed" style={{ color: C.text2 }}>
-                    <b style={{ color: C.text1 }}>{a.operador || 'desconhecido'}</b> {ACAO_LABEL[a.acao] || a.acao}{' '}
-                    {(a.nome || a.detalhe) && <b style={{ color: C.text1 }}>{a.nome || a.detalhe}</b>}
-                  </p>
+                <div style={{ minWidth: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--t2)' }}>
+                  <div style={{ textWrap: 'pretty' }}>
+                    <b style={{ fontWeight: 600, color: 'var(--t1)' }}>{a.operador || 'Alguém'}</b> {f.verbo}{' '}
+                    {f.alvo && <b style={{ fontWeight: 600, color: 'var(--t1)' }}>{f.alvo}</b>}
+                  </div>
                   {temDelta && (
-                    <div className="mt-1.5 inline-flex items-center gap-1.5 fonte-mono text-[13px]">
-                      <span style={{ color: C.bad, textDecoration: 'line-through', opacity: 0.8 }}>{a.valor_de}</span>
-                      <span style={{ color: C.text3 }}>→</span>
-                      <span style={{ color: C.good, fontWeight: 600 }}>{a.valor_para}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, fontFamily: MONO, fontSize: 13 }}>
+                      <span style={{ color: 'var(--t3)', textDecoration: 'line-through' }}>{a.valor_de}</span>
+                      <span style={{ color: 'var(--t3)', display: 'flex' }}>
+                        <ArrowRight size={14} />
+                      </span>
+                      <span style={{ color: 'var(--t1)', fontWeight: 600, padding: '1px 6px', borderRadius: 5, background: 'var(--input)' }}>{a.valor_para}</span>
                     </div>
                   )}
-                  <p className="mt-1.5 text-[13px]" style={{ color: C.text3 }}>
-                    {formatarTimestamp(a.timestamp)}
-                  </p>
+                  {f.detalhe && <div style={{ fontSize: 13, color: 'var(--t3)', marginTop: 2 }}>{f.detalhe}</div>}
                 </div>
+                <span style={{ fontFamily: MONO, fontSize: 12.5, color: 'var(--t3)', paddingTop: 2 }}>
+                  {new Date(a.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
             )
           })}
-        </div>
-      </div>
+        </section>
+      ))}
+      <div style={{ fontSize: 12.5, color: 'var(--t3)' }}>Mostrando as {auditoria.length} ações mais recentes desta loja.</div>
     </div>
   )
 }

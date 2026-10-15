@@ -2150,11 +2150,11 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               )}
 
               {view === 'lojas' && (
-                <StatusLojasView apiFetch={apiFetch} C={C} notificar={notificar} podeGerenciar={podeCriarItem} />
+                <StatusLojasView apiFetch={apiFetch} notificar={notificar} podeGerenciar={podeCriarItem} />
               )}
 
               {view === 'financeiro' && podeCriarItem && (
-                <FinanceiroView apiFetch={apiFetch} C={C} notificar={notificar} lojaAtual={lojaAtual} />
+                <FinanceiroView apiFetch={apiFetch} notificar={notificar} lojaAtual={lojaAtual} />
               )}
 
               {view === 'auditoria' && (
