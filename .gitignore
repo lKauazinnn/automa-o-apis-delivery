@@ -18,3 +18,8 @@ viewer/src/catalogo.json
 # estado interno do Claude Code
 .claude/
 
+
+# artefatos gerados localmente (graphify + vault Obsidian) — regenerar com
+# `graphify update .` e `python scripts/gerar_cerebro.py`
+graphify-out/
+cerebro-sistema/
