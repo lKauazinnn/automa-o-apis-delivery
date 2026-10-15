@@ -15,19 +15,19 @@ import { ComboModal } from './modals/ComboModal'
 import { GruposOpcaoModal } from './modals/GruposOpcaoModal'
 import { HorarioFuncionamentoModal } from './modals/HorarioFuncionamentoModal'
 import { InterrupcoesModal } from './modals/InterrupcoesModal'
-import { MarcaModal } from './modals/MarcaModal'
 import { PausaInsumoModal } from './modals/PausaInsumoModal'
 import { PausarModal } from './modals/PausarModal'
 import { RupturasModal } from './modals/RupturasModal'
 import { Sidebar } from './Sidebar'
 import { BannerConexao, BarraProgresso, Header, Toasts } from './Shell'
-import { Botao, Dialogo, EstadoVazio, MONO, OpcaoMarcavel } from './ds'
+import { Botao, Dialogo, EstadoVazio, MONO, OpcaoMarcavel, Segmentado } from './ds'
 import { ItemEditarGaveta, ItemNovoGaveta } from './modals/ItemGaveta'
 import { encontrarRelacionados } from './pausas'
 import { TelaDefinirSenha, TelaLogin } from './TelasAuth'
 import { Avatar, CoresContext, iniciaisDe, lerImagemComoDataUrl, Modal, ModalEmbutidoContext, PALETAS, Pill } from './ui'
 import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
 import { AuditoriaView } from './views/AuditoriaView'
+import { LojasSecao, MarcaSecao, UsuariosSecao } from './views/AdminView'
 import { CatalogoView } from './views/CatalogoView'
 import { DashboardView } from './views/DashboardView'
 import { FinanceiroView } from './views/FinanceiroView'
@@ -45,6 +45,9 @@ const TITULOS_VIEW = {
   lojas: { t: 'Status das lojas', sub: 'Aberta ou fechada agora, loja a loja' },
   financeiro: { t: 'Financeiro', sub: 'Faturamento, ticket médio e repasses' },
   auditoria: { t: 'Histórico', sub: 'Tudo que a equipe alterou, em ordem' },
+  usuarios: { t: 'Usuários', sub: 'Quem tem acesso ao painel' },
+  'lojas-admin': { t: 'Lojas', sub: 'Lojas e plataformas conectadas' },
+  marca: { t: 'Marca', sub: 'Nome, cor e logo da empresa' },
 }
 
 // Rede de segurança: uma view sem entrada aqui nunca mais deve quebrar o header.
@@ -80,7 +83,7 @@ function campoPreenchido(valor) {
 
 // Usado tanto pra dar a alguém uma senha inicial (ao definir por um admin) quanto pra
 // redefinir a de quem já tem conta — sempre sem depender de e-mail chegar.
-function FormDefinirSenha({ usuario, carregando, onConfirmar, onCancelar, C }) {
+function FormDefinirSenha({ usuario, carregando, onConfirmar, onCancelar }) {
   const [modo, setModo] = useState('aleatoria')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
@@ -99,73 +102,39 @@ function FormDefinirSenha({ usuario, carregando, onConfirmar, onCancelar, C }) {
     }
   }
 
-  const botaoEstiloAtivo = { background: C.marca, color: C.marcaTexto }
-  const botaoEstiloInativo = { background: C.inputBg, color: C.text2 }
-
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-      <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: C.cardBorder }}>
-        <button
-          type="button"
-          onClick={() => setModo('aleatoria')}
-          className="flex-1 text-xs font-semibold py-2 transition-colors"
-          style={modo === 'aleatoria' ? botaoEstiloAtivo : botaoEstiloInativo}
-        >
-          Gerar aleatória
-        </button>
-        <button
-          type="button"
-          onClick={() => setModo('especifica')}
-          className="flex-1 text-xs font-semibold py-2 transition-colors"
-          style={modo === 'especifica' ? botaoEstiloAtivo : botaoEstiloInativo}
-        >
-          Escolher senha
-        </button>
-      </div>
-
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <Segmentado
+        rotulo="Como definir a senha"
+        valor={modo}
+        onChange={setModo}
+        altura={36}
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}
+        opcoes={[
+          { valor: 'aleatoria', rotulo: 'Gerar aleatória', cheio: true },
+          { valor: 'especifica', rotulo: 'Escolher senha', cheio: true },
+        ]}
+      />
       {modo === 'especifica' ? (
-        <input
-          type="text"
-          autoFocus
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          placeholder="Nova senha (mín. 6 caracteres)"
-          className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-          style={{ background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }}
-        />
+        <input type="text" autoFocus className="ds-input" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Nova senha (mín. 6 caracteres)" />
       ) : (
-        <p className="text-xs leading-relaxed" style={{ color: C.text2 }}>
-          O sistema gera uma senha segura e mostra ela na próxima tela, pra você repassar pra{' '}
-          {usuario.nome} por fora (WhatsApp, presencial etc).
-        </p>
+        <div style={{ fontSize: 13.5, color: 'var(--t2)', lineHeight: 1.5 }}>
+          O sistema gera uma senha segura e mostra na próxima tela, pra você repassar pra {usuario.nome} por fora (WhatsApp, presencial). No primeiro acesso a pessoa troca por uma só dela.
+        </div>
       )}
-
       {erro && (
-        <p
-          className="text-xs rounded-lg px-3 py-2"
-          style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}` }}
-        >
+        <div role="alert" style={{ padding: '10px 12px', borderRadius: 9, background: 'var(--bad-bg)', border: '1px solid var(--bad-bd)', fontSize: 13.5, color: 'var(--t1)' }}>
           {erro}
-        </p>
+        </div>
       )}
-
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={carregando}
-          className="botao-primario flex-1 flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-        >
-          {carregando && <Loader2 size={13} className="animate-spin" />}
-          {carregando ? 'Salvando...' : modo === 'especifica' ? 'Definir essa senha' : 'Gerar e definir'}
-        </button>
-        <button
-          type="button"
-          onClick={onCancelar}
-          className="text-xs font-semibold px-3.5 py-2.5 rounded-xl"
-          style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-        >
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+        <Botao variante="secundario" tamanho="lg" onClick={onCancelar}>
           Cancelar
-        </button>
+        </Botao>
+        <Botao type="submit" variante="primario" tamanho="lg" disabled={carregando}>
+          {carregando && <Loader2 size={16} className="animate-spin" />}
+          {carregando ? 'Salvando…' : modo === 'especifica' ? 'Definir essa senha' : 'Gerar e definir'}
+        </Botao>
       </div>
     </form>
   )
@@ -206,7 +175,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [detalhesLoja, setDetalhesLoja] = useState(null)
   const [disponibilidadeLoja, setDisponibilidadeLoja] = useState(null)
 
-  const [modalUsuarios, setModalUsuarios] = useState(false)
   const [usuarios, setUsuarios] = useState([])
   const [conviteForm, setConviteForm] = useState({ nome: '', email: '', papel: 'operador' })
   const [convidando, setConvidando] = useState(false)
@@ -227,7 +195,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [modalPausar, setModalPausar] = useState(null) // { titulo, descricao, alvos, motivoInicial }
   const [modalInsumo, setModalInsumo] = useState(false)
   const [modalRupturas, setModalRupturas] = useState(false)
-  const [modalMarca, setModalMarca] = useState(false)
   const [pausasAtivas, setPausasAtivas] = useState([])
   const [carregandoPausas, setCarregandoPausas] = useState(false)
   const [erroPausas, setErroPausas] = useState('')
@@ -404,7 +371,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   // quais lojas o iFood reconhece como vinculadas. Não bloqueia nada: se falhar, só não mostra
   // o selo (o endpoint volta disponivel=false).
   useEffect(() => {
-    if (!modalLojas) return
+    if (!modalLojas && view !== 'lojas-admin') return
     let cancelado = false
     apiFetch('/lojas-verificacao-ifood')
       .then((r) => {
@@ -417,7 +384,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       cancelado = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modalLojas])
+  }, [modalLojas, view])
 
   async function abrirDetalhesLoja() {
     setModalDetalhesLoja(true)
@@ -485,10 +452,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     }
   }
 
-  function abrirModalUsuarios() {
-    setModalUsuarios(true)
-    carregarUsuarios()
-  }
 
   async function trocarPapelUsuario(id, papel, nome) {
     try {
@@ -1185,11 +1148,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }
 
-  // Administração ainda abre os painéis de sempre (vira tela própria numa etapa seguinte).
   function mudarView(chave) {
-    if (chave === 'usuarios') return abrirModalUsuarios()
-    if (chave === 'lojas-admin') return setModalLojas(true)
-    if (chave === 'marca') return setModalMarca(true)
+    if (chave === 'usuarios') carregarUsuarios()
     // A Cozinha precisa de largura: entrar nela recolhe o menu; sair devolve como estava.
     if (chave === 'kds' && view !== 'kds') {
       sidebarAntesDaCozinha.current = sidebarAberta
@@ -1265,202 +1225,100 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         )}
 
         {modalLojas && (
-          <Modal titulo="Gerenciar lojas" onClose={() => setModalLojas(false)} largura="max-w-lg">
-            <div className="flex flex-col gap-2 mb-4">
-              {lojas.length === 0 && (
-                <p className="text-xs" style={{ color: C.text2 }}>
-                  Nenhuma loja cadastrada ainda.
-                </p>
-              )}
-              {lojas.map((l) => {
-                const ativa = l.merchant_id === lojaAtual?.merchant_id
-                return (
-                  <div
-                    key={l.id}
-                    className="rounded-xl px-3.5 py-3 flex items-center gap-3"
-                    style={{
-                      background: ativa ? C.marca + '1F' : C.inputBg,
-                      border: `1px solid ${ativa ? C.marca : C.cardBorder}`,
+          <Dialogo
+            largura={520}
+            eyebrow="Loja ativa"
+            titulo="Trocar de loja"
+            descricao="O painel inteiro — cardápio, pedidos e cozinha — passa a mostrar a loja escolhida."
+            onClose={() => setModalLojas(false)}
+            rodape={
+              <>
+                {sessao.usuario.papel === 'administrador' && (
+                  <Botao
+                    variante="link"
+                    onClick={() => {
+                      setModalLojas(false)
+                      mudarView('lojas-admin')
                     }}
                   >
+                    Gerenciar lojas
+                  </Botao>
+                )}
+                <span style={{ flex: 1 }} />
+                <Botao variante="secundario" tamanho="lg" onClick={() => setModalLojas(false)}>
+                  Fechar
+                </Botao>
+              </>
+            }
+          >
+            {lojas.length === 0 ? (
+              <div style={{ fontSize: 13.5, color: 'var(--t2)' }}>Nenhuma loja cadastrada ainda.</div>
+            ) : (
+              <div style={{ border: '1px solid var(--borda)', borderRadius: 9, overflow: 'hidden' }}>
+                {lojas.map((l) => {
+                  const ativa = l.merchant_id === lojaAtual?.merchant_id
+                  return (
                     <button
+                      key={l.id}
                       type="button"
+                      role="radio"
+                      aria-checked={ativa}
                       onClick={() => {
                         setLojaId(l.merchant_id)
                         setModalLojas(false)
                       }}
-                      className="text-left min-w-0 flex-1"
+                      className="ds-opcao"
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '8px 14px', border: 0, borderBottom: '1px solid var(--linha)', background: ativa ? 'var(--marca-suave)' : 'var(--card)', color: 'var(--t1)', textAlign: 'left', cursor: 'pointer' }}
                     >
-                      <p className="text-sm font-semibold truncate" style={{ color: C.text1 }}>
-                        {l.nome || 'Loja sem nome'}
-                      </p>
-                      <p className="text-[11px] font-mono truncate" style={{ color: C.text3 }}>
-                        {l.merchant_id}
-                      </p>
-                      <span className="flex items-center gap-1.5">
-                        <span
-                          className="text-[9px] font-bold uppercase tracking-wider"
-                          style={{ color: C.text2 }}
-                        >
-                          {l.plataforma === '99food' ? '99Food' : 'iFood'}
-                        </span>
-                        {l.plataforma !== '99food' && verificacaoIfood?.disponivel && (
-                          verificacaoIfood.ids.has(String(l.merchant_id)) ? (
-                            <span
-                              className="text-[9px] font-semibold px-1.5 py-0.5 rounded inline-flex items-center gap-1"
-                              style={{ color: C.good, background: C.goodBg }}
-                              title="Loja reconhecida pelo GET /merchants do iFood (vinculada às credenciais)"
-                            >
-                              <Check size={9} /> verificada no iFood
-                            </span>
-                          ) : (
-                            <span
-                              className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                              style={{ color: C.neutral, background: C.neutralBg }}
-                              title="O iFood não retornou essa loja no GET /merchants pras credenciais atuais"
-                            >
-                              não encontrada no iFood
-                            </span>
-                          )
-                        )}
+                      <span style={{ width: 18, height: 18, borderRadius: 99, border: `1.5px solid ${ativa ? 'var(--marca-tinta)' : 'var(--borda)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: 99, background: ativa ? 'var(--marca-tinta)' : 'transparent' }} />
+                      </span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{l.nome || 'Loja sem nome'}</span>
+                        <span style={{ display: 'block', fontFamily: MONO, fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.merchant_id}</span>
+                      </span>
+                      <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 5, background: 'var(--input)', border: '1px solid var(--borda)', color: 'var(--t2)' }}>
+                        {l.plataforma === '99food' ? '99Food' : 'iFood'}
                       </span>
                     </button>
-                    {ativa && <Pill color={C.good}>Ativa</Pill>}
-                    {ativa && (
-                      <button
-                        type="button"
-                        onClick={abrirDetalhesLoja}
-                        title="Ver detalhes e disponibilidade da loja"
-                        className="botao-icone-fantasma text-[10px] font-semibold px-2 py-1.5 rounded-lg flex-shrink-0"
-                        style={{ color: C.text2, border: `1px solid ${C.cardBorder}` }}
-                      >
-                        Detalhes
-                      </button>
-                    )}
-                    {sessao.usuario.papel === 'administrador' && (
-                      <button
-                        type="button"
-                        onClick={() => pedirConfirmacaoRemoverLoja(l)}
-                        title="Remover loja"
-                        className="w-7 h-7 inline-flex items-center justify-center rounded-lg flex-shrink-0"
-                        style={{ color: C.bad, background: C.badBg }}
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-
-            {sessao.usuario.papel === 'administrador' && (
-              <div className="border-t pt-3.5" style={{ borderColor: C.cardBorder }}>
-                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: C.text2 }}>
-                  Cadastrar nova loja
-                </p>
-                <form onSubmit={handleCriarLoja} className="flex flex-col gap-2.5">
-                  <input
-                    required
-                    className={inputCls}
-                    style={inputStyle}
-                    type="text"
-                    value={lojaForm.nome}
-                    onChange={(e) => setLojaForm({ ...lojaForm, nome: e.target.value })}
-                    placeholder="Nome da loja"
-                  />
-                  <select
-                    className={inputCls}
-                    style={inputStyle}
-                    value={lojaForm.plataforma}
-                    onChange={(e) => setLojaForm({ ...lojaForm, plataforma: e.target.value })}
-                  >
-                    <option value="ifood">iFood</option>
-                    <option value="99food">99Food</option>
-                  </select>
-                  <input
-                    required
-                    className={inputCls}
-                    style={inputStyle}
-                    type="text"
-                    value={lojaForm.merchant_id}
-                    onChange={(e) => setLojaForm({ ...lojaForm, merchant_id: e.target.value })}
-                    placeholder={lojaForm.plataforma === '99food' ? 'App Shop ID do 99Food' : 'Merchant ID do iFood'}
-                  />
-                  <button
-                    type="submit"
-                    disabled={criandoLoja}
-                    className="botao-primario flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                  >
-                    {criandoLoja && <Loader2 size={12} className="animate-spin" />}
-                    {criandoLoja ? 'Cadastrando...' : 'Cadastrar loja'}
-                  </button>
-                  {lojaForm.plataforma === 'ifood' ? (
-                    <p className="text-[10px]" style={{ color: C.text3 }}>
-                      Não sabe o Merchant ID? Rode <code>python scripts/descobrir_lojas.py</code> no backend.
-                    </p>
-                  ) : (
-                    <p className="text-[10px]" style={{ color: C.text3 }}>
-                      App Shop ID = o ID que você deu à loja no 99Food (ex: 5764607576333878701).
-                    </p>
-                  )}
-                </form>
+                  )
+                })}
               </div>
             )}
-          </Modal>
+          </Dialogo>
         )}
 
         {modalDetalhesLoja && (
-          <Modal titulo="Detalhes e disponibilidade da loja" onClose={() => setModalDetalhesLoja(false)}>
+          <Dialogo largura={560} eyebrow="Loja" titulo={detalhesLoja?.name || lojaAtual?.nome || 'Detalhes da loja'} descricao={detalhesLoja?.corporateName} onClose={() => setModalDetalhesLoja(false)}>
             {carregandoDetalhesLoja && (
-              <p className="text-xs flex items-center gap-1.5" style={{ color: C.text2 }}>
-                <Loader2 size={12} className="animate-spin" /> Carregando...
-              </p>
+              <div style={{ fontSize: 13.5, color: 'var(--t2)', display: 'flex', gap: 6, alignItems: 'center' }}>
+                <Loader2 size={14} className="animate-spin" /> Carregando…
+              </div>
             )}
-
             {!carregandoDetalhesLoja && detalhesLoja && (
-              <div className="flex flex-col gap-3.5 mb-4">
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: C.text1 }}>
-                    {detalhesLoja.name}
-                  </p>
-                  <p className="text-xs" style={{ color: C.text2 }}>
-                    {detalhesLoja.corporateName}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Pill color={detalhesLoja.status === 'AVAILABLE' || detalhesLoja.status === 'ENABLED' ? C.good : C.neutral}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <Pill color={detalhesLoja.status === 'AVAILABLE' || detalhesLoja.status === 'ENABLED' ? C.good : C.neutral} dot>
                     Status da conta: {detalhesLoja.status}
                   </Pill>
                   {detalhesLoja.test === 'TEST' && <Pill color={C.neutral}>Sandbox</Pill>}
                 </div>
                 {detalhesLoja.address && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: C.text2 }}>
-                      Endereço
-                    </p>
-                    <p className="text-xs" style={{ color: C.text1 }}>
-                      {detalhesLoja.address.street}, {detalhesLoja.address.number} — {detalhesLoja.address.district}
-                      <br />
-                      {detalhesLoja.address.city}/{detalhesLoja.address.state}
-                    </p>
+                  <div style={{ fontSize: 13.5, color: 'var(--t1)', lineHeight: 1.5 }}>
+                    {detalhesLoja.address.street}, {detalhesLoja.address.number} — {detalhesLoja.address.district}
+                    <br />
+                    {detalhesLoja.address.city}/{detalhesLoja.address.state}
                   </div>
                 )}
               </div>
             )}
-
             {!carregandoDetalhesLoja && Array.isArray(disponibilidadeLoja) && (
-              <div className="border-t pt-3.5 flex flex-col gap-2.5" style={{ borderColor: C.cardBorder }}>
-                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: C.text2 }}>
-                  Disponibilidade por canal
-                </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t3)' }}>Disponibilidade por canal</div>
                 {disponibilidadeLoja.map((op) => (
-                  <div
-                    key={`${op.operation}-${op.salesChannel}`}
-                    className="rounded-xl px-3.5 py-3"
-                    style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-xs font-semibold" style={{ color: C.text1 }}>
+                  <div key={`${op.operation}-${op.salesChannel}`} style={{ padding: '12px 14px', borderRadius: 9, background: 'var(--card2)', border: '1px solid var(--linha)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--t1)' }}>
                         {op.operation} · {op.salesChannel}
                       </span>
                       <Pill color={op.available ? C.good : C.bad} dot>
@@ -1468,229 +1326,100 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                       </Pill>
                     </div>
                     {op.message?.title && (
-                      <p className="text-xs" style={{ color: C.text2 }}>
+                      <div style={{ fontSize: 13, color: 'var(--t2)', marginTop: 4 }}>
                         {op.message.title}
                         {op.message.subtitle ? ` — ${op.message.subtitle}` : ''}
-                      </p>
+                      </div>
                     )}
                   </div>
                 ))}
               </div>
             )}
-
-            <button
-              type="button"
-              onClick={() => setModalDetalhesLoja(false)}
-              className="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl mt-3.5"
-              style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-            >
-              Fechar
-            </button>
-          </Modal>
-        )}
-
-        {modalUsuarios && (
-          <Modal titulo="Gerenciar usuários" onClose={() => setModalUsuarios(false)} largura="max-w-lg">
-            <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto mb-4">
-              {usuarios.length === 0 && (
-                <p className="text-xs" style={{ color: C.text2 }}>
-                  Nenhum usuário cadastrado ainda além de você.
-                </p>
-              )}
-              {usuarios.map((u, idx) => (
-                <div
-                  key={u.id}
-                  className="flex items-center gap-2.5 text-xs rounded-lg px-2.5 py-2"
-                  style={{ background: C.inputBg }}
-                >
-                  <Avatar nome={u.nome} idx={idx} size={26} />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold truncate" style={{ color: C.text1 }}>
-                      {u.nome}
-                    </p>
-                    <p className="truncate" style={{ color: C.text3 }}>
-                      {u.email}
-                    </p>
-                  </div>
-                  <select
-                    value={u.papel}
-                    onChange={(e) => trocarPapelUsuario(u.id, e.target.value, u.nome)}
-                    className="px-2 py-1.5 rounded-md text-xs flex-shrink-0"
-                    style={inputStyle}
-                  >
-                    {PAPEIS.map((p) => (
-                      <option key={p.valor} value={p.valor}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    disabled={resetandoSenha === u.id}
-                    onClick={() => setModalDefinirSenha(u)}
-                    title="Definir senha nova (não depende de e-mail)"
-                    className="px-2 py-1.5 rounded-md text-[10px] font-semibold flex-shrink-0 disabled:opacity-40 flex items-center gap-1"
-                    style={{ color: C.text2, background: C.cardBg, border: `1px solid ${C.cardBorder}` }}
-                  >
-                    {resetandoSenha === u.id && <Loader2 size={11} className="animate-spin" />}
-                    Definir senha
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="border-t pt-3.5" style={{ borderColor: C.cardBorder }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: C.text2 }}>
-                Criar novo usuário
-              </p>
-              <form onSubmit={handleConvidar} className="flex flex-col gap-2.5">
-                <input
-                  required
-                  className={inputCls}
-                  style={inputStyle}
-                  type="text"
-                  value={conviteForm.nome}
-                  onChange={(e) => setConviteForm({ ...conviteForm, nome: e.target.value })}
-                  placeholder="Nome"
-                />
-                <input
-                  required
-                  className={inputCls}
-                  style={inputStyle}
-                  type="email"
-                  value={conviteForm.email}
-                  onChange={(e) => setConviteForm({ ...conviteForm, email: e.target.value })}
-                  placeholder="E-mail"
-                />
-                <select
-                  className={inputCls}
-                  style={inputStyle}
-                  value={conviteForm.papel}
-                  onChange={(e) => setConviteForm({ ...conviteForm, papel: e.target.value })}
-                >
-                  {PAPEIS.map((p) => (
-                    <option key={p.valor} value={p.valor}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  disabled={convidando}
-                  className="botao-primario flex items-center justify-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-                >
-                  {convidando && <Loader2 size={12} className="animate-spin" />}
-                  {convidando ? 'Criando...' : 'Criar usuário'}
-                </button>
-              </form>
-            </div>
-          </Modal>
+          </Dialogo>
         )}
 
         {modalMinhaSenha && (
-          <Modal
+          <Dialogo
+            largura={440}
+            eyebrow="Sua conta"
             titulo="Trocar minha senha"
             onClose={() => {
               setModalMinhaSenha(false)
               setMinhaSenhaForm({ senha: '', confirmacao: '' })
               setErroMinhaSenha('')
             }}
+            rodape={
+              <>
+                <span style={{ flex: 1 }} />
+                <Botao variante="primario" tamanho="lg" disabled={salvandoMinhaSenha} onClick={handleTrocarMinhaSenha}>
+                  {salvandoMinhaSenha && <Loader2 size={16} className="animate-spin" />}
+                  {salvandoMinhaSenha ? 'Salvando…' : 'Salvar nova senha'}
+                </Botao>
+              </>
+            }
           >
-            <form onSubmit={handleTrocarMinhaSenha} className="flex flex-col gap-3.5">
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                  Nova senha
-                </label>
-                <input
-                  className={inputCls}
-                  style={inputStyle}
-                  type="password"
-                  autoFocus
-                  autoComplete="new-password"
-                  value={minhaSenhaForm.senha}
-                  onChange={(e) => setMinhaSenhaForm({ ...minhaSenhaForm, senha: e.target.value })}
-                  placeholder="Mín. 6 caracteres"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: C.text2 }}>
-                  Confirme a senha
-                </label>
-                <input
-                  className={inputCls}
-                  style={inputStyle}
-                  type="password"
-                  autoComplete="new-password"
-                  value={minhaSenhaForm.confirmacao}
-                  onChange={(e) => setMinhaSenhaForm({ ...minhaSenhaForm, confirmacao: e.target.value })}
-                  placeholder="Repita a senha"
-                />
-              </div>
+            <form onSubmit={handleTrocarMinhaSenha} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)' }}>Nova senha</span>
+                <input className="ds-input" type="password" autoFocus autoComplete="new-password" value={minhaSenhaForm.senha} onChange={(e) => setMinhaSenhaForm({ ...minhaSenhaForm, senha: e.target.value })} placeholder="Mínimo de 6 caracteres" />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)' }}>Repita a nova senha</span>
+                <input className="ds-input" type="password" autoComplete="new-password" value={minhaSenhaForm.confirmacao} onChange={(e) => setMinhaSenhaForm({ ...minhaSenhaForm, confirmacao: e.target.value })} />
+              </label>
               {erroMinhaSenha && (
-                <p
-                  className="text-xs rounded-lg px-3 py-2"
-                  style={{ color: C.bad, background: C.badBg, border: `1px solid ${C.badBd}` }}
-                >
+                <div role="alert" style={{ padding: '10px 12px', borderRadius: 9, background: 'var(--bad-bg)', border: '1px solid var(--bad-bd)', fontSize: 13.5, color: 'var(--t1)' }}>
                   {erroMinhaSenha}
-                </p>
+                </div>
               )}
-              <button
-                type="submit"
-                disabled={salvandoMinhaSenha}
-                className="botao-primario flex items-center justify-center gap-2 text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-              >
-                {salvandoMinhaSenha && <Loader2 size={13} className="animate-spin" />}
-                {salvandoMinhaSenha ? 'Salvando...' : 'Salvar nova senha'}
-              </button>
+              <button type="submit" style={{ display: 'none' }} />
             </form>
-          </Modal>
+          </Dialogo>
         )}
 
         {modalDefinirSenha && (
-          <Modal titulo={`Definir senha pra ${modalDefinirSenha.nome}`} onClose={() => setModalDefinirSenha(null)}>
+          <Dialogo largura={460} eyebrow="Redefinir senha" titulo={modalDefinirSenha.nome} descricao={modalDefinirSenha.email} onClose={() => setModalDefinirSenha(null)}>
             <FormDefinirSenha
               usuario={modalDefinirSenha}
               carregando={resetandoSenha === modalDefinirSenha.id}
               onConfirmar={(senha) => resetarSenhaUsuario(modalDefinirSenha, senha)}
               onCancelar={() => setModalDefinirSenha(null)}
-              C={C}
             />
-          </Modal>
+          </Dialogo>
         )}
 
         {senhaResetada && (
-          <Modal titulo={`Senha nova pra ${senhaResetada.usuario.nome}`} onClose={() => setSenhaResetada(null)}>
-            <p className="text-xs mb-3 leading-relaxed" style={{ color: C.text2 }}>
-              Repasse essa senha pra pessoa por fora (WhatsApp, presencial). Ela consegue trocar
-              por uma só dela depois, logada, em "Trocar minha senha".
-            </p>
-            <div
-              className="flex items-center justify-between gap-2 rounded-xl px-3.5 py-3 mb-4"
-              style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-            >
-              <span className="font-mono text-sm" style={{ color: C.text1 }}>
-                {senhaResetada.senha}
-              </span>
-              <button
-                type="button"
+          <Dialogo
+            largura={460}
+            eyebrow="Senha gerada"
+            titulo={`Envie para ${String(senhaResetada.usuario.nome || '').split(' ')[0] || 'a pessoa'}`}
+            onClose={() => setSenhaResetada(null)}
+            rodape={
+              <>
+                <span style={{ flex: 1 }} />
+                <Botao variante="secundario" tamanho="lg" onClick={() => setSenhaResetada(null)}>
+                  Pronto
+                </Botao>
+              </>
+            }
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px 6px 14px', borderRadius: 9, background: 'var(--input)', border: '1px solid var(--borda)' }}>
+              <span style={{ flex: 1, fontFamily: MONO, fontSize: 18, fontWeight: 600, letterSpacing: '.04em', color: 'var(--t1)', overflowWrap: 'anywhere' }}>{senhaResetada.senha}</span>
+              <Botao
+                variante="primario"
+                tamanho="sm"
                 onClick={() => {
                   navigator.clipboard?.writeText(senhaResetada.senha)
                   notificar('sucesso', 'Senha copiada.')
                 }}
-                className="text-xs font-semibold px-2.5 py-1.5 rounded-lg flex-shrink-0"
-                style={{ color: C.marcaTinta, background: C.marca + '1F' }}
               >
-                Copiar
-              </button>
+                <Check size={14} /> Copiar
+              </Botao>
             </div>
-            <button
-              type="button"
-              onClick={() => setSenhaResetada(null)}
-              className="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl"
-              style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-            >
-              Fechar
-            </button>
-          </Modal>
+            <div style={{ fontSize: 13.5, color: 'var(--t2)', lineHeight: 1.5 }}>
+              Ela só aparece agora. Repasse por fora (WhatsApp, presencial). No primeiro acesso a pessoa cai na tela de <b>troca obrigatória</b> e define a própria senha.
+            </div>
+          </Dialogo>
         )}
 
         {modalEdicao && (
@@ -1884,16 +1613,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
           />
         )}
 
-        {modalMarca && (
-          <MarcaModal
-            onClose={() => setModalMarca(false)}
-            apiFetch={apiFetch}
-            notificar={notificar}
-            C={C}
-            inputCls={inputCls}
-            inputStyle={inputStyle}
-          />
-        )}
 
         {modalInterrupcoes && (
           <InterrupcoesModal
@@ -2157,14 +1876,41 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                 <FinanceiroView apiFetch={apiFetch} notificar={notificar} lojaAtual={lojaAtual} />
               )}
 
-              {view === 'auditoria' && (
-                <AuditoriaView
-                  auditoria={auditoria}
-                  totalUsuarios={usuarios.length}
-                  mostrarTotalUsuarios={sessao.usuario.papel === 'administrador'}
-                  C={C}
+              {view === 'auditoria' && <AuditoriaView auditoria={auditoria} />}
+
+              {view === 'usuarios' && sessao.usuario.papel === 'administrador' && (
+                <UsuariosSecao
+                  usuarios={usuarios}
+                  meuId={sessao.usuario.id}
+                  conviteForm={conviteForm}
+                  setConviteForm={setConviteForm}
+                  convidando={convidando}
+                  onConvidar={handleConvidar}
+                  onTrocarPapel={trocarPapelUsuario}
+                  onDefinirSenha={(u) => setModalDefinirSenha(u)}
+                  resetandoSenha={resetandoSenha}
                 />
               )}
+
+              {view === 'lojas-admin' && sessao.usuario.papel === 'administrador' && (
+                <LojasSecao
+                  lojas={lojas}
+                  lojaAtual={lojaAtual}
+                  verificacaoIfood={verificacaoIfood}
+                  lojaForm={lojaForm}
+                  setLojaForm={setLojaForm}
+                  criandoLoja={criandoLoja}
+                  onCriar={handleCriarLoja}
+                  onAtivar={(id) => {
+                    setLojaId(id)
+                    notificar('sucesso', 'Loja ativa trocada.', { sub: 'Cardápio, pedidos e cozinha agora mostram essa loja.' })
+                  }}
+                  onRemover={pedirConfirmacaoRemoverLoja}
+                  onDetalhes={abrirDetalhesLoja}
+                />
+              )}
+
+              {view === 'marca' && sessao.usuario.papel === 'administrador' && <MarcaSecao apiFetch={apiFetch} notificar={notificar} tema={tema} />}
             </main>
           </div>
         </div>

@@ -1415,7 +1415,7 @@ def listar_usuarios():
     resp = requests.get(
         f"{SUPABASE_URL}/rest/v1/perfis",
         headers=_supabase_headers(),
-        params={"select": "id,email,nome,papel,criado_em", "order": "criado_em.asc"},
+        params={"select": "id,email,nome,papel,criado_em,senha_temporaria", "order": "criado_em.asc"},
         timeout=10,
     )
     resp.raise_for_status()
