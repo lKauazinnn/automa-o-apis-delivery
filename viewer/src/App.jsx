@@ -2047,15 +2047,14 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             apiFetch={apiFetch}
             onContinuar={(alvos, termo) => {
               setModalInsumo(false)
-              abrirPausar(alvos, {
-                titulo: `Ruptura de "${termo}"`,
-                descricao: 'Já desmarcamos o que está pausado. Revise antes de confirmar.',
-                motivoInicial: `Acabou: ${termo}`,
-              })
+              abrirPausar(alvos, { motivoInicial: `Acabou: ${termo}` })
             }}
+            onPausarDireto={(alvos, termo) => {
+              setModalInsumo(false)
+              executarStatusEmLote(alvos, 'UNAVAILABLE', { minutos: null, motivo: `Acabou: ${termo}`.slice(0, 120) })
+            }}
+            executando={executandoMassa}
             onClose={() => setModalInsumo(false)}
-            C={C}
-            inputStyle={inputStyle}
           />
         )}
 
@@ -2154,14 +2153,17 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   totalDisponiveis={totalDisponiveis}
                   totalPausados={totalPausados}
                   auditoria={auditoria}
-                  C={C}
+                  pausasPorItem={pausasPorItem}
+                  carregando={carregando}
+                  executando={executandoMassa}
+                  apiFetch={apiFetch}
+                  chaveLoja={lojaAtual?.merchant_id}
                   onIrAuditoria={() => setView('auditoria')}
-                  onIrCatalogoPausados={() => {
-                    setFiltroStatus('UNAVAILABLE')
-                    setView('catalogo')
+                  onAbrirRupturas={() => {
+                    setModalRupturas(true)
+                    carregarPausas()
                   }}
-                  onDespausarRapido={(item) => executarAlternarStatus(item, 'AVAILABLE')}
-                  alterandoStatus={alterandoStatus}
+                  onReativar={(alvos) => executarStatusEmLote(alvos, 'AVAILABLE')}
                 />
               )}
 

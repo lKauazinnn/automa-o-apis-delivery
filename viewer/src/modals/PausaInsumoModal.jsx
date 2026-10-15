@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Search } from 'lucide-react'
-import { Modal, Pill } from '../ui'
+import { Loader2, Pause, Zap } from 'lucide-react'
+import { Botao, Dialogo, Etiqueta, MONO, OpcaoMarcavel, Rotulo } from '../ds'
 import { normalizar } from '../pausas'
 
 // Ruptura de um insumo (ex: acabou o bacon): busca o termo no nome e na descrição dos pratos e
 // no nome dos complementos, e devolve tudo que bate pra pausar de uma vez — os pratos E os
 // adicionais, porque um "Adicional de bacon" esquecido no ar gera pedido que a cozinha não faz.
-export function PausaInsumoModal({ itens, plataforma, apiFetch, onContinuar, onClose, C, inputStyle }) {
+//
+// Dois caminhos: "Pausar N" pausa já (motivo "Acabou: <termo>", até reativar); "Escolher prazo"
+// leva a seleção pro modal de pausa completo (motivo, prazo, outras lojas).
+export function PausaInsumoModal({ itens, plataforma, apiFetch, onContinuar, onPausarDireto, executando, onClose }) {
   const [termo, setTermo] = useState('')
   const [grupos, setGrupos] = useState([])
   const [carregandoGrupos, setCarregandoGrupos] = useState(plataforma !== '99food')
   const [erroGrupos, setErroGrupos] = useState('')
+  const [desmarcados, setDesmarcados] = useState(new Set())
 
   useEffect(() => {
     if (plataforma === '99food') return
@@ -41,16 +45,17 @@ export function PausaInsumoModal({ itens, plataforma, apiFetch, onContinuar, onC
     )
   }, [grupos, busca])
 
-  function continuar() {
-    const alvos = [
+  // O que já está pausado começa desmarcado — pausar de novo só reescreveria o motivo.
+  const alvos = useMemo(
+    () => [
       ...pratos.map((i) => ({
         chave: `item:${i.itemId}`,
         tipo: 'item',
         id: i.itemId,
         nome: i.nome,
+        sub: i.descricao && normalizar(i.descricao) !== normalizar(i.nome) ? i.descricao : i.categoria,
         codigo_pdv: i.codigo_pdv || '',
         status: i.status,
-        marcado: i.status === 'AVAILABLE',
       })),
       ...complementos.map((o) => ({
         chave: `opcao:${o.id}`,
@@ -58,105 +63,115 @@ export function PausaInsumoModal({ itens, plataforma, apiFetch, onContinuar, onC
         id: o.id,
         grupoId: o.grupoId,
         nome: `${o.name} (${o.grupoNome})`,
+        sub: o.grupoNome,
         codigo_pdv: o.externalCode || '',
         status: o.status,
-        marcado: o.status !== 'UNAVAILABLE',
       })),
-    ]
-    onContinuar(alvos, termo.trim())
+    ],
+    [pratos, complementos],
+  )
+
+  const marcado = (a) => a.status !== 'UNAVAILABLE' && !desmarcados.has(a.chave)
+  const escolhidos = alvos.filter(marcado)
+  const n = escolhidos.length
+
+  function alternar(a) {
+    if (a.status === 'UNAVAILABLE') return
+    setDesmarcados((prev) => {
+      const novo = new Set(prev)
+      if (novo.has(a.chave)) novo.delete(a.chave)
+      else novo.add(a.chave)
+      return novo
+    })
   }
 
-  const total = pratos.length + complementos.length
+  const secoes = [
+    { titulo: 'Pratos', lista: alvos.filter((a) => a.tipo === 'item') },
+    { titulo: 'Complementos', lista: alvos.filter((a) => a.tipo === 'opcao') },
+  ].filter((s) => s.lista.length)
 
   return (
-    <Modal titulo="Pausar por insumo" onClose={onClose} largura="max-w-lg">
-      <p className="text-xs mb-3 leading-relaxed" style={{ color: C.text2 }}>
-        Digite o ingrediente que acabou. Aparecem os pratos que citam ele no nome ou na descrição
-        {plataforma === '99food' ? '' : ' e os complementos/adicionais com esse nome'}.
-      </p>
-      <div className="relative mb-3">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: C.text3 }} />
-        <input
-          autoFocus
-          value={termo}
-          onChange={(e) => setTermo(e.target.value)}
-          placeholder="Ex: bacon, cheddar, picanha"
-          aria-label="Insumo"
-          className="w-full pl-10 pr-3 rounded-xl outline-none text-sm"
-          style={{ ...inputStyle, height: 42 }}
-        />
+    <Dialogo
+      largura={600}
+      eyebrow="Pausar por insumo"
+      titulo="O que acabou?"
+      descricao={
+        plataforma === '99food' ? (
+          'Busca o ingrediente no nome e na descrição dos pratos.'
+        ) : (
+          <>
+            Busca nos pratos <b>e</b> nos complementos — um adicional esquecido vira pedido que a cozinha não faz.
+          </>
+        )
+      }
+      onClose={onClose}
+      rodape={
+        <>
+          <span style={{ flex: 1, fontSize: 13, color: 'var(--t2)', minWidth: 150 }}>
+            {n ? `Motivo: Acabou ${termo.trim()} · até reativar` : 'Digite o insumo e confira a lista'}
+          </span>
+          <Botao variante="secundario" tamanho="lg" disabled={!n || executando} onClick={() => onContinuar(alvos.map((a) => ({ ...a, marcado: marcado(a) })), termo.trim())}>
+            Escolher prazo…
+          </Botao>
+          <Botao variante="primario" tamanho="lg" disabled={!n || executando} onClick={() => onPausarDireto(escolhidos, termo.trim())}>
+            <Pause size={16} />
+            {n ? `Pausar ${n} ${n > 1 ? 'itens' : 'item'}` : 'Pausar'}
+          </Botao>
+        </>
+      }
+    >
+      <div
+        className="ds-campo"
+        style={{ height: 46, background: 'var(--card)', borderWidth: 1.5 }}
+      >
+        <span style={{ color: 'var(--warn)', display: 'flex' }}>
+          <Zap size={20} />
+        </span>
+        <input autoFocus value={termo} onChange={(e) => setTermo(e.target.value)} placeholder="ex.: bacon, cheddar, picanha" aria-label="Insumo que acabou" style={{ fontSize: 15 }} />
       </div>
 
       {carregandoGrupos && (
-        <p className="text-xs flex items-center gap-1.5 mb-2" style={{ color: C.text3 }}>
-          <Loader2 size={12} className="animate-spin" /> Carregando complementos...
-        </p>
+        <div style={{ fontSize: 13, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 6, marginTop: -8 }}>
+          <Loader2 size={14} className="animate-spin" /> Carregando complementos…
+        </div>
       )}
       {erroGrupos && (
-        <p className="text-xs mb-2" style={{ color: C.text3 }}>
-          Complementos indisponíveis agora ({erroGrupos}) — a busca segue só nos pratos.
-        </p>
+        <div style={{ fontSize: 13, color: 'var(--t3)', marginTop: -8 }}>Complementos indisponíveis agora ({erroGrupos}) — a busca segue só nos pratos.</div>
       )}
 
-      <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto mb-4">
-        {busca.length >= 2 && total === 0 && !carregandoGrupos && (
-          <p className="text-xs" style={{ color: C.text2 }}>
-            Nada no cardápio cita "{termo.trim()}". Tente outra grafia (ex: singular).
-          </p>
-        )}
-        {pratos.map((i) => (
-          <div key={i.itemId} className="flex items-center gap-2.5 text-xs rounded-lg px-2.5 py-2" style={{ background: C.inputBg }}>
-            <span className="truncate" style={{ color: C.text1 }}>
-              {i.nome}
-            </span>
-            <span className="truncate" style={{ color: C.text3 }}>
-              {i.categoria}
-            </span>
-            <span className="ml-auto flex-shrink-0">
-              <Pill color={i.status === 'AVAILABLE' ? C.good : C.neutral} dot>
-                {i.status === 'AVAILABLE' ? 'Disponível' : 'Pausado'}
-              </Pill>
-            </span>
+      {secoes.map((s) => (
+        <div key={s.titulo} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Rotulo style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {s.titulo}
+            <span style={{ fontFamily: MONO, letterSpacing: 0 }}>{s.lista.length}</span>
+          </Rotulo>
+          <div style={{ border: '1px solid var(--borda)', borderRadius: 9, overflow: 'hidden' }}>
+            {s.lista.map((a) => (
+              <OpcaoMarcavel
+                key={a.chave}
+                marcado={marcado(a)}
+                disabled={a.status === 'UNAVAILABLE'}
+                onClick={() => alternar(a)}
+                extra={
+                  <span style={{ display: 'flex', gap: 6 }}>
+                    {a.tipo === 'opcao' && <Etiqueta tipo="info">Complemento</Etiqueta>}
+                    {a.status === 'UNAVAILABLE' && <Etiqueta tipo="warn">Já pausado</Etiqueta>}
+                  </span>
+                }
+              >
+                <span style={{ display: 'block', fontWeight: 600 }}>{a.tipo === 'opcao' ? a.nome.replace(/ \([^)]*\)$/, '') : a.nome}</span>
+                {a.sub && <span style={{ display: 'block', fontSize: 12.5, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.sub}</span>}
+              </OpcaoMarcavel>
+            ))}
           </div>
-        ))}
-        {complementos.map((o) => (
-          <div key={o.id} className="flex items-center gap-2.5 text-xs rounded-lg px-2.5 py-2" style={{ background: C.inputBg }}>
-            <span className="truncate" style={{ color: C.text1 }}>
-              {o.name}
-            </span>
-            <span className="truncate" style={{ color: C.text3 }}>
-              {o.grupoNome}
-            </span>
-            <span className="ml-auto flex-shrink-0 flex gap-1.5">
-              <Pill color={C.info}>Complemento</Pill>
-              <Pill color={o.status === 'UNAVAILABLE' ? C.neutral : C.good} dot>
-                {o.status === 'UNAVAILABLE' ? 'Pausado' : 'Disponível'}
-              </Pill>
-            </span>
-          </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={total === 0}
-          onClick={continuar}
-          className="botao-primario text-xs font-bold px-3.5 py-2.5 rounded-xl disabled:opacity-40"
-        >
-          {total === 0
-            ? 'Continuar'
-            : `Continuar com ${pratos.length} prato(s)${complementos.length ? ` e ${complementos.length} complemento(s)` : ''}`}
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-xs font-semibold px-3.5 py-2.5 rounded-xl ml-auto"
-          style={{ color: C.text2, background: 'transparent' }}
-        >
-          Cancelar
-        </button>
-      </div>
-    </Modal>
+      {busca.length >= 2 && alvos.length === 0 && !carregandoGrupos && (
+        <div style={{ padding: 24, textAlign: 'center', fontSize: 13.5, color: 'var(--t2)' }}>
+          Nada no cardápio menciona “{termo.trim()}”. Tente outra grafia (ex.: singular).
+        </div>
+      )}
+    </Dialogo>
   )
 }

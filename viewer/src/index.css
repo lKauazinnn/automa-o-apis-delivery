@@ -297,6 +297,12 @@ tr {
 .ds-btn--reativar:hover:not(:disabled) {
   border-color: var(--good);
 }
+/* Botão neutro que "vira" reativar no hover (linha de pausado no Painel). */
+.ds-btn--reativar-hover:hover:not(:disabled) {
+  border-color: var(--good-bd);
+  color: var(--good);
+  background: var(--good-bg);
+}
 .ds-btn--fantasma {
   background: transparent;
   color: var(--t2);
@@ -585,4 +591,9 @@ textarea.ds-input {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Corpo de Dialogo/Gaveta rola; os filhos não podem encolher pra caber (achatava campos). */
+.ds-corpo > * {
+  flex-shrink: 0;
 }

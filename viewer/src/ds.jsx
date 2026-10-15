@@ -456,7 +456,7 @@ export function Dialogo({ eyebrow, titulo, descricao, onClose, children, rodape,
         }}
       >
         <CabecalhoSobreposto eyebrow={eyebrow} titulo={titulo} descricao={descricao} onClose={onClose} />
-        <div style={{ overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="ds-corpo" style={{ overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
           {children}
         </div>
         {rodape && <Rodape>{rodape}</Rodape>}
@@ -491,7 +491,7 @@ export function Gaveta({ eyebrow, titulo, descricao, onClose, children, rodape, 
         }}
       >
         <CabecalhoSobreposto eyebrow={eyebrow} titulo={titulo} descricao={descricao} onClose={onClose} />
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="ds-corpo" style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
           {children}
         </div>
         {rodape && <Rodape>{rodape}</Rodape>}

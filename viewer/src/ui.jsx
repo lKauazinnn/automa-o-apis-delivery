@@ -108,6 +108,36 @@ export const ACAO_LABEL = {
   criar_loja: 'cadastrou a loja',
   remover_loja: 'removeu a loja',
   definir_marca: 'atualizou a marca',
+  editar_item: 'editou o item',
+  editar_opcao: 'editou o complemento',
+  alterar_status_pedido: 'mudou o status do pedido',
+  aceitar_negociacao: 'aceitou a negociação do pedido',
+  recusar_negociacao: 'recusou a negociação do pedido',
+  pedido_teste: 'criou um pedido de teste',
+}
+
+const STATUS_PEDIDO_TEXTO = {
+  NOVO: 'Novo',
+  CONFIRMADO: 'Confirmado',
+  DESPACHADO: 'Despachado',
+  CONCLUIDO: 'Concluído',
+  CANCELADO: 'Cancelado',
+}
+
+// Frase de uma linha de auditoria: { verbo, alvo, detalhe }. Sem rótulo conhecido, humaniza o
+// código ("alguma_acao" → "alguma acao") em vez de mostrar o identificador cru.
+export function descreverAuditoria(a) {
+  if (a.acao === 'alterar_status_pedido') {
+    const m = /novo status:\s*([A-Z_]+)(.*)$/.exec(a.detalhe || '')
+    const status = m ? STATUS_PEDIDO_TEXTO[m[1]] || m[1].toLowerCase() : null
+    return {
+      verbo: status ? 'marcou um pedido como' : ACAO_LABEL.alterar_status_pedido,
+      alvo: status,
+      detalhe: m && m[2].trim() ? m[2].trim().replace(/^[·\-\s]+/, '') : null,
+    }
+  }
+  const verbo = ACAO_LABEL[a.acao] || String(a.acao || '').replaceAll('_', ' ')
+  return { verbo, alvo: a.nome || a.detalhe || null, detalhe: a.nome && a.detalhe ? a.detalhe : null }
 }
 
 const FORMATOS_FOTO_ACEITOS = new Set(['image/jpeg', 'image/jpg', 'image/png'])
