@@ -1,5 +1,6 @@
-# Só o backend Python vai pra Vercel. Fica de fora tudo que não é runtime da API.
-viewer/
+# Arquivos que não vão pra Vercel (vale pros dois projetos: backend na raiz e viewer/).
+# NÃO listar viewer/ aqui: a Vercel aplica este arquivo também no projeto do viewer
+# e apagaria a pasta antes do build ("vite: command not found").
 .venv/
 venv/
 node_modules/
