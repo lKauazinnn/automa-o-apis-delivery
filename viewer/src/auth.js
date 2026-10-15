@@ -5,6 +5,25 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 export const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
+// O Supabase Auth responde em inglês; quem está no balcão lê em português. O que não estiver
+// mapeado passa como veio (melhor do que esconder o motivo).
+const TRADUCAO_ERRO_AUTH = [
+  [/invalid login credentials/i, 'E-mail ou senha incorretos.'],
+  [/email not confirmed/i, 'Esse e-mail ainda não foi confirmado. Peça um novo convite para a administração.'],
+  [/password should be at least/i, 'A senha precisa ter pelo menos 6 caracteres.'],
+  [/same.*password|different from the old password/i, 'A senha nova precisa ser diferente da atual.'],
+  [/rate limit|too many requests|for security purposes/i, 'Muitas tentativas seguidas. Espere um minuto e tente de novo.'],
+  [/user not found/i, 'Não encontramos uma conta com esse e-mail.'],
+  [/token.*(expired|invalid)|jwt expired/i, 'Esse link expirou. Peça um novo.'],
+]
+
+function traduzirErro(texto, padrao) {
+  const msg = String(texto || '').trim()
+  if (!msg) return padrao
+  const achado = TRADUCAO_ERRO_AUTH.find(([re]) => re.test(msg))
+  return achado ? achado[1] : msg
+}
+
 function headersSupabase(token) {
   return {
     apikey: SUPABASE_ANON_KEY,
@@ -51,7 +70,7 @@ export async function recuperarSenha(email) {
   })
   if (!resp.ok) {
     const dados = await resp.json().catch(() => ({}))
-    throw new Error(dados.error_description || dados.msg || 'Não consegui enviar o e-mail de recuperação.')
+    throw new Error(traduzirErro(dados.error_description || dados.msg, 'Não consegui enviar o e-mail de recuperação.'))
   }
 }
 
@@ -63,7 +82,7 @@ export async function login(email, senha) {
   })
   const dados = await resp.json()
   if (!resp.ok) {
-    throw new Error(dados.error_description || dados.msg || 'E-mail ou senha inválidos.')
+    throw new Error(traduzirErro(dados.error_description || dados.msg, 'E-mail ou senha inválidos.'))
   }
   return dados // { access_token, refresh_token, expires_in, user }
 }
@@ -76,7 +95,7 @@ export async function definirSenha(accessToken, novaSenha) {
   })
   const dados = await resp.json()
   if (!resp.ok) {
-    throw new Error(dados.error_description || dados.msg || 'Não consegui definir a senha.')
+    throw new Error(traduzirErro(dados.error_description || dados.msg, 'Não consegui definir a senha.'))
   }
   return dados
 }
@@ -91,7 +110,7 @@ export async function renovarSessao(refreshToken) {
   })
   const dados = await resp.json()
   if (!resp.ok) {
-    throw new Error(dados.error_description || dados.msg || 'Não consegui renovar a sessão.')
+    throw new Error(traduzirErro(dados.error_description || dados.msg, 'Não consegui renovar a sessão.'))
   }
   return dados // { access_token, refresh_token, expires_in, user }
 }

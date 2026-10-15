@@ -23,7 +23,7 @@ import { BannerConexao, BarraProgresso, Header, Toasts } from './Shell'
 import { Botao, Dialogo, EstadoVazio, MONO, OpcaoMarcavel, Segmentado } from './ds'
 import { ItemEditarGaveta, ItemNovoGaveta } from './modals/ItemGaveta'
 import { encontrarRelacionados } from './pausas'
-import { TelaDefinirSenha, TelaLogin } from './TelasAuth'
+import { TelaCarregando, TelaDefinirSenha, TelaLogin } from './TelasAuth'
 import { Avatar, CoresContext, iniciaisDe, lerImagemComoDataUrl, Modal, ModalEmbutidoContext, PALETAS, Pill } from './ui'
 import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
 import { AuditoriaView } from './views/AuditoriaView'
@@ -1919,17 +1919,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   )
 }
 
-function TelaCarregando({ C }) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-3">
-      <Loader2 size={22} className="animate-spin" style={{ color: C.marcaTinta }} />
-      <p className="text-xs" style={{ color: C.text2 }}>
-        Carregando...
-      </p>
-    </div>
-  )
-}
-
 const MENSAGEM_ERRO_LINK = {
   otp_expired:
     'Esse link expirou ou já foi usado — às vezes o filtro de segurança do e-mail corporativo abre o link sozinho e "queima" ele antes de você clicar. Peça um novo abaixo, ou peça pra um administrador redefinir sua senha direto no painel de Usuários.',
@@ -2033,26 +2022,26 @@ export default function App() {
   )
 
   function renderizarTela() {
-    if (verificando) return <TelaCarregando C={C} />
+    if (verificando) return <TelaCarregando />
     if (convite)
       return (
         <TelaDefinirSenha
           accessToken={convite.accessToken}
-          eyebrow={convite.tipo === 'invite' ? 'Bem-vindo(a)' : 'Recuperar acesso'}
+          modo="convite"
+          eyebrow={convite.tipo === 'invite' ? 'Boas-vindas' : 'Recuperar acesso'}
+          aviso={convite.tipo === 'invite' ? 'Sua conta já foi criada. Escolha a senha que você vai usar para entrar.' : 'Escolha uma senha nova para voltar a entrar no painel.'}
           onDefinida={aoDefinirSenha}
-          C={C}
         />
       )
-    if (!sessao) return <TelaLogin onLogar={aoLogar} avisoInicial={avisoLink} C={C} />
+    if (!sessao) return <TelaLogin onLogar={aoLogar} avisoInicial={avisoLink} />
     if (sessao.usuario.senha_temporaria)
       return (
         <TelaDefinirSenha
           accessToken={sessao.accessToken}
-          eyebrow="Segurança da conta"
-          aviso="Você entrou com uma senha temporária, definida por um administrador. Por segurança, escolha agora uma senha só sua antes de continuar."
+          modo="obrigatoria"
+          nomeUsuario={sessao.usuario.nome}
           onDefinida={aoTrocarSenhaObrigatoria}
           onSair={sair}
-          C={C}
         />
       )
     return <Painel sessao={sessao} onSair={sair} tema={tema} setTema={setTema} C={C} />

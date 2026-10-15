@@ -663,3 +663,15 @@ textarea.ds-input {
 .ds-opcao-perigo:hover {
   background: var(--bad-bg) !important;
 }
+
+@keyframes barra-indeterminada {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+.barra-indeterminada {
+  animation: barra-indeterminada 1.2s ease-in-out infinite;
+}
