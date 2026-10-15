@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Check, Clock, Layers, Loader2, Plus, PowerOff, Tag, Tags, Trash2 } from 'lucide-react'
+import { AlertTriangle, Check, ClipboardList, Clock, Layers, LayoutGrid, Loader2, Menu, Plus, PowerOff, Tag, Tags, Trash2, UtensilsCrossed } from 'lucide-react'
 import {
   API,
   buscarEu,
@@ -19,16 +19,18 @@ import { PausaInsumoModal } from './modals/PausaInsumoModal'
 import { PausarModal } from './modals/PausarModal'
 import { RupturasModal } from './modals/RupturasModal'
 import { Sidebar } from './Sidebar'
-import { BannerConexao, BarraProgresso, Header, Toasts } from './Shell'
-import { Botao, Dialogo, EstadoVazio, MONO, OpcaoMarcavel, Segmentado } from './ds'
+import { BannerConexao, BarraProgresso, Header, HeaderCelular, NavInferior, Toasts } from './Shell'
+import { Botao, Dialogo, EstadoVazio, MONO, OpcaoMarcavel, Segmentado, useCelular } from './ds'
+import { SimboloPausaFast } from './Logo'
+import { MaisView } from './views/MaisView'
 import { ItemEditarGaveta, ItemNovoGaveta } from './modals/ItemGaveta'
-import { encontrarRelacionados } from './pausas'
+import { sugestoesParecidas } from './pausas'
 import { TelaCarregando, TelaDefinirSenha, TelaLogin } from './TelasAuth'
-import { Avatar, CoresContext, iniciaisDe, lerImagemComoDataUrl, Modal, ModalEmbutidoContext, PALETAS, Pill } from './ui'
+import { CoresContext, iniciaisDe, lerImagemComoDataUrl, ModalEmbutidoContext, PALETAS, Pill } from './ui'
 import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
 import { AuditoriaView } from './views/AuditoriaView'
 import { LojasSecao, MarcaSecao, UsuariosSecao } from './views/AdminView'
-import { CatalogoView } from './views/CatalogoView'
+import { CatalogoCelular, CatalogoView } from './views/CatalogoView'
 import { DashboardView } from './views/DashboardView'
 import { FinanceiroView } from './views/FinanceiroView'
 import { StatusLojasView } from './views/StatusLojasView'
@@ -48,6 +50,7 @@ const TITULOS_VIEW = {
   usuarios: { t: 'Usuários', sub: 'Quem tem acesso ao painel' },
   'lojas-admin': { t: 'Lojas', sub: 'Lojas e plataformas conectadas' },
   marca: { t: 'Marca', sub: 'Nome, cor e logo da empresa' },
+  mais: { t: 'Mais', sub: '' },
 }
 
 // Rede de segurança: uma view sem entrada aqui nunca mais deve quebrar o header.
@@ -58,11 +61,6 @@ const TITULO_PADRAO = { t: 'Painel', sub: '' }
 // quando a leitura falha.
 const AO_VIVO = { kds: '10s', pedidos: '15s' }
 
-const PAPEIS = [
-  { valor: 'administrador', label: 'Administrador' },
-  { valor: 'gerente', label: 'Gerente' },
-  { valor: 'operador', label: 'Operador' },
-]
 const PAPEIS_QUE_PODEM_CRIAR = new Set(['administrador', 'gerente'])
 
 // Abas do Cardápio (gerente pra cima). Antes eram 4 modais na sidebar; agora são sub-telas do
@@ -145,6 +143,7 @@ const CHAVE_SESSAO = 'sessao_ifood_v1'
 
 function Painel({ sessao, onSair, tema, setTema, C }) {
   const { marca } = useContext(MarcaContext)
+  const celular = useCelular()
 
   const [itens, setItens] = useState([])
   const [categorias, setCategorias] = useState([])
@@ -190,7 +189,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [selecionados, setSelecionados] = useState(new Set())
   const [executandoMassa, setExecutandoMassa] = useState(false)
   const [progressoMassa, setProgressoMassa] = useState(null)
-  const [modalAcoesMassa, setModalAcoesMassa] = useState(false)
   const [modalRelacionados, setModalRelacionados] = useState(null)
   const [modalPausar, setModalPausar] = useState(null) // { titulo, descricao, alvos, motivoInicial }
   const [modalInsumo, setModalInsumo] = useState(false)
@@ -204,7 +202,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [salvandoEdicao, setSalvandoEdicao] = useState(false)
   const [salvandoTurnos, setSalvandoTurnos] = useState(false)
 
-  const [itemExcluindo, setItemExcluindo] = useState(null)
 
   const [modalCategorias, setModalCategorias] = useState(false)
   const [modalGruposOpcao, setModalGruposOpcao] = useState(false)
@@ -684,10 +681,14 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   // 1 por 1 é lento). Despausar continua direto, perguntando só pelos parecidos.
   function prepararAlternarStatus(item) {
     const novoStatus = item.status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE'
-    const relacionados = encontrarRelacionados(item, itens).filter((i) => i.status !== novoStatus)
+    const sugestoes = sugestoesParecidas(
+      item,
+      itens.filter((i) => i.status !== novoStatus),
+    )
+    const relacionados = sugestoes.map((r) => r.item)
     if (novoStatus === 'UNAVAILABLE') {
       abrirPausar(
-        [alvoDoItem(item, { marcado: true }), ...relacionados.map((r) => alvoDoItem(r, { marcado: true, sugerido: true }))],
+        [alvoDoItem(item, { marcado: true }), ...sugestoes.map((r) => alvoDoItem(r.item, { marcado: r.forte, sugerido: true }))],
         {
           titulo: `Pausar "${item.nome}"`,
           descricao: relacionados.length
@@ -705,7 +706,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       item,
       novoStatus,
       relacionados,
-      selecionados: new Set(relacionados.map((r) => r.itemId)),
+      selecionados: new Set(sugestoes.filter((r) => r.forte).map((r) => r.item.itemId)),
     })
   }
 
@@ -789,7 +790,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     const extras = lojasExtras.length ? await tarefasEmOutrasLojas(alvos, lojasExtras) : []
     setModalPausar(null)
     setSelecionados(new Set())
-    setModalAcoesMassa(false)
     await executarStatusEmLote([...alvos, ...extras], 'UNAVAILABLE', { minutos, motivo })
   }
 
@@ -813,7 +813,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     if (!ids.length) return
     await executarStatusEmLote(paraAlvos(ids), status)
     setSelecionados(new Set())
-    setModalAcoesMassa(false)
   }
 
   async function confirmarModalRelacionados() {
@@ -910,8 +909,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       carregarAuditoria()
     } catch (e) {
       notificar('erro', `Não consegui excluir "${item.nome}": ${e.message}`)
-    } finally {
-      setItemExcluindo(null)
     }
   }
 
@@ -923,7 +920,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       perigo: true,
       alternativa: item.status === 'AVAILABLE' ? { texto: 'Pausar em vez disso', aoEscolher: () => prepararAlternarStatus(item) } : null,
       aoConfirmar: () => {
-        setItemExcluindo(item.itemId)
         excluirItemDeVerdade(item)
       },
     })
@@ -1128,7 +1124,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
   const idsVisiveis = useMemo(() => filtrados.map((i) => i.itemId), [filtrados])
   const todosVisiveisSelecionados = idsVisiveis.length > 0 && idsVisiveis.every((id) => selecionados.has(id))
-  const itensSelecionados = useMemo(() => itens.filter((i) => selecionados.has(i.itemId)), [itens, selecionados])
 
   const totalDisponiveis = useMemo(() => itens.filter((i) => i.status === 'AVAILABLE').length, [itens])
   const totalPausados = itens.length - totalDisponiveis
@@ -1626,7 +1621,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
           />
         )}
 
-        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg)', color: 'var(--t1)' }}>
+        <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: 'var(--bg)', color: 'var(--t1)' }}>
+          {!celular && (
           <Sidebar
             aberta={sidebarAberta}
             onExpandir={() => setSidebarAberta(true)}
@@ -1653,8 +1649,20 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             onMinhaSenha={() => setModalMinhaSenha(true)}
             onSair={onSair}
           />
+          )}
 
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+            {celular ? (
+              <HeaderCelular
+                simbolo={<SimboloPausaFast cor={marca.cor} tamanho={32} />}
+                titulo={(TITULOS_VIEW[view] || TITULO_PADRAO).t}
+                sub={[lojaAtual?.nome, lojaAtual ? (lojaAtual.plataforma === '99food' ? '99Food' : 'iFood') : null].filter(Boolean).join(' · ')}
+                conexao={conexao}
+                aoVivo={!!AO_VIVO[view]}
+                tema={tema}
+                onAlternarTema={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
+              />
+            ) : (
             <Header
               crumb={[marca.nome, lojaAtual?.nome, lojaAtual ? (lojaAtual.plataforma === '99food' ? '99Food' : 'iFood') : null]
                 .filter(Boolean)
@@ -1666,6 +1674,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               onAlternarTema={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
               onAlternarSidebar={() => setSidebarAberta((v) => !v)}
             />
+            )}
             <BarraProgresso progresso={progressoMassa} />
             <BannerConexao
               conexao={conexao}
@@ -1675,7 +1684,28 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               }}
             />
 
-            <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative', padding: '24px 28px 40px' }}>
+            <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative', padding: celular ? '12px 16px 24px' : '24px 28px 40px' }}>
+              {view === 'mais' && celular && (
+                <MaisView
+                  usuario={sessao.usuario}
+                  lojaNome={lojaAtual?.nome}
+                  totalRupturas={totalRupturas}
+                  podeVerFinanceiro={podeCriarItem}
+                  souAdministrador={sessao.usuario.papel === 'administrador'}
+                  tema={tema}
+                  onAlternarTema={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
+                  onIr={mudarView}
+                  onAbrirRupturas={() => {
+                    setModalRupturas(true)
+                    carregarPausas()
+                  }}
+                  onAbrirInsumo={() => setModalInsumo(true)}
+                  onTrocarLoja={() => setModalLojas(true)}
+                  onMinhaSenha={() => setModalMinhaSenha(true)}
+                  onSair={onSair}
+                />
+              )}
+
               {view === 'dashboard' && (
                 <DashboardView
                   itens={itens}
@@ -1694,11 +1724,13 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                     carregarPausas()
                   }}
                   onReativar={(alvos) => executarStatusEmLote(alvos, 'AVAILABLE')}
+                  celular={celular}
+                  onPausarItem={() => setModalPausar({ alvos: [] })}
                 />
               )}
 
               {view === 'pedidos' && (
-                <PedidosView apiFetch={apiFetch} notificar={notificar} lojaNome={lojaAtual?.nome} plataforma={lojaAtual?.plataforma} />
+                <PedidosView apiFetch={apiFetch} notificar={notificar} lojaNome={lojaAtual?.nome} plataforma={lojaAtual?.plataforma} celular={celular} />
               )}
 
               {view === 'kds' && (
@@ -1709,12 +1741,13 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   setConfirmacao={setConfirmacao}
                   lojaNome={lojaAtual?.nome}
                   plataforma={lojaAtual?.plataforma}
+                  celular={celular}
                 />
               )}
 
               {view === 'catalogo' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1480 }}>
-                {podeCriarItem && (
+                {podeCriarItem && !celular && (
                   <div role="tablist" aria-label="Seções do cardápio" style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--borda)', marginTop: -4, overflowX: 'auto' }}>
                     {ABAS_CARDAPIO.map((a) => {
                       const ativa = abaCardapio === a.chave
@@ -1760,7 +1793,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   </div>
                 )}
 
-                {podeCriarItem && abaCardapio !== 'itens' && lojaAtual?.plataforma === '99food' && (
+                {!celular && podeCriarItem && abaCardapio !== 'itens' && lojaAtual?.plataforma === '99food' && (
                   <section style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12, maxWidth: 960 }}>
                     <EstadoVazio
                       icone={<Tags size={22} />}
@@ -1775,7 +1808,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   </section>
                 )}
 
-                {podeCriarItem && abaCardapio !== 'itens' && lojaAtual?.plataforma !== '99food' && (
+                {!celular && podeCriarItem && abaCardapio !== 'itens' && lojaAtual?.plataforma !== '99food' && (
                   <ModalEmbutidoContext.Provider value={true}>
                     {abaCardapio === 'categorias' && (
                       <CategoriasModal
@@ -1825,7 +1858,34 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   </ModalEmbutidoContext.Provider>
                 )}
 
-                {(abaCardapio === 'itens' || !podeCriarItem) && (
+                {celular && (
+                  <CatalogoCelular
+                    itens={itens}
+                    filtrados={filtrados}
+                    busca={busca}
+                    onBusca={setBusca}
+                    filtroStatus={filtroStatus}
+                    onFiltroStatus={setFiltroStatus}
+                    filtroCategoria={filtroCategoria}
+                    onFiltroCategoria={setFiltroCategoria}
+                    categoriasFiltro={categoriasFiltro}
+                    selecionados={selecionados}
+                    onAlternarSelecao={alternarSelecao}
+                    onLimparSelecao={() => setSelecionados(new Set())}
+                    carregando={carregando}
+                    erroCarregamento={erroCarregamento}
+                    onRecarregar={carregar}
+                    alterandoStatus={alterandoStatus}
+                    onAlternarStatus={prepararAlternarStatus}
+                    onAbrirEdicaoModal={abrirEdicao}
+                    onPausarSelecionados={pausarSelecionados}
+                    onReativarSelecionados={() => acaoEmMassa('AVAILABLE')}
+                    executando={executandoMassa}
+                    pausasPorItem={pausasPorItem}
+                  />
+                )}
+
+                {!celular && (abaCardapio === 'itens' || !podeCriarItem) && (
                 <CatalogoView
                   itens={itens}
                   categoriasFiltro={categoriasFiltro}
@@ -1912,6 +1972,19 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
               {view === 'marca' && sessao.usuario.papel === 'administrador' && <MarcaSecao apiFetch={apiFetch} notificar={notificar} tema={tema} />}
             </main>
+            {celular && (
+              <NavInferior
+                ativa={['dashboard', 'pedidos', 'kds', 'catalogo'].includes(view) ? view : 'mais'}
+                onMudar={mudarView}
+                abas={[
+                  { chave: 'dashboard', label: 'Painel', Icon: LayoutGrid },
+                  { chave: 'pedidos', label: 'Pedidos', Icon: ClipboardList },
+                  { chave: 'kds', label: 'Cozinha', Icon: UtensilsCrossed },
+                  { chave: 'catalogo', label: 'Cardápio', Icon: Tag, badge: totalPausados },
+                  { chave: 'mais', label: 'Mais', Icon: Menu },
+                ]}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -2,8 +2,22 @@
 // (var(--card), var(--t1), var(--warn-bg)...) definida em index.css nos dois temas — nada de
 // literal, nada de `C` por prop. As classes .ds-* (index.css) cuidam do hover, que estilo inline
 // não consegue expressar.
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Check, Minus, X } from 'lucide-react'
+
+// Celular = até 760px. Abaixo disso o painel troca a sidebar pela navegação inferior e as
+// tabelas por cartões.
+const CONSULTA_CELULAR = '(max-width: 760px)'
+export function useCelular() {
+  const [celular, setCelular] = useState(() => typeof window !== 'undefined' && window.matchMedia(CONSULTA_CELULAR).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(CONSULTA_CELULAR)
+    const mudou = () => setCelular(mq.matches)
+    mq.addEventListener('change', mudou)
+    return () => mq.removeEventListener('change', mudou)
+  }, [])
+  return celular
+}
 
 export const MONO = "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 
@@ -425,6 +439,7 @@ export function Dialogo({ eyebrow, titulo, descricao, onClose, children, rodape,
   return (
     <div
       onClick={onClose}
+      className="ds-dialogo-fundo"
       style={{
         position: 'fixed',
         inset: 0,
@@ -441,7 +456,7 @@ export function Dialogo({ eyebrow, titulo, descricao, onClose, children, rodape,
         aria-modal="true"
         aria-label={typeof titulo === 'string' ? titulo : undefined}
         onClick={(e) => e.stopPropagation()}
-        className="modal-entrada"
+        className="modal-entrada ds-dialogo"
         style={{
           width: largura,
           maxWidth: '100%',

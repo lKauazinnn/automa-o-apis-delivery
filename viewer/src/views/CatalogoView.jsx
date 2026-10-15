@@ -610,3 +610,199 @@ export function CatalogoView({
     </div>
   )
 }
+
+// ── Celular: lista de cartões com Pausar/Reativar de 44px no polegar ─────────────────────────
+const LOTE_CELULAR = 50
+
+export function CatalogoCelular({
+  itens,
+  filtrados,
+  busca,
+  onBusca,
+  filtroStatus,
+  onFiltroStatus,
+  filtroCategoria,
+  onFiltroCategoria,
+  categoriasFiltro,
+  selecionados,
+  onAlternarSelecao,
+  onLimparSelecao,
+  carregando,
+  erroCarregamento,
+  onRecarregar,
+  alterandoStatus,
+  onAlternarStatus,
+  onAbrirEdicaoModal,
+  onPausarSelecionados,
+  onReativarSelecionados,
+  executando,
+  pausasPorItem = {},
+}) {
+  const [modoSelecao, setModoSelecao] = useState(false)
+  const [limite, setLimite] = useState(LOTE_CELULAR)
+  const termo = normalizar(busca)
+  const base = itens.filter(
+    (i) => (filtroCategoria === 'TODAS' || i.categoria === filtroCategoria) && (!termo || normalizar(`${i.nome} ${i.codigo_pdv}`).includes(termo)),
+  )
+  const nPaus = base.filter((i) => i.status !== 'AVAILABLE').length
+  const visiveis = filtrados.slice(0, limite)
+  const selItens = itens.filter((i) => selecionados.has(i.itemId))
+  const selDisp = selItens.filter((i) => i.status === 'AVAILABLE').length
+  const selPaus = selItens.length - selDisp
+
+  useEffect(() => {
+    setLimite(LOTE_CELULAR)
+  }, [busca, filtroStatus, filtroCategoria])
+
+  const chip = (ativo) => ({
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    height: 38,
+    padding: '0 14px',
+    borderRadius: 99,
+    border: `1px solid ${ativo ? 'var(--t1)' : 'var(--borda)'}`,
+    background: ativo ? 'var(--t1)' : 'var(--card)',
+    color: ativo ? 'var(--card)' : 'var(--t1)',
+    fontSize: 14,
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+  })
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '-12px -16px 0' }}>
+      <div style={{ position: 'sticky', top: -12, zIndex: 5, background: 'var(--bg)', padding: '12px 16px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <CampoBusca valor={busca} onChange={onBusca} onLimpar={() => onBusca('')} placeholder="Buscar item ou PDV" icone={<Search size={20} />} aria-label="Buscar item" style={{ flex: 1, height: 50, borderRadius: 12, background: 'var(--card)' }} />
+          <Botao
+            variante="secundario"
+            onClick={() => {
+              if (modoSelecao) onLimparSelecao()
+              setModoSelecao(!modoSelecao)
+            }}
+            style={{ height: 50, background: modoSelecao ? 'var(--input)' : 'var(--card)' }}
+          >
+            {modoSelecao ? 'Cancelar' : 'Selecionar'}
+          </Botao>
+        </div>
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px', padding: '0 16px 2px', scrollbarWidth: 'none' }}>
+          {[
+            ['TODOS', 'Todos', base.length],
+            ['UNAVAILABLE', 'Pausados', nPaus],
+            ['AVAILABLE', 'Disponíveis', base.length - nPaus],
+          ].map(([v, l, n]) => (
+            <button key={v} type="button" aria-pressed={filtroStatus === v} onClick={() => onFiltroStatus(v)} style={chip(filtroStatus === v)}>
+              {l}
+              <span style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 500, opacity: 0.8 }}>{n}</span>
+            </button>
+          ))}
+          <select value={filtroCategoria} onChange={(e) => onFiltroCategoria(e.target.value)} aria-label="Filtrar por categoria" style={{ ...chip(filtroCategoria !== 'TODAS'), appearance: 'auto', maxWidth: 220 }}>
+            {categoriasFiltro.map((c) => (
+              <option key={c} value={c}>
+                {c === 'TODAS' ? 'Todas as categorias' : c}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {erroCarregamento ? (
+          <EstadoVazio
+            icone={<AlertTriangle size={22} />}
+            tipo="bad"
+            titulo="Não deu pra carregar o cardápio"
+            texto={erroCarregamento}
+            acao={
+              <Botao variante="primario" tamanho="lg" onClick={onRecarregar}>
+                <RefreshCw size={16} /> Tentar de novo
+              </Botao>
+            }
+          />
+        ) : carregando ? (
+          Array.from({ length: 6 }).map((_, k) => <Esqueleto key={k} h={72} r={12} />)
+        ) : visiveis.length === 0 ? (
+          <EstadoVazio titulo="Nada encontrado" texto="Tente pelo código PDV ou outra palavra." />
+        ) : (
+          visiveis.map((i) => {
+            const pausado = i.status !== 'AVAILABLE'
+            const sel = selecionados.has(i.itemId)
+            const pausa = pausasPorItem[i.itemId]
+            const r = pausa?.volta_em ? tempoRestante(pausa.volta_em) : null
+            const sub = pausado ? [pausa?.motivo, r ? (r.startsWith('em ') ? `volta ${r}` : r) : pausa ? 'até reativar' : 'pelo portal'].filter(Boolean).join(' · ') : null
+            return (
+              <div key={i.itemId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderRadius: 12, background: sel ? 'var(--marca-suave)' : 'var(--card)', border: `1px solid ${sel ? 'var(--marca-tinta)' : pausado ? 'var(--warn-bd)' : 'var(--borda)'}` }}>
+                {modoSelecao && (
+                  <button type="button" role="checkbox" aria-checked={sel} aria-label={`Selecionar ${i.nome}`} onClick={() => onAlternarSelecao(i.itemId)} style={{ width: 44, height: 44, margin: '-6px -4px -6px -6px', border: 0, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Marcador estado={sel} tamanho={22} />
+                  </button>
+                )}
+                <button type="button" onClick={() => (modoSelecao ? onAlternarSelecao(i.itemId) : onAbrirEdicaoModal(i))} style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0, border: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer', color: 'var(--t1)' }}>
+                  <MiniaturaItem item={i} tamanho={48} apagada={pausado} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>{i.nome}</div>
+                    <div style={{ fontSize: 13, color: 'var(--t3)', display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                      <span style={{ fontFamily: MONO, color: 'var(--t2)' }}>{brl(i.preco)}</span>
+                      <span>·</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{i.categoria}</span>
+                    </div>
+                    {pausado && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: 'var(--warn)', fontWeight: 600, marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <Pause size={13} style={{ flexShrink: 0 }} />
+                        {sub}
+                      </div>
+                    )}
+                  </div>
+                </button>
+                {!modoSelecao &&
+                  (pausado ? (
+                    <Botao variante="reativar" tamanho="lg" disabled={alterandoStatus === i.itemId || executando} onClick={() => onAlternarStatus(i)} style={{ padding: '0 12px', flexShrink: 0 }} aria-label={`Reativar ${i.nome}`}>
+                      <Play size={16} /> Reativar
+                    </Botao>
+                  ) : (
+                    <Botao variante="secundario" tamanho="lg" disabled={alterandoStatus === i.itemId || executando} onClick={() => onAlternarStatus(i)} style={{ padding: '0 14px', flexShrink: 0 }} aria-label={`Pausar ${i.nome}`}>
+                      <span style={{ color: 'var(--warn)', display: 'flex' }}>
+                        <Pause size={16} />
+                      </span>
+                      Pausar
+                    </Botao>
+                  ))}
+              </div>
+            )
+          })
+        )}
+        {!carregando && filtrados.length > limite && (
+          <Botao variante="secundario" tamanho="lg" onClick={() => setLimite((l) => l + LOTE_CELULAR)}>
+            Mostrar mais {Math.min(LOTE_CELULAR, filtrados.length - limite)}
+          </Botao>
+        )}
+        {!carregando && filtrados.length > 0 && (
+          <div style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--t3)', padding: 8 }}>
+            Mostrando {Math.min(limite, filtrados.length)} de {filtrados.length}
+          </div>
+        )}
+      </div>
+
+      {selecionados.size > 0 && (
+        <div style={{ position: 'sticky', bottom: 12, margin: '0 12px', zIndex: 6, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px 8px 14px', borderRadius: 12, background: 'var(--card)', border: '1px solid var(--borda)', boxShadow: 'var(--sh)' }}>
+          <span style={{ fontSize: 14, fontWeight: 700, flex: 1, color: 'var(--t1)' }}>{selecionados.size} selecionados</span>
+          {selDisp > 0 && (
+            <Botao variante="pausar-suave" tamanho="lg" disabled={executando} onClick={onPausarSelecionados}>
+              <span style={{ color: 'var(--warn)', display: 'flex' }}>
+                <Pause size={16} />
+              </span>
+              Pausar {selDisp}
+            </Botao>
+          )}
+          {selPaus > 0 && (
+            <Botao variante="reativar" tamanho="lg" disabled={executando} onClick={onReativarSelecionados} aria-label={`Reativar ${selPaus}`}>
+              <Play size={16} /> {selPaus}
+            </Botao>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

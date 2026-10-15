@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Pause, Plus, Search, X } from 'lucide-react'
 import { Botao, CampoBusca, Dialogo, Escolha, Etiqueta, OpcaoMarcavel, Rotulo, Segmentado } from '../ds'
-import { encontrarRelacionados, horaCurta, MOTIVOS_PAUSA, normalizar, PRAZOS_PAUSA } from '../pausas'
+import { horaCurta, MOTIVOS_PAUSA, normalizar, PRAZOS_PAUSA, sugestoesParecidas } from '../pausas'
 
 const PLATAFORMA_LABEL = { ifood: 'iFood', '99food': '99Food' }
 
@@ -53,10 +53,11 @@ export function PausarModal({
     setPrincipais((prev) => [...prev, alvo])
     setBusca('')
     // Os parecidos do item adicionado entram como sugestão (desmarcados: quem decide é a pessoa).
-    const novos = encontrarRelacionados(item, itens)
-      .filter((r) => r.status === 'AVAILABLE' && !chavesUsadas.has(`item:${r.itemId}`) && r.itemId !== item.itemId)
-      .slice(0, 4)
-      .map((r) => paraAlvo(r, { sugerido: true }))
+    const novos = sugestoesParecidas(
+      item,
+      itens.filter((r) => r.status === 'AVAILABLE' && !chavesUsadas.has(`item:${r.itemId}`)),
+      4,
+    ).map((r) => paraAlvo(r.item, { sugerido: true }))
     if (novos.length) setSugestoes((prev) => [...prev, ...novos.filter((n) => !prev.some((p) => p.chave === n.chave))])
   }
 

@@ -675,3 +675,25 @@ textarea.ds-input {
 .barra-indeterminada {
   animation: barra-indeterminada 1.2s ease-in-out infinite;
 }
+
+/* ── Celular (≤ 760px) ───────────────────────────────────────────────────────────────────
+   Diálogo vira folha inferior (o polegar alcança os botões); painel lateral ocupa a tela. */
+@media (max-width: 760px) {
+  .ds-dialogo-fundo {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+  .ds-dialogo {
+    width: 100% !important;
+    max-height: 90vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    border-bottom: 0 !important;
+    animation: folha-entrar 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .ds-dialogo .ds-btn--lg {
+    height: 48px;
+  }
+  .ds-corpo {
+    padding: 16px 18px !important;
+  }
+}

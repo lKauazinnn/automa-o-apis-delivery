@@ -175,3 +175,54 @@ export function Toasts({ toasts, onFechar }) {
     </div>
   )
 }
+
+// ── Celular ─────────────────────────────────────────────────────────────────────────────────
+export function HeaderCelular({ simbolo, titulo, sub, conexao, aoVivo, tema, onAlternarTema }) {
+  const cor = conexao === 'offline' ? 'var(--bad)' : conexao === 'reconectando' ? 'var(--warn)' : 'var(--good)'
+  const status = conexao === 'offline' ? 'sem conexão' : conexao === 'reconectando' ? 'reconectando' : aoVivo ? 'ao vivo' : null
+  return (
+    <header style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', paddingTop: 'max(10px, env(safe-area-inset-top))', background: 'var(--card)', borderBottom: '1px solid var(--borda)' }}>
+      {simbolo}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--t1)' }}>{titulo}</h1>
+        <div style={{ fontSize: 12, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {status && <span style={{ width: 6, height: 6, borderRadius: 99, background: cor, flexShrink: 0 }} />}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{[sub, status].filter(Boolean).join(' · ')}</span>
+        </div>
+      </div>
+      <button type="button" onClick={onAlternarTema} aria-label={tema === 'escuro' ? 'Mudar para tema claro' : 'Mudar para tema escuro'} className="ds-icone" style={{ width: 40, height: 40 }}>
+        {tema === 'escuro' ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
+    </header>
+  )
+}
+
+// Cinco abas no polegar. "Mais" reúne o resto (status, financeiro, histórico, administração).
+export function NavInferior({ abas, ativa, onMudar }) {
+  return (
+    <nav aria-label="Navegação principal" style={{ flexShrink: 0, display: 'grid', gridTemplateColumns: `repeat(${abas.length}, 1fr)`, padding: '6px 6px', paddingBottom: 'max(10px, env(safe-area-inset-bottom))', background: 'var(--card)', borderTop: '1px solid var(--borda)' }}>
+      {abas.map((a) => {
+        const on = a.chave === ativa
+        return (
+          <button
+            key={a.chave}
+            type="button"
+            onClick={() => onMudar(a.chave)}
+            aria-current={on ? 'page' : undefined}
+            style={{ height: 52, border: 0, background: 'transparent', color: on ? 'var(--t1)' : 'var(--t2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, fontSize: 11.5, fontWeight: on ? 700 : 500, position: 'relative', cursor: 'pointer' }}
+          >
+            <span style={{ display: 'flex', position: 'relative', padding: '3px 14px', borderRadius: 99, background: on ? 'var(--marca-suave)' : 'transparent', color: on ? 'var(--marca-tinta)' : undefined }}>
+              <a.Icon size={20} />
+              {!!a.badge && (
+                <span style={{ position: 'absolute', top: -2, right: 4, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 99, background: a.badgeCor || 'var(--warn)', color: 'var(--card)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--card)' }}>
+                  {a.badge}
+                </span>
+              )}
+            </span>
+            {a.label}
+          </button>
+        )
+      })}
+    </nav>
+  )
+}

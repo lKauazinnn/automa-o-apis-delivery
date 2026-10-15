@@ -22,7 +22,7 @@ function recebido(iso) {
   return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${hora}`
 }
 
-export function PedidosView({ apiFetch, notificar, lojaNome, plataforma }) {
+export function PedidosView({ apiFetch, notificar, lojaNome, plataforma, celular = false }) {
   const [pedidos, setPedidos] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
@@ -119,6 +119,30 @@ export function PedidosView({ apiFetch, notificar, lojaNome, plataforma }) {
           )}
         </div>
 
+        {celular ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 12 }}>
+            {carregando && [0, 1, 2, 3].map((k) => <Esqueleto key={k} h={64} r={12} />)}
+            {!carregando && filtrados.length === 0 && <EstadoVazio icone={<ClipboardList size={22} />} titulo="Nenhum pedido aqui" texto="Troque o status ou tire a busca." />}
+            {!carregando &&
+              filtrados.map((p) => {
+                const t = tons(TOM_STATUS[p.status] || 'neutro')
+                return (
+                  <button key={p.id} type="button" onClick={() => abrirDetalhes(p)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, background: 'var(--card)', border: '1px solid var(--borda)', minHeight: 64, textAlign: 'left', cursor: 'pointer', color: 'var(--t1)' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: MONO, fontSize: 15, fontWeight: 600 }}>#{codigoCurto(p.ifood_order_id)}</div>
+                      <div style={{ fontSize: 12.5, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {[recebido(p.recebido_em), TIPO_LABEL[p.tipo] || p.tipo, rotularPagamento(p.pagamento)].filter(Boolean).join(' · ')}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', height: 22, padding: '0 8px', borderRadius: 99, background: t.bg, border: `1px solid ${t.bd}`, color: t.fg, fontSize: 12, fontWeight: 600 }}>{STATUS_LABEL[p.status] || p.status}</span>
+                      <span style={{ fontFamily: MONO, fontSize: 13 }}>{p.total != null ? brl(p.total) : ''}</span>
+                    </div>
+                  </button>
+                )
+              })}
+          </div>
+        ) : (
         <div role="table" aria-label="Pedidos">
           <div
             role="row"
@@ -220,6 +244,7 @@ export function PedidosView({ apiFetch, notificar, lojaNome, plataforma }) {
             </div>
           )}
         </div>
+        )}
       </section>
 
       {pedidoSelecionado && (

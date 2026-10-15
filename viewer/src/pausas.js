@@ -50,17 +50,23 @@ export function palavrasChave(nome) {
     .filter((p) => !PALAVRAS_IGNORADAS.has(p))
 }
 
-// Itens com palavra em comum no nome, os mais parecidos primeiro — sinal de que usam o mesmo
-// insumo (ruptura de um ingrediente derruba todas as variações do prato).
-export function encontrarRelacionados(item, todosItens) {
+// Sugestões de "parecidos" pra pausar/reativar junto: no máximo `limite`, as mais próximas primeiro.
+// `forte` = tem TODAS as palavras-chave do item (ex.: "Fam Ancho Black" pra "Com Ancho Black") —
+// só essas vêm marcadas. Compartilhar uma palavra só ("carne") não basta: antes vinham 20 itens
+// marcados e um toque distraído tirava meio cardápio do ar.
+export function sugestoesParecidas(item, todosItens, limite = 8) {
   const chave = palavrasChave(item.nome)
   if (!chave.length) return []
   return todosItens
     .filter((i) => i.itemId !== item.itemId)
-    .map((i) => ({ item: i, comuns: palavrasChave(i.nome).filter((p) => chave.includes(p)).length }))
+    .map((i) => {
+      const palavras = palavrasChave(i.nome)
+      const comuns = chave.filter((p) => palavras.includes(p)).length
+      return { item: i, comuns, forte: comuns === chave.length }
+    })
     .filter((r) => r.comuns > 0)
     .sort((a, b) => b.comuns - a.comuns)
-    .map((r) => r.item)
+    .slice(0, limite)
 }
 
 export function horaCurta(iso) {

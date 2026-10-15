@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, Check, CheckCircle2, ClipboardList, Clock, Pause, Play, Tag, Zap } from 'lucide-react'
+import { ArrowRight, Check, CheckCircle2, ChevronRight, ClipboardList, Clock, Pause, Play, Tag, Zap } from 'lucide-react'
 import { Botao, Cartao, CabecalhoCartao, Contador, EstadoVazio, Esqueleto, MONO, tons } from '../ds'
 import { palavrasChave, tempoDesde, tempoRestante } from '../pausas'
 import { descreverAuditoria, iniciaisDe } from '../ui'
@@ -136,6 +136,8 @@ export function DashboardView({
   onIrAuditoria,
   onAbrirRupturas,
   onReativar,
+  celular = false,
+  onPausarItem,
 }) {
   const [pedidosHoje, setPedidosHoje] = useState(null) // null = carregando; { n, total } | { erro }
 
@@ -220,10 +222,25 @@ export function DashboardView({
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1480 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: celular ? 14 : 20, maxWidth: 1480 }}>
+      {celular && (
+        <button
+          type="button"
+          onClick={onPausarItem}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, height: 56, padding: '0 16px', borderRadius: 12, border: '1px solid var(--warn-bd)', background: 'var(--warn-bg)', color: 'var(--t1)', fontSize: 16, fontWeight: 700, textAlign: 'left', cursor: 'pointer' }}
+        >
+          <span style={{ color: 'var(--warn)', display: 'flex' }}>
+            <Pause size={22} />
+          </span>
+          <span style={{ flex: 1 }}>Pausar item</span>
+          <span style={{ color: 'var(--t3)', display: 'flex' }}>
+            <ChevronRight size={20} />
+          </span>
+        </button>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: celular ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: celular ? 10 : 16 }}>
         {stats.map((s) => (
-          <div key={s.label} style={{ background: 'var(--card)', border: `1px solid ${s.bd || 'var(--borda)'}`, borderRadius: 12, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div key={s.label} style={{ background: 'var(--card)', border: `1px solid ${s.bd || 'var(--borda)'}`, borderRadius: 12, padding: celular ? 14 : '18px 20px', display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--t2)', fontWeight: 500 }}>
               <span style={{ color: s.icc, display: 'flex' }}>
                 <s.Icon size={16} />
@@ -233,7 +250,7 @@ export function DashboardView({
             {(carregando && s.label !== 'Pedidos hoje') || s.value === null ? (
               <Esqueleto w="45%" h={30} />
             ) : (
-              <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, color: s.fg || 'var(--t1)' }}>{s.value}</div>
+              <div style={{ fontSize: celular ? 26 : 30, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, color: s.fg || 'var(--t1)' }}>{s.value}</div>
             )}
             <div style={{ fontSize: 12.5, color: 'var(--t3)', minHeight: 17 }}>{s.sub}</div>
           </div>

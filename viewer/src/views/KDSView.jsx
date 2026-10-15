@@ -90,7 +90,7 @@ function itensNormalizados(p) {
   }))
 }
 
-export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lojaNome }) {
+export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lojaNome, celular = false }) {
   const [pedidos, setPedidos] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
@@ -272,6 +272,7 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lo
   const { marca } = useContext(MarcaContext)
   const [tv, setTv] = useState(false)
   const [filtroTipo, setFiltroTipo] = useState('TODOS')
+  const [laneEscolhida, setLaneCelular] = useState(null)
 
   // Esc sai do modo cozinha (tela cheia).
   useEffect(() => {
@@ -434,7 +435,35 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lo
       .sort((a, b) => new Date(a.recebido_em || 0).getTime() - new Date(b.recebido_em || 0).getTime()),
   }))
 
-  const quadro = (
+  // Sem escolha da pessoa, abre na primeira coluna que tem pedido (senão em "Novo").
+  const laneCelular = laneEscolhida || colunas.find((c) => c.pedidos.length)?.status || 'NOVO'
+
+  const quadroCelular = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ position: 'sticky', top: -12, zIndex: 4, background: 'var(--bg)', padding: '0 0 8px' }}>
+        <Segmentado
+          rotulo="Coluna da cozinha"
+          valor={laneCelular}
+          onChange={setLaneCelular}
+          altura={44}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}
+          opcoes={colunas.map((c) => ({ valor: c.status, rotulo: c.status === 'DESPACHADO' ? 'Pronto' : c.titulo, contagem: c.pedidos.length, cheio: true }))}
+        />
+      </div>
+      {carregando ? (
+        [0, 1].map((k) => <Esqueleto key={k} h={180} r={12} />)
+      ) : (colunas.find((c) => c.status === laneCelular)?.pedidos || []).length === 0 ? (
+        <div style={{ minHeight: 160, border: '1.5px dashed var(--borda)', borderRadius: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: 'var(--t3)', fontSize: 14, textAlign: 'center', padding: 16 }}>
+          <CheckCircle2 size={22} />
+          {colunas.find((c) => c.status === laneCelular)?.vazio}
+        </div>
+      ) : (
+        colunas.find((c) => c.status === laneCelular).pedidos.map(cartao)
+      )}
+    </div>
+  )
+
+  const quadro = celular ? quadroCelular : (
     <div style={{ flex: 1, display: 'flex', gap: 16, padding: tv ? '20px 24px' : 0, alignItems: 'stretch', zoom: tv ? 1.18 : 1, minHeight: 0 }}>
       {carregando
         ? [0, 1, 2].map((k) => (
@@ -554,7 +583,7 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lo
             ]}
           />
           <span style={{ flex: 1 }} />
-          <span style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: 'var(--t2)' }}>{relogio}</span>
+          {!celular && <span style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: 'var(--t2)' }}>{relogio}</span>}
           {ehNoveNove && (
             <Botao variante="secundario" onClick={abrirPicker} disabled={criandoTeste} title="Cria um pedido de teste com itens reais do cardápio (mesmo fluxo do webhook)" style={{ borderStyle: 'dashed', color: 'var(--t2)' }}>
               <Plus size={16} /> Pedido teste 99Food
@@ -563,9 +592,11 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lo
           <BotaoIcone rotulo={ehNoveNove ? 'Reler pedidos agora' : 'Buscar pedidos no iFood agora'} onClick={atualizarDoIfood} disabled={atualizando} style={{ border: '1px solid var(--borda)', background: 'var(--card)', width: 40, height: 40 }}>
             <RefreshCw size={16} className={atualizando ? 'animate-spin' : ''} />
           </BotaoIcone>
-          <Botao variante="primario" onClick={() => setTv(true)}>
-            <Maximize2 size={16} /> Modo cozinha
-          </Botao>
+          {!celular && (
+            <Botao variante="primario" onClick={() => setTv(true)}>
+              <Maximize2 size={16} /> Modo cozinha
+            </Botao>
+          )}
         </div>
       )}
 
