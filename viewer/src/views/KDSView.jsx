@@ -1,23 +1,30 @@
-import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, ArrowRight, CalendarClock, Clock, Handshake, LayoutGrid, Loader2, Plus, RefreshCw, X } from 'lucide-react'
-import { Esqueleto, Modal } from '../ui'
-import { codigoCurto, PROXIMO_STATUS, STATUS_COR, TIPO_LABEL } from '../rotulos'
+import { useContext, useEffect, useRef, useState } from 'react'
+import { AlertTriangle, ArrowRight, Ban, Bike, CalendarClock, CheckCircle2, Clock, Handshake, Maximize2, MessageSquareWarning, Minus, Plus, RefreshCw, Search, ShoppingBag, UtensilsCrossed, X } from 'lucide-react'
+import { Botao, BotaoIcone, CampoBusca, Dialogo, Esqueleto, Etiqueta, MONO, Segmentado, tons } from '../ds'
+import { MarcaContext, tokensDaMarca } from '../marca'
+import { SimboloPausaFast } from '../Logo'
+import { codigoCurto, PROXIMO_STATUS, TIPO_LABEL } from '../rotulos'
 import { DetalhesPedidoModal } from '../DetalhesPedidoModal'
 
 const INTERVALO_ATUALIZACAO_MS = 10000
 
-// Só o trabalho ATIVO ganha faixa larga. Concluído e cancelado vão pro trilho estreito de
-// "Finalizados" à direita — antes as cinco colunas tinham a mesma largura, e as duas que
-// ninguém precisa olhar durante o serviço comiam 2/5 da tela.
+// Só o trabalho ATIVO ganha coluna larga. Concluído e cancelado vão pro trilho estreito de
+// "Finalizados" à direita — ninguém precisa olhar pra eles durante o serviço.
 const LANES_ATIVAS = [
-  { status: 'NOVO', titulo: 'Novo' },
-  { status: 'CONFIRMADO', titulo: 'Confirmado' },
-  { status: 'DESPACHADO', titulo: 'Despachado' },
+  { status: 'NOVO', titulo: 'Novo', tipo: 'info', vazio: 'Pedidos novos aparecem aqui' },
+  { status: 'CONFIRMADO', titulo: 'Em preparo', tipo: 'warn', vazio: 'Nada no fogo' },
+  { status: 'DESPACHADO', titulo: 'Pronto / Despachado', tipo: 'good', vazio: 'Nada esperando' },
 ]
 const STATUS_FINALIZADOS = ['CONCLUIDO', 'CANCELADO']
 const ACAO_PROXIMA = { NOVO: 'Confirmar', CONFIRMADO: 'Despachar', DESPACHADO: 'Concluir' }
 // Retirada/mesa não "despacha": no iFood vira readyToPickup ("pronto pra retirada").
 const acaoProxima = (p) => (p.status === 'CONFIRMADO' && p.tipo !== 'ENTREGA' ? 'Pronto p/ retirada' : ACAO_PROXIMA[p.status])
+const ICONE_TIPO = { ENTREGA: Bike, RETIRADA: ShoppingBag, MESA: UtensilsCrossed }
+
+// Pedido parado há mais de 3h numa coluna ativa quase sempre é um teste ou um pedido que a
+// plataforma já encerrou sem avisar — vira "esquecido?" com botão de arquivar, em vez de
+// gritar em vermelho pra sempre.
+const MIN_ESQUECIDO = 180
 
 function horaCurta(iso) {
   try {
@@ -27,9 +34,8 @@ function horaCurta(iso) {
   }
 }
 
-// Cronômetro de preparo: tempo desde que o pedido chegou. `mm:ss` só faz sentido dentro da
-// primeira hora — num pedido de teste parado há semanas o formato antigo imprimia coisas como
-// "60653:53" (42 dias contados em minutos), que não diz nada pra quem olha o quadro.
+// Cronômetro de preparo: tempo desde que o pedido chegou. `mm:ss` só na primeira hora; depois
+// "1h05" e, passando de um dia, "3 d" — um pedido parado há semanas não vira "60653:53".
 function tempoDecorrido(iso, agora) {
   if (!iso) return null
   const seg = Math.max(0, Math.floor((agora - new Date(iso).getTime()) / 1000))
@@ -37,16 +43,26 @@ function tempoDecorrido(iso, agora) {
   let texto
   if (min < 60) texto = `${String(min).padStart(2, '0')}:${String(seg % 60).padStart(2, '0')}`
   else if (min < 1440) texto = `${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}`
-  else texto = `${Math.floor(min / 1440)}d`
+  else texto = `${Math.floor(min / 1440)} d`
   return { min, texto }
 }
 
-// Cor do cronômetro — alerta de atraso: >=20min vermelho, >=10min âmbar, antes neutro.
-function corTempo(min, C) {
-  if (min >= 20) return C.bad
-  if (min >= 10) return C.neutral
-  return C.text2
+// Semáforo: < 10 min normal, ≥ 10 âmbar ("atenção"), ≥ 20 vermelho ("ATRASADO"), ≥ 3h "esquecido?".
+function nivelTempo(min) {
+  if (min >= MIN_ESQUECIDO) return 'esq'
+  if (min >= 20) return 'bad'
+  if (min >= 10) return 'warn'
+  return 'ok'
 }
+
+const COR_TEMPO = {
+  ok: { bg: 'var(--input)', bd: 'var(--borda)', fg: 'var(--t1)' },
+  warn: { bg: 'var(--warn-bg)', bd: 'var(--warn-bd)', fg: 'var(--warn)' },
+  bad: { bg: 'var(--bad)', bd: 'var(--bad)', fg: 'var(--card)' },
+  esq: { bg: 'var(--input)', bd: 'var(--borda)', fg: 'var(--t3)' },
+}
+
+const brl = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 // Itens do pedido no formato do KDS, respeitando a API de CADA plataforma (não misturar):
 // 99Food guarda em detalhes_brutos.itens (nome/qtd/complementos); iFood em
@@ -74,7 +90,7 @@ function itensNormalizados(p) {
   }))
 }
 
-export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistorico, plataforma }) {
+export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lojaNome }) {
   const [pedidos, setPedidos] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
@@ -252,329 +268,308 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
     }
   }
 
+
+  const { marca } = useContext(MarcaContext)
+  const [tv, setTv] = useState(false)
+  const [filtroTipo, setFiltroTipo] = useState('TODOS')
+
+  // Esc sai do modo cozinha (tela cheia).
+  useEffect(() => {
+    if (!tv) return undefined
+    function aoTeclar(e) {
+      if (e.key === 'Escape' && !document.querySelector('[aria-modal="true"]')) setTv(false)
+    }
+    window.addEventListener('keydown', aoTeclar)
+    return () => window.removeEventListener('keydown', aoTeclar)
+  }, [tv])
+
   const visiveis = pedidos.filter((p) => !p.oculto_kds)
+  const ativos = visiveis.filter((p) => !STATUS_FINALIZADOS.includes(p.status))
+  const filtrados = ativos.filter((p) => filtroTipo === 'TODOS' || p.tipo === filtroTipo)
   const finalizados = visiveis.filter((p) => STATUS_FINALIZADOS.includes(p.status))
-  const catalogoFiltrado = catalogo
-    .filter((it) => (it.nome || '').toLowerCase().includes(buscaItem.trim().toLowerCase()))
-    .slice(0, 80)
+  const atrasados = ativos.filter((p) => {
+    const t = tempoDecorrido(p.recebido_em, agora)
+    return t && t.min >= 20 && t.min < MIN_ESQUECIDO
+  }).length
+  const catalogoFiltrado = catalogo.filter((it) => (it.nome || '').toLowerCase().includes(buscaItem.trim().toLowerCase())).slice(0, 80)
   const totalEscolhidos = Object.values(escolhidos).reduce((s, v) => s + (v.qtd || 0), 0)
+  const relogio = new Date(agora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2.5">
-          <LayoutGrid size={17} color={C.marcaTinta} />
-          <h2 className="font-bold" style={{ color: C.text1, fontSize: 15.5, letterSpacing: '-0.01em' }}>
-            Quadro de preparo
-          </h2>
-        </div>
-        <div className="flex items-center gap-2.5">
-          {onAbrirHistorico && (
-            <button
-              type="button"
-              onClick={onAbrirHistorico}
-              className="font-semibold px-4 rounded-xl"
-              style={{ color: C.text1, background: C.inputBg, border: `1px solid ${C.cardBorder}`, height: 40, fontSize: 14 }}
-            >
-              Histórico
-            </button>
-          )}
-          {ehNoveNove && (
-            <button
-              type="button"
-              onClick={abrirPicker}
-              disabled={criandoTeste}
-              title="Cria um pedido de teste com itens reais do seu cardápio (via o mesmo fluxo do webhook)"
-              className="flex items-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-60"
-              style={{ color: C.neutral, background: C.neutralBg, border: `1px solid ${C.neutralBd}`, height: 40, fontSize: 14 }}
-            >
-              {criandoTeste ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
-              Pedido teste
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={atualizarDoIfood}
-            disabled={atualizando}
-            className="botao-primario flex items-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-60"
-            style={{ height: 40, fontSize: 14 }}
-          >
-            <RefreshCw size={15} className={atualizando ? 'animate-spin' : ''} />
-            Atualizar
-          </button>
-        </div>
-      </div>
+  const resumo = [{ n: ativos.length, l: 'ativos', ...tons('neutro'), bg: 'var(--card)' }]
+  if (atrasados) resumo.push({ n: atrasados, l: atrasados > 1 ? 'atrasados' : 'atrasado', ...tons('bad') })
 
-      {carregando ? (
-        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr)) 300px' }}>
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl border p-3" style={{ background: C.bg2, borderColor: C.cardBorder, minHeight: 220 }}>
-              <div className="flex items-center gap-2.5 pb-3 mb-3 border-b" style={{ borderColor: C.rowBorder }}>
-                <Esqueleto w={9} h={9} style={{ borderRadius: 999 }} />
-                <Esqueleto w={80} h={13} />
-                <div className="ml-auto">
-                  <Esqueleto w={26} h={24} style={{ borderRadius: 8 }} />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2.5">
-                {[0, 1].map((k) => (
-                  <div key={k} className="rounded-xl border p-3.5" style={{ background: C.cardBg, borderColor: C.cardBorder }}>
-                    <div className="flex justify-between mb-3">
-                      <Esqueleto w={90} h={15} />
-                      <Esqueleto w={58} h={17} style={{ borderRadius: 8 }} />
-                    </div>
-                    <Esqueleto w="60%" h={12} />
-                    <div className="mt-3 pt-3 border-t" style={{ borderColor: C.cardBorder }}>
-                      <Esqueleto w="88%" h={12} />
-                      <div className="mt-2">
-                        <Esqueleto w="64%" h={12} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+  // No modo TV o quadro tem tema próprio (escuro por padrão) — a tinta da marca precisa ser a
+  // do tema do quadro, não a do painel.
+  const temaTv = 'escuro'
+  const tintaTv = tokensDaMarca(marca.cor, temaTv).marcaTinta
+
+  function cartao(p) {
+    const itens = itensNormalizados(p)
+    const t = tempoDecorrido(p.recebido_em, agora)
+    const nivel = t ? nivelTempo(t.min) : 'ok'
+    const cor = COR_TEMPO[nivel]
+    const proximo = PROXIMO_STATUS[p.status]
+    const eh99 = String(p.ifood_order_id || '').startsWith('99-')
+    const IconeTipo = ICONE_TIPO[p.tipo] || ShoppingBag
+    const subTipo = p.status === 'DESPACHADO' ? (p.tipo === 'ENTREGA' ? 'saiu para entrega' : 'aguardando retirada') : ''
+    const observacoes = itens.filter((it) => it.obs)
+    const flag = nivel === 'bad' ? { t: 'ATRASADO', c: 'var(--bad)' } : nivel === 'warn' ? { t: 'atenção', c: 'var(--warn)' } : nivel === 'esq' ? { t: 'esquecido?', c: 'var(--t3)' } : null
+    return (
+      <article
+        key={p.id}
+        style={{
+          background: 'var(--card)',
+          border: `${nivel === 'bad' ? 2 : 1}px solid ${nivel === 'bad' ? 'var(--bad)' : nivel === 'warn' ? 'var(--warn-bd)' : 'var(--borda)'}`,
+          borderRadius: 12,
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: 'var(--sh-sm)',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => abrirDetalhes(p)}
+          aria-label={`Ver detalhes do pedido ${codigoCurto(p.ifood_order_id)}`}
+          style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '14px 16px 12px', background: nivel === 'bad' ? 'var(--bad-bg)' : 'transparent', border: 0, textAlign: 'left', cursor: 'pointer', color: 'var(--t1)' }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div title={p.ifood_order_id} style={{ fontFamily: MONO, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
+              #{codigoCurto(p.ifood_order_id)}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid gap-3.5 items-start" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr)) 300px' }}>
-          {LANES_ATIVAS.map((col) => {
-            const doColuna = visiveis.filter((p) => p.status === col.status)
-            const cor = STATUS_COR(C)[col.status]
-            return (
-              <div
-                key={col.status}
-                className="rounded-2xl border p-3 flex flex-col gap-2.5"
-                style={{ background: C.bg2, borderColor: C.cardBorder, minHeight: 220 }}
-              >
-                <div className="flex items-center gap-2.5 pb-2.5 border-b" style={{ borderColor: C.rowBorder }}>
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: cor }} />
-                  <h4 className="font-bold" style={{ color: C.text1, fontSize: 14.5, letterSpacing: '-0.01em' }}>
-                    {col.titulo}
-                  </h4>
-                  <span
-                    className="ml-auto font-bold rounded-lg px-2 inline-flex items-center justify-center"
-                    style={{ background: cor + '24', color: cor, minWidth: 26, height: 24, fontSize: 14 }}
-                  >
-                    {doColuna.length}
-                  </span>
-                </div>
-
-                {doColuna.length === 0 && (
-                  <p className="text-center py-8" style={{ color: C.text3, fontSize: 13 }}>
-                    Nenhum pedido
-                  </p>
-                )}
-
-                {doColuna.map((p) => {
-                  const itensCard = itensNormalizados(p)
-                  const t = tempoDecorrido(p.recebido_em, agora)
-                  const atrasado = t && t.min >= 20
-                  const proximo = PROXIMO_STATUS[p.status]
-                  return (
-                    <div
-                      key={p.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => abrirDetalhes(p)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          abrirDetalhes(p)
-                        }
-                      }}
-                      className="rounded-xl border transition-all hover:brightness-110 cursor-pointer"
-                      style={{
-                        background: C.cardBg,
-                        borderColor: atrasado ? C.badBd : C.cardBorder,
-                        borderLeft: `4px solid ${atrasado ? C.bad : cor}`,
-                      }}
-                    >
-                      <div className="p-3.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <span
-                            className="fonte-mono font-bold"
-                            style={{ color: C.text1, fontSize: 17, letterSpacing: '-0.02em' }}
-                            title={p.ifood_order_id}
-                          >
-                            {codigoCurto(p.ifood_order_id)}
-                          </span>
-                          {t ? (
-                            <span
-                              className="fonte-mono font-bold inline-flex items-center gap-1.5 flex-shrink-0 rounded-lg"
-                              style={{
-                                color: corTempo(t.min, C),
-                                fontSize: 19,
-                                padding: t.min >= 10 ? '2px 8px' : '2px 2px',
-                                background: t.min >= 10 ? corTempo(t.min, C) + '24' : 'transparent',
-                                border: `1px solid ${t.min >= 10 ? corTempo(t.min, C) + '55' : 'transparent'}`,
-                              }}
-                              title={`Há ${t.min} min no quadro`}
-                            >
-                              {atrasado ? <AlertTriangle size={15} /> : <Clock size={15} />}
-                              {t.texto}
-                            </span>
-                          ) : (
-                            <span className="fonte-mono flex-shrink-0" style={{ color: C.text3, fontSize: 14 }}>
-                              {horaCurta(p.recebido_em)}
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="mt-2 font-semibold truncate" style={{ color: C.text1, fontSize: 14.5 }}>
-                          {p.cliente?.name || p.cliente?.nome || 'Cliente'}{' '}
-                          <span style={{ color: C.text3, fontWeight: 400 }}>· {TIPO_LABEL[p.tipo] || p.tipo}</span>
-                        </p>
-
-                        {p.detalhes_brutos?.disputa?.id && (
-                          <div
-                            className="mt-2 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-bold"
-                            style={{ color: C.bad, background: C.bad + '1f', border: `1px solid ${C.bad}55`, fontSize: 13 }}
-                          >
-                            <Handshake size={14} /> Cliente pediu cancelamento — responder
-                          </div>
-                        )}
-                        {p.detalhes_brutos?.orderTiming === 'SCHEDULED' && (
-                          <div
-                            className="mt-2 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold"
-                            style={{ color: C.info, background: C.info + '1f', fontSize: 13 }}
-                          >
-                            <CalendarClock size={14} /> Agendado · {horaCurta(p.detalhes_brutos?.schedule?.deliveryDateTimeStart)}
-                          </div>
-                        )}
-
-                        {itensCard.length > 0 && (
-                          <div className="mt-3 pt-3 flex flex-col gap-2 border-t" style={{ borderColor: C.cardBorder }}>
-                            {itensCard.slice(0, 4).map((it, idx) => (
-                              <div key={idx} style={{ fontSize: 14.5, lineHeight: 1.35, color: C.text1 }}>
-                                <span className="font-bold" style={{ color: C.marcaTinta }}>
-                                  {it.quantidade || 1}×
-                                </span>{' '}
-                                {it.nome}
-                                {it.complementos?.length > 0 && (
-                                  <div style={{ color: C.text3, fontSize: 13, marginTop: 2 }}>
-                                    + {it.complementos.map((c) => c.nome).join(', ')}
-                                  </div>
-                                )}
-                                {it.obs && (
-                                  <div
-                                    className="flex items-start gap-2 mt-1.5 rounded-lg px-2.5 py-2 font-semibold"
-                                    style={{
-                                      color: C.neutral,
-                                      background: C.neutralBg,
-                                      border: `1px solid ${C.neutralBd}`,
-                                      fontSize: 13.5,
-                                      lineHeight: 1.35,
-                                    }}
-                                  >
-                                    <AlertTriangle size={15} className="flex-shrink-0" style={{ marginTop: 1 }} />
-                                    <span>{it.obs}</span>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                            {itensCard.length > 4 && (
-                              <div style={{ color: C.text3, fontSize: 13 }}>+{itensCard.length - 4} item(ns)</div>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-2.5 mt-3.5">
-                          {p.total != null && (
-                            <span className="fonte-mono font-semibold" style={{ color: C.text2, fontSize: 15 }}>
-                              R$ {Number(p.total).toFixed(2).replace('.', ',')}
-                            </span>
-                          )}
-                          {proximo && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                alterarStatus(p, proximo)
-                              }}
-                              className="botao-primario ml-auto flex items-center gap-1.5 font-semibold px-3.5 rounded-lg"
-                              style={{ height: 36, fontSize: 13.5 }}
-                            >
-                              {acaoProxima(p)}
-                              <ArrowRight size={15} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, fontSize: 13.5, color: 'var(--t2)', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <Etiqueta>{eh99 ? '99Food' : 'iFood'}</Etiqueta>
+              <span style={{ fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.cliente?.name || p.cliente?.nome || 'Cliente'}</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+            {t ? (
+              <div title={`Há ${t.min} min no quadro`} style={{ display: 'flex', alignItems: 'center', gap: 6, height: 38, padding: '0 10px', borderRadius: 9, background: cor.bg, border: `1px solid ${cor.bd}`, color: cor.fg, fontFamily: MONO, fontSize: 22, fontWeight: 600 }}>
+                {nivel === 'bad' && <AlertTriangle size={16} />}
+                {nivel === 'esq' && <Clock size={16} />}
+                {t.texto}
               </div>
+            ) : (
+              <span style={{ fontFamily: MONO, color: 'var(--t3)', fontSize: 14 }}>{horaCurta(p.recebido_em)}</span>
+            )}
+            {flag && <span style={{ fontSize: 12, fontWeight: 700, color: flag.c, letterSpacing: '.02em' }}>{flag.t}</span>}
+          </div>
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderTop: '1px solid var(--linha)', borderBottom: '1px solid var(--linha)', fontSize: 14, fontWeight: 600, color: 'var(--t1)' }}>
+          <span style={{ color: 'var(--t2)', display: 'flex' }}>
+            <IconeTipo size={16} />
+          </span>
+          {TIPO_LABEL[p.tipo] || p.tipo || '—'}
+          {subTipo && <span style={{ color: 'var(--t3)', fontWeight: 500 }}>· {subTipo}</span>}
+        </div>
+
+        {p.detalhes_brutos?.disputa?.id && (
+          <div style={{ margin: '12px 12px 0', padding: '8px 10px', borderRadius: 9, background: 'var(--bad-bg)', border: '1px solid var(--bad-bd)', color: 'var(--bad)', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700 }}>
+            <Handshake size={16} /> Cliente pediu cancelamento — responder
+          </div>
+        )}
+        {p.detalhes_brutos?.orderTiming === 'SCHEDULED' && (
+          <div style={{ margin: '12px 12px 0', padding: '8px 10px', borderRadius: 9, background: 'var(--info-bg)', border: '1px solid var(--info-bd)', color: 'var(--info)', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 600 }}>
+            <CalendarClock size={16} /> Agendado · {horaCurta(p.detalhes_brutos?.schedule?.deliveryDateTimeStart)}
+          </div>
+        )}
+
+        {itens.length > 0 && (
+          <ul style={{ listStyle: 'none', margin: 0, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {itens.slice(0, 6).map((it) => (
+              <li key={it.id} style={{ display: 'grid', gridTemplateColumns: '36px minmax(0,1fr)', gap: 4 }}>
+                <span style={{ fontFamily: MONO, fontSize: 17, fontWeight: 700, color: 'var(--marca-tinta)' }}>{it.quantidade}×</span>
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.3, color: 'var(--t1)' }}>{it.nome}</div>
+                  {it.complementos?.length > 0 && (
+                    <div style={{ fontSize: 14, color: 'var(--t2)', marginTop: 2, lineHeight: 1.4 }}>{it.complementos.map((c) => c.nome).join(' · ')}</div>
+                  )}
+                </div>
+              </li>
+            ))}
+            {itens.length > 6 && <li style={{ fontSize: 13.5, color: 'var(--t3)' }}>+{itens.length - 6} item(ns) — ver detalhes</li>}
+          </ul>
+        )}
+
+        {observacoes.length > 0 && (
+          <div style={{ margin: '0 12px 12px', padding: '10px 12px', borderRadius: 9, background: 'var(--warn-bg)', border: '1px solid var(--warn-bd)', display: 'flex', gap: 10 }}>
+            <span style={{ color: 'var(--warn)', display: 'flex', paddingTop: 2 }}>
+              <MessageSquareWarning size={16} />
+            </span>
+            <div>
+              <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--warn)' }}>Observação do cliente</div>
+              {observacoes.map((it) => (
+                <div key={it.id} style={{ fontSize: 15.5, fontWeight: 600, lineHeight: 1.4, marginTop: 2, color: 'var(--t1)', textWrap: 'pretty' }}>
+                  {observacoes.length > 1 || itens.length > 1 ? <span style={{ color: 'var(--t2)', fontWeight: 500 }}>{it.nome}: </span> : null}
+                  {it.obs}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderTop: '1px solid var(--linha)', marginTop: 'auto' }}>
+          <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 500, color: 'var(--t2)', flex: 1, whiteSpace: 'nowrap' }}>{p.total != null ? brl(p.total) : ''}</span>
+          {nivel === 'esq' && (
+            <Botao variante="secundario" tamanho="lg" onClick={() => pedirLimparCard(p)}>
+              Arquivar
+            </Botao>
+          )}
+          {proximo && (
+            <Botao variante="primario" tamanho="lg" onClick={() => alterarStatus(p, proximo)} style={{ fontSize: 15 }}>
+              {acaoProxima(p)}
+              <ArrowRight size={16} />
+            </Botao>
+          )}
+        </div>
+      </article>
+    )
+  }
+
+  const colunas = LANES_ATIVAS.map((col) => ({
+    ...col,
+    pedidos: filtrados
+      .filter((p) => p.status === col.status)
+      .sort((a, b) => new Date(a.recebido_em || 0).getTime() - new Date(b.recebido_em || 0).getTime()),
+  }))
+
+  const quadro = (
+    <div style={{ flex: 1, display: 'flex', gap: 16, padding: tv ? '20px 24px' : 0, alignItems: 'stretch', zoom: tv ? 1.18 : 1, minHeight: 0 }}>
+      {carregando
+        ? [0, 1, 2].map((k) => (
+            <section key={k} style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: 12, background: 'var(--card2)', border: '1px solid var(--borda)', borderRadius: 12, padding: 12, minHeight: 260 }}>
+              <Esqueleto w={120} h={16} />
+              <Esqueleto h={180} r={12} />
+              <Esqueleto h={140} r={12} />
+            </section>
+          ))
+        : colunas.map((c) => {
+            const t = tons(c.tipo)
+            const n = c.pedidos.length
+            return (
+              <section
+                key={c.status}
+                aria-label={`${c.titulo}: ${n} pedidos`}
+                style={{ flex: n ? `${n} 1 300px` : '0 0 200px', minWidth: n ? 300 : 200, display: 'flex', flexDirection: 'column', gap: 12, background: 'var(--card2)', border: '1px solid var(--borda)', borderRadius: 12, padding: 12 }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 4px 2px' }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 99, background: t.fg }} />
+                  <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, flex: 1, whiteSpace: 'nowrap', color: 'var(--t1)' }}>{c.titulo}</h2>
+                  <span style={{ fontFamily: MONO, minWidth: 28, height: 26, padding: '0 8px', borderRadius: 7, background: 'var(--card)', border: '1px solid var(--borda)', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t1)' }}>{n}</span>
+                </div>
+                {n === 0 ? (
+                  <div style={{ flex: tv ? 1 : 'none', minHeight: 160, border: '1.5px dashed var(--borda)', borderRadius: 9, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: 'var(--t3)', fontSize: 13.5, textAlign: 'center', padding: 16 }}>
+                    <CheckCircle2 size={22} />
+                    {c.vazio}
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12, alignItems: 'start' }}>{c.pedidos.map(cartao)}</div>
+                )}
+              </section>
             )
           })}
 
-          {/* Trilho de finalizados: concluído e cancelado não disputam mais largura com o que
-              está em preparo. Nada some do sistema — só para de ocupar 2/5 da tela. */}
-          <div
-            className="rounded-2xl border p-3 flex flex-col gap-2.5"
-            style={{ background: C.bg2, borderColor: C.cardBorder, minHeight: 220 }}
-          >
-            <div className="flex items-center gap-2.5 pb-2.5 border-b" style={{ borderColor: C.rowBorder }}>
-              <h4 className="font-bold" style={{ color: C.text2, fontSize: 14.5, letterSpacing: '-0.01em' }}>
-                Finalizados
-              </h4>
-              <span className="ml-auto font-semibold" style={{ color: C.text3, fontSize: 13 }}>
-                {finalizados.length}
-              </span>
-            </div>
-
-            {finalizados.length === 0 && (
-              <p className="text-center py-8" style={{ color: C.text3, fontSize: 13 }}>
-                Nada finalizado ainda
-              </p>
-            )}
-
-            {finalizados.map((p) => (
-              <div
-                key={p.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => abrirDetalhes(p)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    abrirDetalhes(p)
-                  }
-                }}
-                className="flex items-center gap-2.5 rounded-xl border px-3 py-2.5 cursor-pointer hover:brightness-110"
-                style={{ background: C.cardBg, borderColor: C.cardBorder }}
-              >
-                <span className="w-1 rounded-full flex-shrink-0" style={{ height: 28, background: STATUS_COR(C)[p.status] }} />
-                <div className="min-w-0 flex-1">
-                  <div className="fonte-mono font-semibold truncate" style={{ color: C.text1, fontSize: 14 }} title={p.ifood_order_id}>
-                    {codigoCurto(p.ifood_order_id)}
-                  </div>
-                  <div className="truncate" style={{ color: C.text3, fontSize: 12.5 }}>
+      {!tv && (
+        <aside aria-label="Pedidos finalizados" style={{ flex: '0 0 260px', display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--card2)', border: '1px solid var(--borda)', borderRadius: 12, padding: 12, alignSelf: 'flex-start', maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 4px 2px' }}>
+            <h2 style={{ margin: 0, fontSize: 14, fontWeight: 700, flex: 1, color: 'var(--t2)' }}>Finalizados</h2>
+            <span style={{ fontFamily: MONO, fontSize: 13, color: 'var(--t3)' }}>{finalizados.length}</span>
+          </div>
+          {finalizados.length === 0 && <div style={{ fontSize: 13, color: 'var(--t3)', padding: '16px 4px', textAlign: 'center' }}>Nada finalizado ainda</div>}
+          {finalizados.map((p) => {
+            const cancelado = p.status === 'CANCELADO'
+            return (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 9, background: 'var(--card)', border: '1px solid var(--linha)' }}>
+                <span style={{ color: cancelado ? 'var(--bad)' : 'var(--good)', display: 'flex' }}>{cancelado ? <Ban size={16} /> : <CheckCircle2 size={16} />}</span>
+                <button type="button" onClick={() => abrirDetalhes(p)} title={p.ifood_order_id} style={{ flex: 1, minWidth: 0, textAlign: 'left', border: 0, background: 'transparent', padding: 0, cursor: 'pointer', color: 'var(--t1)' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelado ? 'line-through' : 'none' }}>#{codigoCurto(p.ifood_order_id)}</div>
+                  <div style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {p.cliente?.name || p.cliente?.nome || '—'}
-                    {p.status === 'CANCELADO' ? ' · cancelado' : ''}
+                    {cancelado ? ' · cancelado' : ''}
                   </div>
-                </div>
-                <span className="fonte-mono flex-shrink-0" style={{ color: C.text3, fontSize: 13 }}>
-                  {horaCurta(p.recebido_em)}
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    pedirLimparCard(p)
-                  }}
-                  title="Limpar do quadro"
-                  aria-label={`Limpar ${p.ifood_order_id} do quadro`}
-                  className="botao-icone-fantasma w-7 h-7 rounded-lg inline-flex items-center justify-center flex-shrink-0"
-                  style={{ color: C.text3 }}
-                >
-                  <X size={14} />
                 </button>
+                <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--t3)' }}>{horaCurta(p.recebido_em)}</span>
+                <BotaoIcone rotulo={`Tirar ${codigoCurto(p.ifood_order_id)} do quadro`} tamanho={28} onClick={() => pedirLimparCard(p)}>
+                  <X size={14} />
+                </BotaoIcone>
+              </div>
+            )
+          })}
+        </aside>
+      )}
+    </div>
+  )
+
+  return (
+    <div
+      data-tema={tv ? temaTv : undefined}
+      style={
+        tv
+          ? { position: 'fixed', inset: 0, zIndex: 70, background: 'var(--bg)', color: 'var(--t1)', display: 'flex', flexDirection: 'column', overflow: 'auto', '--marca-tinta': tintaTv }
+          : { display: 'flex', flexDirection: 'column', gap: 16, margin: '-8px -4px 0' }
+      }
+    >
+      {tv ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '16px 28px', background: 'var(--card)', borderBottom: '1px solid var(--borda)', flexWrap: 'wrap' }}>
+          <SimboloPausaFast cor={marca.cor} tamanho={40} />
+          <div>
+            <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>Cozinha</div>
+            <div style={{ fontSize: 15, color: 'var(--t2)' }}>{[marca.nome, lojaNome].filter(Boolean).join(' · ')}</div>
+          </div>
+          <span style={{ flex: 1 }} />
+          <div style={{ display: 'flex', gap: 12 }}>
+            {resumo.map((k) => (
+              <div key={k.l} style={{ display: 'flex', alignItems: 'center', gap: 10, height: 48, padding: '0 16px', borderRadius: 9, background: k.bg, border: `1px solid ${k.bd}`, color: k.fg, fontSize: 18, fontWeight: 600 }}>
+                <span style={{ fontFamily: MONO, fontSize: 26, fontWeight: 600 }}>{k.n}</span>
+                {k.l}
               </div>
             ))}
           </div>
+          <div style={{ fontFamily: MONO, fontSize: 44, fontWeight: 600, letterSpacing: '-0.02em', padding: '0 8px' }}>{relogio}</div>
+          <Botao variante="secundario" tamanho="xl" onClick={() => setTv(false)} style={{ background: 'var(--card2)', fontSize: 16 }}>
+            <X size={20} /> Sair <span style={{ fontFamily: MONO, fontSize: 13, color: 'var(--t3)' }}>Esc</span>
+          </Botao>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {resumo.map((k) => (
+              <div key={k.l} style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36, padding: '0 12px', borderRadius: 9, background: k.bg, border: `1px solid ${k.bd}`, color: k.fg, fontSize: 13.5, fontWeight: 600 }}>
+                <span style={{ fontFamily: MONO, fontSize: 15 }}>{k.n}</span>
+                {k.l}
+              </div>
+            ))}
+          </div>
+          <Segmentado
+            rotulo="Filtrar por tipo de pedido"
+            valor={filtroTipo}
+            onChange={setFiltroTipo}
+            altura={30}
+            opcoes={[
+              { valor: 'TODOS', rotulo: 'Todos' },
+              { valor: 'ENTREGA', rotulo: 'Entrega' },
+              { valor: 'RETIRADA', rotulo: 'Retirada' },
+              { valor: 'MESA', rotulo: 'Mesa' },
+            ]}
+          />
+          <span style={{ flex: 1 }} />
+          <span style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: 'var(--t2)' }}>{relogio}</span>
+          {ehNoveNove && (
+            <Botao variante="secundario" onClick={abrirPicker} disabled={criandoTeste} title="Cria um pedido de teste com itens reais do cardápio (mesmo fluxo do webhook)" style={{ borderStyle: 'dashed', color: 'var(--t2)' }}>
+              <Plus size={16} /> Pedido teste 99Food
+            </Botao>
+          )}
+          <BotaoIcone rotulo={ehNoveNove ? 'Reler pedidos agora' : 'Buscar pedidos no iFood agora'} onClick={atualizarDoIfood} disabled={atualizando} style={{ border: '1px solid var(--borda)', background: 'var(--card)', width: 40, height: 40 }}>
+            <RefreshCw size={16} className={atualizando ? 'animate-spin' : ''} />
+          </BotaoIcone>
+          <Botao variante="primario" onClick={() => setTv(true)}>
+            <Maximize2 size={16} /> Modo cozinha
+          </Botao>
         </div>
       )}
+
+      {quadro}
 
       {selecionado && (
         <DetalhesPedidoModal
@@ -596,110 +591,59 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
       )}
 
       {mostrarPicker && (
-        <Modal titulo="Criar pedido de teste" eyebrow="99Food" onClose={() => setMostrarPicker(false)} largura="max-w-lg">
-          <div className="flex flex-col gap-3.5">
-            <p style={{ color: C.text2, fontSize: 13.5, lineHeight: 1.55 }}>
-              Escolha itens do cardápio real da loja, ou use "Aleatório" pra um item real qualquer.
-            </p>
-            <input
-              value={buscaItem}
-              onChange={(e) => setBuscaItem(e.target.value)}
-              placeholder="Buscar item do cardápio..."
-              className="w-full px-3.5 rounded-xl outline-none"
-              style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}`, color: C.text1, height: 44, fontSize: 14.5 }}
-            />
-            <div className="max-h-72 overflow-y-auto rounded-xl border" style={{ borderColor: C.cardBorder }}>
-              {carregandoCat ? (
-                <div className="flex flex-col gap-3 p-3.5">
-                  {[0, 1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <Esqueleto w="60%" h={13} />
-                        <div className="mt-2">
-                          <Esqueleto w={70} h={11} />
-                        </div>
-                      </div>
-                      <Esqueleto w={92} h={26} style={{ borderRadius: 8 }} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                catalogoFiltrado.map((it) => {
+        <Dialogo
+          largura={560}
+          eyebrow="99Food"
+          titulo="Criar pedido de teste"
+          descricao="Escolha itens do cardápio real da loja, ou use “Aleatório” pra um item real qualquer."
+          onClose={() => setMostrarPicker(false)}
+          rodape={
+            <>
+              <span style={{ flex: 1 }} />
+              <Botao variante="secundario" tamanho="lg" disabled={criandoTeste} onClick={() => criarPedido([])} title="Cria com um item real aleatório do cardápio">
+                Aleatório
+              </Botao>
+              <Botao
+                variante="primario"
+                tamanho="lg"
+                disabled={criandoTeste || totalEscolhidos === 0}
+                onClick={() => criarPedido(Object.entries(escolhidos).map(([id, v]) => ({ item_id: id, nome: v.nome, preco: v.preco, qtd: v.qtd })))}
+              >
+                Criar pedido{totalEscolhidos > 0 ? ` (${totalEscolhidos})` : ''}
+              </Botao>
+            </>
+          }
+        >
+          <CampoBusca valor={buscaItem} onChange={setBuscaItem} onLimpar={() => setBuscaItem('')} placeholder="Buscar item do cardápio…" icone={<Search size={16} />} autoFocus />
+          <div style={{ border: '1px solid var(--borda)', borderRadius: 9, overflow: 'hidden', maxHeight: 340, overflowY: 'auto' }}>
+            {carregandoCat
+              ? [0, 1, 2, 3].map((k) => (
+                  <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderBottom: '1px solid var(--linha)' }}>
+                    <Esqueleto w="55%" h={13} />
+                    <Esqueleto w={90} h={28} r={7} style={{ marginLeft: 'auto' }} />
+                  </div>
+                ))
+              : catalogoFiltrado.map((it) => {
                   const q = escolhidos[it.itemId]?.qtd || 0
                   return (
-                    <div
-                      key={it.itemId}
-                      className="flex items-center justify-between gap-3 px-3.5 py-2.5 border-b last:border-0"
-                      style={{ borderColor: C.cardBorder, background: q > 0 ? C.marca + '14' : 'transparent' }}
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate" style={{ color: C.text1, fontSize: 14 }}>
-                          {it.nome}
-                        </p>
-                        <p className="fonte-mono" style={{ color: C.text3, fontSize: 13 }}>
-                          R$ {Number(it.preco).toFixed(2).replace('.', ',')}
-                        </p>
+                    <div key={it.itemId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 14px', borderBottom: '1px solid var(--linha)', background: q > 0 ? 'var(--marca-suave)' : 'var(--card)' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.nome}</div>
+                        <div style={{ fontFamily: MONO, fontSize: 12.5, color: 'var(--t3)' }}>{brl(it.preco)}</div>
                       </div>
-                      <div className="flex items-center gap-2.5 flex-shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => mudarQtd(it, -1)}
-                          disabled={q === 0}
-                          aria-label="Diminuir quantidade"
-                          className="w-8 h-8 rounded-lg disabled:opacity-30"
-                          style={{ background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }}
-                        >
-                          −
-                        </button>
-                        <span className="w-5 text-center font-bold" style={{ color: C.text1, fontSize: 14 }}>
-                          {q}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => mudarQtd(it, +1)}
-                          aria-label="Aumentar quantidade"
-                          className="w-8 h-8 rounded-lg"
-                          style={{ background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }}
-                        >
-                          +
-                        </button>
-                      </div>
+                      <BotaoIcone rotulo="Diminuir quantidade" tamanho={32} disabled={q === 0} onClick={() => mudarQtd(it, -1)} style={{ border: '1px solid var(--borda)' }}>
+                        <Minus size={14} />
+                      </BotaoIcone>
+                      <span style={{ width: 20, textAlign: 'center', fontFamily: MONO, fontWeight: 700, color: 'var(--t1)' }}>{q}</span>
+                      <BotaoIcone rotulo="Aumentar quantidade" tamanho={32} onClick={() => mudarQtd(it, +1)} style={{ border: '1px solid var(--borda)' }}>
+                        <Plus size={14} />
+                      </BotaoIcone>
                     </div>
                   )
-                })
-              )}
-              {!carregandoCat && catalogoFiltrado.length === 0 && (
-                <p className="text-center py-8" style={{ color: C.text3, fontSize: 13.5 }}>
-                  Nenhum item encontrado.
-                </p>
-              )}
-            </div>
-            <div className="flex gap-2.5">
-              <button
-                type="button"
-                disabled={criandoTeste || totalEscolhidos === 0}
-                onClick={() =>
-                  criarPedido(Object.entries(escolhidos).map(([id, v]) => ({ item_id: id, nome: v.nome, preco: v.preco, qtd: v.qtd })))
-                }
-                className="botao-primario flex-1 flex items-center justify-center gap-2 font-semibold px-4 rounded-xl disabled:opacity-50"
-                style={{ height: 46, fontSize: 14.5 }}
-              >
-                {criandoTeste && <Loader2 size={15} className="animate-spin" />}
-                Criar pedido{totalEscolhidos > 0 ? ` (${totalEscolhidos} item(ns))` : ''}
-              </button>
-              <button
-                type="button"
-                disabled={criandoTeste}
-                onClick={() => criarPedido([])}
-                title="Cria com um item real aleatório do cardápio"
-                className="font-semibold px-4 rounded-xl disabled:opacity-50"
-                style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}`, height: 46, fontSize: 14 }}
-              >
-                Aleatório
-              </button>
-            </div>
+                })}
+            {!carregandoCat && catalogoFiltrado.length === 0 && <div style={{ padding: 24, textAlign: 'center', fontSize: 13.5, color: 'var(--t3)' }}>Nenhum item encontrado.</div>}
           </div>
-        </Modal>
+        </Dialogo>
       )}
     </div>
   )

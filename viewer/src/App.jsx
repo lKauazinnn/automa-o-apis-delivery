@@ -266,6 +266,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   // 'online' | 'reconectando' (1 falha de rede) | 'offline' (2+ seguidas ou navegador sem rede)
   const [conexao, setConexao] = useState(() => (navigator.onLine === false ? 'offline' : 'online'))
   const falhasRede = useRef(0)
+  const sidebarAntesDaCozinha = useRef(null)
 
   useEffect(() => {
     try {
@@ -1189,6 +1190,14 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     if (chave === 'usuarios') return abrirModalUsuarios()
     if (chave === 'lojas-admin') return setModalLojas(true)
     if (chave === 'marca') return setModalMarca(true)
+    // A Cozinha precisa de largura: entrar nela recolhe o menu; sair devolve como estava.
+    if (chave === 'kds' && view !== 'kds') {
+      sidebarAntesDaCozinha.current = sidebarAberta
+      setSidebarAberta(false)
+    } else if (chave !== 'kds' && view === 'kds' && sidebarAntesDaCozinha.current !== null) {
+      setSidebarAberta(sidebarAntesDaCozinha.current)
+      sidebarAntesDaCozinha.current = null
+    }
     setView(chave)
   }
 
@@ -1970,7 +1979,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               )}
 
               {view === 'pedidos' && (
-                <PedidosView apiFetch={apiFetch} C={C} notificar={notificar} inputStyle={inputStyle} lojaNome={lojaAtual?.nome} />
+                <PedidosView apiFetch={apiFetch} notificar={notificar} lojaNome={lojaAtual?.nome} plataforma={lojaAtual?.plataforma} />
               )}
 
               {view === 'kds' && (
@@ -1979,7 +1988,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   C={C}
                   notificar={notificar}
                   setConfirmacao={setConfirmacao}
-                  onAbrirHistorico={() => setView('pedidos')}
+                  lojaNome={lojaAtual?.nome}
                   plataforma={lojaAtual?.plataforma}
                 />
               )}

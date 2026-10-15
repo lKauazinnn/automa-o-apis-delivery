@@ -95,6 +95,63 @@
   color-scheme: dark;
 }
 
+/* Um pedaço da tela com tema próprio (modo TV da cozinha é escuro mesmo com o painel claro). */
+[data-tema='escuro'] {
+  --bg: #0d0f13;
+  --card: #15181e;
+  --card2: #1b1f26;
+  --input: #111419;
+  --borda: #272c35;
+  --linha: #1e2229;
+  --t1: #f1f3f6;
+  --t2: #a7afbc;
+  --t3: #858e9c;
+  --good: #3dc981;
+  --good-bg: rgba(61, 201, 129, 0.11);
+  --good-bd: rgba(61, 201, 129, 0.3);
+  --warn: #f0a23b;
+  --warn-bg: rgba(240, 162, 59, 0.12);
+  --warn-bd: rgba(240, 162, 59, 0.32);
+  --bad: #f26a5f;
+  --bad-bg: rgba(242, 106, 95, 0.12);
+  --bad-bd: rgba(242, 106, 95, 0.34);
+  --info: #3bb6d4;
+  --info-bg: rgba(59, 182, 212, 0.11);
+  --info-bd: rgba(59, 182, 212, 0.3);
+  --sh: 0 18px 44px -10px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --veu: rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+[data-tema='claro'] {
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --card2: #f7f8fa;
+  --input: #f1f3f5;
+  --borda: #dfe2e7;
+  --linha: #eceef1;
+  --t1: #12151b;
+  --t2: #4b5361;
+  --t3: #626a79;
+  --good: #1a7f4b;
+  --good-bg: #e7f3ec;
+  --good-bd: #bbdcc9;
+  --warn: #a35406;
+  --warn-bg: #fbf0e3;
+  --warn-bd: #eccca8;
+  --bad: #c8322b;
+  --bad-bg: #fbeae8;
+  --bad-bd: #f0c2be;
+  --info: #0b7285;
+  --info-bg: #e4f1f3;
+  --info-bd: #b2d6dd;
+  --sh: 0 16px 40px -10px rgba(16, 24, 40, 0.22), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --sh-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --veu: rgba(14, 17, 22, 0.44);
+  color-scheme: light;
+}
+
 html {
   scroll-behavior: smooth;
 }

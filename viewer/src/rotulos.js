@@ -59,7 +59,9 @@ export function rotularPagamento(bruto) {
 export function codigoCurto(ifoodOrderId) {
   const id = String(ifoodOrderId || '').trim()
   if (!id) return '—'
-  if (id.startsWith('99-')) return id
+  // 99Food: "99-8812" cabe inteiro; o número longo da API ("99-5764607782304220959") vira
+  // "99-…20959" — quebrava em duas linhas e empurrava o cronômetro pra fora do card.
+  if (id.startsWith('99-')) return id.length > 10 ? `99-…${id.slice(-5)}` : id
   const ultimo = id.split('-').pop()
   return (ultimo || id).slice(-6).toUpperCase()
 }
