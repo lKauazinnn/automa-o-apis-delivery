@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Activity, AlertTriangle, ArrowRight, Check, Loader2, RefreshCw, Store, X } from 'lucide-react'
-import { Botao, EstadoVazio, Esqueleto, Etiqueta, MONO, Segmentado, tons } from '../ds'
+import { Botao, EstadoVazio, Esqueleto, Etiqueta, MONO, Segmentado, tons, useLarguraConteudo } from '../ds'
 
 const INTERVALO_ATUALIZACAO_MS = 30000
 const DURACOES_FECHAMENTO = [15, 30, 60, 120, 240]
@@ -113,10 +113,10 @@ function CartaoCanal({ loja, historico, podeGerenciar, apiFetch, notificar, onMu
 
   return (
     <section style={{ background: 'var(--card)', border: `${fechada ? 2 : 1}px solid ${fechada ? 'var(--bad)' : 'var(--borda)'}`, borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '18px 20px 14px' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{loja.nome}</span>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px 14px', padding: '18px 20px 14px', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--t1)', overflowWrap: 'anywhere' }}>{loja.nome}</span>
             <Etiqueta>{PLATAFORMA_LABEL[loja.plataforma] || loja.plataforma}</Etiqueta>
           </div>
           <div title={loja.merchant_id} style={{ fontFamily: MONO, fontSize: 12.5, color: 'var(--t3)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -200,6 +200,7 @@ function CartaoCanal({ loja, historico, podeGerenciar, apiFetch, notificar, onMu
 }
 
 export function StatusLojasView({ apiFetch, notificar, podeGerenciar }) {
+  const largura = useLarguraConteudo()
   const [dados, setDados] = useState(null)
   const [historico, setHistorico] = useState([])
   const [verificando, setVerificando] = useState(false)
@@ -248,12 +249,13 @@ export function StatusLojasView({ apiFetch, notificar, podeGerenciar }) {
     .filter((h) => filtro === 'todos' || (filtro === 'fechou' ? h.aberta === false : h.aberta === true))
 
   const resumoTom = fechadas ? 'bad' : 'good'
+  const estreito = largura < 820
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1480 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 16 }}>
-        <section style={{ background: 'var(--card)', border: `1px solid ${fechadas ? 'var(--bad-bd)' : 'var(--borda)'}`, borderRadius: 12, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
+        <section style={{ background: 'var(--card)', border: `1px solid ${fechadas ? 'var(--bad-bd)' : 'var(--borda)'}`, borderRadius: 12, padding: estreito ? 16 : '20px 24px', display: 'flex', alignItems: 'center', gap: estreito ? 14 : 20, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 200px', minWidth: 0 }}>
             <div style={{ fontSize: 13, color: 'var(--t2)', fontWeight: 500 }}>Lojas recebendo pedidos agora</div>
             {dados ? (
               <>
@@ -269,7 +271,7 @@ export function StatusLojasView({ apiFetch, notificar, podeGerenciar }) {
               <Esqueleto w="40%" h={34} style={{ marginTop: 6 }} />
             )}
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {lojas.map((l) => (
               <div key={l.merchant_id} title={nomePorLoja[l.merchant_id]} style={{ width: 14, height: 44, borderRadius: 5, background: tons(tipoEstado(l.aberta)).fg }} />
             ))}
@@ -280,7 +282,7 @@ export function StatusLojasView({ apiFetch, notificar, podeGerenciar }) {
         </section>
 
         {monitor && (
-          <section style={{ background: 'var(--card)', border: `1px solid ${monitor.ativo ? 'var(--borda)' : 'var(--warn-bd)'}`, borderRadius: 12, padding: '20px 24px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+          <section style={{ background: 'var(--card)', border: `1px solid ${monitor.ativo ? 'var(--borda)' : 'var(--warn-bd)'}`, borderRadius: 12, padding: estreito ? 16 : '20px 24px', display: 'flex', gap: estreito ? 12 : 16, alignItems: 'flex-start' }}>
             <div style={{ width: 40, height: 40, borderRadius: 9, background: monitor.ativo ? 'var(--good-bg)' : 'var(--warn-bg)', border: `1px solid ${monitor.ativo ? 'var(--good-bd)' : 'var(--warn-bd)'}`, color: monitor.ativo ? 'var(--good)' : 'var(--warn)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Activity size={20} />
             </div>
@@ -367,6 +369,37 @@ export function StatusLojasView({ apiFetch, notificar, podeGerenciar }) {
         {mudancas.length === 0 ? (
           <EstadoVazio compacto titulo="Nenhuma mudança registrada" texto="O histórico é gravado toda vez que uma loja abre ou fecha." />
         ) : (
+          estreito ? (
+          <div>
+            {mudancas.map((h) => {
+              const para = tons(tipoEstado(h.aberta))
+              const hoje = new Date(h.em).toDateString() === new Date().toDateString()
+              return (
+                <div key={h.id} style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 16px', borderBottom: '1px solid var(--linha)' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nomePorLoja[h.merchant_id] || h.merchant_id}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12.5, color: 'var(--t3)', flexShrink: 0 }}>{hoje ? hora(h.em) : new Date(h.em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontSize: 13 }}>
+                    {h.de !== undefined && (
+                      <>
+                        <span style={{ color: 'var(--t2)', fontWeight: 600 }}>{textoEstado(h.de)}</span>
+                        <ArrowRight size={13} style={{ color: 'var(--t3)' }} />
+                      </>
+                    )}
+                    <span style={{ color: para.fg, fontWeight: 700 }}>{textoEstado(h.aberta)}</span>
+                    <span style={{ color: 'var(--t3)' }}>·</span>
+                    <span style={{ fontFamily: MONO, color: h.emCurso ? para.fg : 'var(--t2)', fontWeight: h.emCurso ? 600 : 400 }}>
+                      {h.duracao}
+                      {h.emCurso ? ' · em curso' : ''}
+                    </span>
+                  </div>
+                  {h.motivo && <div style={{ fontSize: 13, color: 'var(--t2)', lineHeight: 1.4 }}>{h.motivo}</div>}
+                </div>
+              )
+            })}
+          </div>
+          ) : (
           <div style={{ overflowX: 'auto' }}>
             <div style={{ minWidth: 760 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '110px minmax(160px,1fr) minmax(190px,1.1fr) minmax(200px,1.6fr) 130px', alignItems: 'center', height: 40, padding: '0 20px', background: 'var(--card2)', borderBottom: '1px solid var(--linha)', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t3)' }}>
@@ -404,6 +437,7 @@ export function StatusLojasView({ apiFetch, notificar, podeGerenciar }) {
               })}
             </div>
           </div>
+          )
         )}
       </section>
     </div>

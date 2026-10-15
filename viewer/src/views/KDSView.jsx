@@ -90,7 +90,7 @@ function itensNormalizados(p) {
   }))
 }
 
-export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lojaNome, celular = false }) {
+export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lojaNome, celular = false, compacto = false }) {
   const [pedidos, setPedidos] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
@@ -428,6 +428,26 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lo
     )
   }
 
+  function linhaFinalizado(p) {
+    const cancelado = p.status === 'CANCELADO'
+    return (
+      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 9, background: 'var(--card)', border: '1px solid var(--linha)' }}>
+        <span style={{ color: cancelado ? 'var(--bad)' : 'var(--good)', display: 'flex' }}>{cancelado ? <Ban size={16} /> : <CheckCircle2 size={16} />}</span>
+        <button type="button" onClick={() => abrirDetalhes(p)} title={p.ifood_order_id} style={{ flex: 1, minWidth: 0, textAlign: 'left', border: 0, background: 'transparent', padding: 0, cursor: 'pointer', color: 'var(--t1)' }}>
+          <div style={{ fontFamily: MONO, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelado ? 'line-through' : 'none' }}>#{codigoCurto(p.ifood_order_id)}</div>
+          <div style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {p.cliente?.name || p.cliente?.nome || '—'}
+            {cancelado ? ' · cancelado' : ''}
+          </div>
+        </button>
+        <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--t3)' }}>{horaCurta(p.recebido_em)}</span>
+        <BotaoIcone rotulo={`Tirar ${codigoCurto(p.ifood_order_id)} do quadro`} tamanho={28} onClick={() => pedirLimparCard(p)}>
+          <X size={14} />
+        </BotaoIcone>
+      </div>
+    )
+  }
+
   const colunas = LANES_ATIVAS.map((col) => ({
     ...col,
     pedidos: filtrados
@@ -437,33 +457,45 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lo
 
   // Sem escolha da pessoa, abre na primeira coluna que tem pedido (senão em "Novo").
   const laneCelular = laneEscolhida || colunas.find((c) => c.pedidos.length)?.status || 'NOVO'
+  const emLanes = (celular || compacto) && !tv
 
   const quadroCelular = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ position: 'sticky', top: -12, zIndex: 4, background: 'var(--bg)', padding: '0 0 8px' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 4, background: 'var(--bg)', padding: '6px 0 8px' }}>
         <Segmentado
           rotulo="Coluna da cozinha"
           valor={laneCelular}
           onChange={setLaneCelular}
           altura={44}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}
-          opcoes={colunas.map((c) => ({ valor: c.status, rotulo: c.status === 'DESPACHADO' ? 'Pronto' : c.titulo, contagem: c.pedidos.length, cheio: true }))}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}
+          opcoes={[
+            ...colunas.map((c) => ({ valor: c.status, rotulo: c.status === 'DESPACHADO' ? 'Pronto' : c.titulo, contagem: c.pedidos.length, cheio: true })),
+            { valor: 'FEITOS', rotulo: 'Feitos', contagem: finalizados.length, cheio: true },
+          ]}
         />
       </div>
       {carregando ? (
         [0, 1].map((k) => <Esqueleto key={k} h={180} r={12} />)
+      ) : laneCelular === 'FEITOS' ? (
+        finalizados.length === 0 ? (
+          <div style={{ fontSize: 14, color: 'var(--t3)', padding: '32px 4px', textAlign: 'center' }}>Nada finalizado ainda</div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 8 }}>{finalizados.map(linhaFinalizado)}</div>
+        )
       ) : (colunas.find((c) => c.status === laneCelular)?.pedidos || []).length === 0 ? (
         <div style={{ minHeight: 160, border: '1.5px dashed var(--borda)', borderRadius: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: 'var(--t3)', fontSize: 14, textAlign: 'center', padding: 16 }}>
           <CheckCircle2 size={22} />
           {colunas.find((c) => c.status === laneCelular)?.vazio}
         </div>
       ) : (
-        colunas.find((c) => c.status === laneCelular).pedidos.map(cartao)
+        <div style={{ display: 'grid', gridTemplateColumns: celular ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12, alignItems: 'start' }}>
+          {colunas.find((c) => c.status === laneCelular).pedidos.map(cartao)}
+        </div>
       )}
     </div>
   )
 
-  const quadro = celular ? quadroCelular : (
+  const quadro = emLanes ? quadroCelular : (
     <div style={{ flex: 1, display: 'flex', gap: 16, padding: tv ? '20px 24px' : 0, alignItems: 'stretch', zoom: tv ? 1.18 : 1, minHeight: 0 }}>
       {carregando
         ? [0, 1, 2].map((k) => (
@@ -506,25 +538,7 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lo
             <span style={{ fontFamily: MONO, fontSize: 13, color: 'var(--t3)' }}>{finalizados.length}</span>
           </div>
           {finalizados.length === 0 && <div style={{ fontSize: 13, color: 'var(--t3)', padding: '16px 4px', textAlign: 'center' }}>Nada finalizado ainda</div>}
-          {finalizados.map((p) => {
-            const cancelado = p.status === 'CANCELADO'
-            return (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 9, background: 'var(--card)', border: '1px solid var(--linha)' }}>
-                <span style={{ color: cancelado ? 'var(--bad)' : 'var(--good)', display: 'flex' }}>{cancelado ? <Ban size={16} /> : <CheckCircle2 size={16} />}</span>
-                <button type="button" onClick={() => abrirDetalhes(p)} title={p.ifood_order_id} style={{ flex: 1, minWidth: 0, textAlign: 'left', border: 0, background: 'transparent', padding: 0, cursor: 'pointer', color: 'var(--t1)' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelado ? 'line-through' : 'none' }}>#{codigoCurto(p.ifood_order_id)}</div>
-                  <div style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {p.cliente?.name || p.cliente?.nome || '—'}
-                    {cancelado ? ' · cancelado' : ''}
-                  </div>
-                </button>
-                <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--t3)' }}>{horaCurta(p.recebido_em)}</span>
-                <BotaoIcone rotulo={`Tirar ${codigoCurto(p.ifood_order_id)} do quadro`} tamanho={28} onClick={() => pedirLimparCard(p)}>
-                  <X size={14} />
-                </BotaoIcone>
-              </div>
-            )
-          })}
+          {finalizados.map(linhaFinalizado)}
         </aside>
       )}
     </div>

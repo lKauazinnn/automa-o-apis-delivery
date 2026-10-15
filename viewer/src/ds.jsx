@@ -2,7 +2,7 @@
 // (var(--card), var(--t1), var(--warn-bg)...) definida em index.css nos dois temas — nada de
 // literal, nada de `C` por prop. As classes .ds-* (index.css) cuidam do hover, que estilo inline
 // não consegue expressar.
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Check, Minus, X } from 'lucide-react'
 
 // Celular = até 760px. Abaixo disso o painel troca a sidebar pela navegação inferior e as
@@ -19,7 +19,39 @@ export function useCelular() {
   return celular
 }
 
-export const MONO = "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+// Tablet/notebook pequeno: a sidebar fica recolhida e abre POR CIMA do conteúdo.
+const CONSULTA_COMPACTA = '(max-width: 1180px)'
+export function useTelaCompacta() {
+  const [compacta, setCompacta] = useState(() => typeof window !== 'undefined' && window.matchMedia(CONSULTA_COMPACTA).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(CONSULTA_COMPACTA)
+    const mudou = () => setCompacta(mq.matches)
+    mq.addEventListener('change', mudou)
+    return () => mq.removeEventListener('change', mudou)
+  }, [])
+  return compacta
+}
+
+// Largura real da área de conteúdo (o <main>), medida com ResizeObserver. As telas escolhem o
+// layout por ela — tabela larga, tabela compacta ou cartões — e não pela largura da janela, que
+// não sabe se a sidebar está aberta.
+export const LarguraContext = createContext(1400)
+export function useLarguraConteudo() {
+  return useContext(LarguraContext)
+}
+export function useMedirLargura() {
+  const ref = useRef(null)
+  const [largura, setLargura] = useState(1400)
+  useEffect(() => {
+    if (!ref.current) return undefined
+    const obs = new ResizeObserver(([e]) => setLargura(Math.round(e.contentRect.width)))
+    obs.observe(ref.current)
+    return () => obs.disconnect()
+  }, [])
+  return [ref, largura]
+}
+
+export const MONO ="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 
 // Status → trio de cores (texto, fundo, borda). `neutro` é o cinza de "sem estado".
 export function tons(tipo) {

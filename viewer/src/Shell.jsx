@@ -209,6 +209,7 @@ export function NavInferior({ abas, ativa, onMudar }) {
             type="button"
             onClick={() => onMudar(a.chave)}
             aria-current={on ? 'page' : undefined}
+            aria-label={a.badge ? `${a.label} ${a.badge}` : a.label}
             style={{ height: 52, border: 0, background: 'transparent', color: on ? 'var(--t1)' : 'var(--t2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, fontSize: 11.5, fontWeight: on ? 700 : 500, position: 'relative', cursor: 'pointer' }}
           >
             <span style={{ display: 'flex', position: 'relative', padding: '3px 14px', borderRadius: 99, background: on ? 'var(--marca-suave)' : 'transparent', color: on ? 'var(--marca-tinta)' : undefined }}>

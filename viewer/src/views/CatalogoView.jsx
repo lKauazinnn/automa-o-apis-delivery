@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Check, ImageOff, MoreHorizontal, Pause, Pencil, Play, RefreshCw, Search, Tag, Trash2, Zap } from 'lucide-react'
-import { Botao, CampoBusca, EstadoVazio, Esqueleto, Marcador, MONO, Segmentado, Selo } from '../ds'
+import { Botao, CampoBusca, EstadoVazio, Esqueleto, Marcador, MONO, Segmentado, Selo, useLarguraConteudo } from '../ds'
 import { normalizar, tempoDesde, tempoRestante } from '../pausas'
 import { MiniaturaItem } from './DashboardView'
 
@@ -637,15 +637,20 @@ export function CatalogoCelular({
   onReativarSelecionados,
   executando,
   pausasPorItem = {},
+  // quanto a lista "come" do padding do <main> para encostar nas bordas (celular) — no tablet, 0
+  recuo = { topo: 12, lado: 16 },
 }) {
   const [modoSelecao, setModoSelecao] = useState(false)
   const [limite, setLimite] = useState(LOTE_CELULAR)
+  const largura = useLarguraConteudo()
+  const { topo, lado } = recuo
   const termo = normalizar(busca)
   const base = itens.filter(
     (i) => (filtroCategoria === 'TODAS' || i.categoria === filtroCategoria) && (!termo || normalizar(`${i.nome} ${i.codigo_pdv}`).includes(termo)),
   )
   const nPaus = base.filter((i) => i.status !== 'AVAILABLE').length
   const visiveis = filtrados.slice(0, limite)
+  const emGrade = largura >= 640 && !erroCarregamento && (carregando || visiveis.length > 0)
   const selItens = itens.filter((i) => selecionados.has(i.itemId))
   const selDisp = selItens.filter((i) => i.status === 'AVAILABLE').length
   const selPaus = selItens.length - selDisp
@@ -672,8 +677,8 @@ export function CatalogoCelular({
   })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '-12px -16px 0' }}>
-      <div style={{ position: 'sticky', top: -12, zIndex: 5, background: 'var(--bg)', padding: '12px 16px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: `${-topo}px ${-lado}px 0` }}>
+      <div style={{ position: 'sticky', top: -topo, zIndex: 5, background: 'var(--bg)', padding: `${topo || 8}px ${lado}px 8px`, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <CampoBusca valor={busca} onChange={onBusca} onLimpar={() => onBusca('')} placeholder="Buscar item ou PDV" icone={<Search size={20} />} aria-label="Buscar item" style={{ flex: 1, height: 50, borderRadius: 12, background: 'var(--card)' }} />
           <Botao
@@ -687,7 +692,7 @@ export function CatalogoCelular({
             {modoSelecao ? 'Cancelar' : 'Selecionar'}
           </Botao>
         </div>
-        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px', padding: '0 16px 2px', scrollbarWidth: 'none' }}>
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: `0 ${-lado}px`, padding: `0 ${lado}px 2px`, scrollbarWidth: 'none' }}>
           {[
             ['TODOS', 'Todos', base.length],
             ['UNAVAILABLE', 'Pausados', nPaus],
@@ -708,7 +713,7 @@ export function CatalogoCelular({
         </div>
       </div>
 
-      <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={emGrade ? { padding: `0 ${lado}px 16px`, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 10, alignItems: 'start' } : { padding: `0 ${lado}px 16px`, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {erroCarregamento ? (
           <EstadoVazio
             icone={<AlertTriangle size={22} />}
@@ -774,12 +779,12 @@ export function CatalogoCelular({
           })
         )}
         {!carregando && filtrados.length > limite && (
-          <Botao variante="secundario" tamanho="lg" onClick={() => setLimite((l) => l + LOTE_CELULAR)}>
+          <Botao variante="secundario" tamanho="lg" onClick={() => setLimite((l) => l + LOTE_CELULAR)} style={{ gridColumn: '1 / -1' }}>
             Mostrar mais {Math.min(LOTE_CELULAR, filtrados.length - limite)}
           </Botao>
         )}
         {!carregando && filtrados.length > 0 && (
-          <div style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--t3)', padding: 8 }}>
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', fontSize: 12.5, color: 'var(--t3)', padding: 8 }}>
             Mostrando {Math.min(limite, filtrados.length)} de {filtrados.length}
           </div>
         )}

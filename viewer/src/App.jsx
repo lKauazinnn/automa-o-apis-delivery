@@ -20,7 +20,7 @@ import { PausarModal } from './modals/PausarModal'
 import { RupturasModal } from './modals/RupturasModal'
 import { Sidebar } from './Sidebar'
 import { BannerConexao, BarraProgresso, Header, HeaderCelular, NavInferior, Toasts } from './Shell'
-import { Botao, Dialogo, EstadoVazio, MONO, OpcaoMarcavel, Segmentado, useCelular } from './ds'
+import { Botao, Dialogo, EstadoVazio, LarguraContext, MONO, OpcaoMarcavel, Segmentado, useCelular, useMedirLargura, useTelaCompacta } from './ds'
 import { SimboloPausaFast } from './Logo'
 import { MaisView } from './views/MaisView'
 import { ItemEditarGaveta, ItemNovoGaveta } from './modals/ItemGaveta'
@@ -144,6 +144,19 @@ const CHAVE_SESSAO = 'sessao_ifood_v1'
 function Painel({ sessao, onSair, tema, setTema, C }) {
   const { marca } = useContext(MarcaContext)
   const celular = useCelular()
+  const compacta = useTelaCompacta()
+  const [sidebarSobreposta, setSidebarSobreposta] = useState(false)
+  const [refMain, larguraMain] = useMedirLargura()
+  // O cardápio só cabe como tabela com ~960px de conteúdo; Pedidos e Cozinha, ~1000px.
+  const cardapioEmCartoes = celular || larguraMain < 960
+  const layoutEstreito = celular || larguraMain < 1000
+
+  useEffect(() => {
+    if (!sidebarSobreposta) return undefined
+    const fechar = (e) => e.key === 'Escape' && setSidebarSobreposta(false)
+    window.addEventListener('keydown', fechar)
+    return () => window.removeEventListener('keydown', fechar)
+  }, [sidebarSobreposta])
 
   const [itens, setItens] = useState([])
   const [categorias, setCategorias] = useState([])
@@ -1144,9 +1157,12 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   }
 
   function mudarView(chave) {
+    setSidebarSobreposta(false)
     if (chave === 'usuarios') carregarUsuarios()
     // A Cozinha precisa de largura: entrar nela recolhe o menu; sair devolve como estava.
-    if (chave === 'kds' && view !== 'kds') {
+    if (compacta) {
+      // tablet: a sidebar já fica recolhida e abre por cima — nada a guardar
+    } else if (chave === 'kds' && view !== 'kds') {
       sidebarAntesDaCozinha.current = sidebarAberta
       setSidebarAberta(false)
     } else if (chave !== 'kds' && view === 'kds' && sidebarAntesDaCozinha.current !== null) {
@@ -1622,10 +1638,14 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         )}
 
         <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: 'var(--bg)', color: 'var(--t1)' }}>
+          {compacta && !celular && sidebarSobreposta && (
+            <div onClick={() => setSidebarSobreposta(false)} style={{ position: 'fixed', inset: 0, background: 'var(--veu)', zIndex: 60 }} aria-hidden="true" />
+          )}
           {!celular && (
+          <div style={compacta && sidebarSobreposta ? { position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 61, boxShadow: 'var(--sh)' } : { flexShrink: 0 }}>
           <Sidebar
-            aberta={sidebarAberta}
-            onExpandir={() => setSidebarAberta(true)}
+            aberta={compacta ? sidebarSobreposta : sidebarAberta}
+            onExpandir={() => (compacta ? setSidebarSobreposta(true) : setSidebarAberta(true))}
             view={view}
             onMudarView={mudarView}
             totalPausados={totalPausados}
@@ -1649,7 +1669,10 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             onMinhaSenha={() => setModalMinhaSenha(true)}
             onSair={onSair}
           />
+          </div>
           )}
+          {/* sobreposta, a sidebar sai do fluxo: o espaço da versão recolhida continua reservado */}
+          {!celular && compacta && sidebarSobreposta && <div style={{ width: 72, flexShrink: 0 }} />}
 
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
             {celular ? (
@@ -1672,7 +1695,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               conexao={conexao}
               tema={tema}
               onAlternarTema={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
-              onAlternarSidebar={() => setSidebarAberta((v) => !v)}
+              onAlternarSidebar={() => (compacta ? setSidebarSobreposta((v) => !v) : setSidebarAberta((v) => !v))}
             />
             )}
             <BarraProgresso progresso={progressoMassa} />
@@ -1684,7 +1707,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               }}
             />
 
-            <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative', padding: celular ? '12px 16px 24px' : '24px 28px 40px' }}>
+            <LarguraContext.Provider value={larguraMain}>
+            <main ref={refMain} style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', position: 'relative', padding: celular ? '12px 16px 24px' : compacta ? '20px 20px 32px' : '24px 28px 40px' }}>
               {view === 'mais' && celular && (
                 <MaisView
                   usuario={sessao.usuario}
@@ -1730,7 +1754,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               )}
 
               {view === 'pedidos' && (
-                <PedidosView apiFetch={apiFetch} notificar={notificar} lojaNome={lojaAtual?.nome} plataforma={lojaAtual?.plataforma} celular={celular} />
+                <PedidosView apiFetch={apiFetch} notificar={notificar} lojaNome={lojaAtual?.nome} plataforma={lojaAtual?.plataforma} celular={layoutEstreito} />
               )}
 
               {view === 'kds' && (
@@ -1742,13 +1766,15 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   lojaNome={lojaAtual?.nome}
                   plataforma={lojaAtual?.plataforma}
                   celular={celular}
+                  compacto={layoutEstreito}
                 />
               )}
 
               {view === 'catalogo' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1480 }}>
                 {podeCriarItem && !celular && (
-                  <div role="tablist" aria-label="Seções do cardápio" style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--borda)', marginTop: -4, overflowX: 'auto' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--borda)', marginTop: -4 }}>
+                  <div role="tablist" aria-label="Seções do cardápio" style={{ display: 'flex', gap: 4, flex: 1, minWidth: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>
                     {ABAS_CARDAPIO.map((a) => {
                       const ativa = abaCardapio === a.chave
                       return (
@@ -1783,11 +1809,11 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                         </button>
                       )
                     })}
-                    <span style={{ flex: 1 }} />
+                  </div>
                     {abaCardapio === 'itens' && (
-                      <Botao variante="primario" onClick={() => setModalNovoItem(true)} style={{ alignSelf: 'center', marginBottom: 6 }}>
+                      <Botao variante="primario" onClick={() => setModalNovoItem(true)} style={{ flexShrink: 0, marginBottom: 6 }}>
                         <Plus size={16} />
-                        Adicionar item
+                        {larguraMain < 820 ? 'Adicionar' : 'Adicionar item'}
                       </Botao>
                     )}
                   </div>
@@ -1858,8 +1884,9 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   </ModalEmbutidoContext.Provider>
                 )}
 
-                {celular && (
+                {cardapioEmCartoes && (abaCardapio === 'itens' || celular || !podeCriarItem) && (
                   <CatalogoCelular
+                    recuo={celular ? { topo: 12, lado: 16 } : { topo: 0, lado: 0 }}
                     itens={itens}
                     filtrados={filtrados}
                     busca={busca}
@@ -1885,7 +1912,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   />
                 )}
 
-                {!celular && (abaCardapio === 'itens' || !podeCriarItem) && (
+                {!cardapioEmCartoes && (abaCardapio === 'itens' || !podeCriarItem) && (
                 <CatalogoView
                   itens={itens}
                   categoriasFiltro={categoriasFiltro}
@@ -1972,6 +1999,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
               {view === 'marca' && sessao.usuario.papel === 'administrador' && <MarcaSecao apiFetch={apiFetch} notificar={notificar} tema={tema} />}
             </main>
+            </LarguraContext.Provider>
             {celular && (
               <NavInferior
                 ativa={['dashboard', 'pedidos', 'kds', 'catalogo'].includes(view) ? view : 'mais'}

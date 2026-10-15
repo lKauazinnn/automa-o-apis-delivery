@@ -120,9 +120,13 @@ export function PedidosView({ apiFetch, notificar, lojaNome, plataforma, celular
         </div>
 
         {celular ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 8, padding: 12 }}>
             {carregando && [0, 1, 2, 3].map((k) => <Esqueleto key={k} h={64} r={12} />)}
-            {!carregando && filtrados.length === 0 && <EstadoVazio icone={<ClipboardList size={22} />} titulo="Nenhum pedido aqui" texto="Troque o status ou tire a busca." />}
+            {!carregando && filtrados.length === 0 && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <EstadoVazio icone={<ClipboardList size={22} />} titulo="Nenhum pedido aqui" texto="Troque o status ou tire a busca." />
+              </div>
+            )}
             {!carregando &&
               filtrados.map((p) => {
                 const t = tons(TOM_STATUS[p.status] || 'neutro')

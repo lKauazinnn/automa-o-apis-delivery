@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react'
 import { AlertTriangle, Check, ImagePlus, KeyRound, Loader2, Plus, Search, Store, Trash2, X } from 'lucide-react'
-import { Botao, BotaoIcone, CampoBusca, Campo, EstadoVazio, Etiqueta, MONO, Rotulo, Selo } from '../ds'
+import { Botao, BotaoIcone, CampoBusca, Campo, EstadoVazio, Etiqueta, MONO, Rotulo, Selo, useLarguraConteudo } from '../ds'
 import { SimboloPausaFast } from '../Logo'
 import { contraste, corValida, guardarMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from '../marca'
 import { iniciaisDe } from '../ui'
@@ -21,6 +21,8 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
   const lista = usuarios.filter((u) => !termo || `${u.nome} ${u.email}`.toLowerCase().includes(termo))
   const pendentes = usuarios.filter((u) => u.senha_temporaria).length
   const grade = 'minmax(200px,1.6fr) 160px minmax(170px,1fr) 170px'
+  // abaixo disso a tabela vira linhas empilhadas (pessoa em cima, papel/situação/ação embaixo)
+  const empilhado = useLarguraConteudo() < (novoAberto ? 1120 : 760)
   const podeCriar = conviteForm.nome.trim().length > 1 && /.+@.+\..+/.test(conviteForm.email)
 
   return (
@@ -39,20 +41,29 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
             </Botao>
           )}
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <div style={{ minWidth: 700 }}>
+        <div>
+          <div>
+            {!empilhado && (
             <div style={{ display: 'grid', gridTemplateColumns: grade, alignItems: 'center', height: 40, padding: '0 20px', background: 'var(--card2)', borderBottom: '1px solid var(--linha)', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t3)' }}>
               <div>Pessoa</div>
               <div>Papel</div>
               <div>Situação</div>
               <div />
             </div>
+            )}
             {lista.length === 0 && <EstadoVazio compacto titulo={termo ? 'Ninguém com esse nome ou e-mail' : 'Nenhum usuário além de você'} />}
             {lista.map((u) => {
               const voce = u.id === meuId
               return (
-                <div key={u.id} style={{ display: 'grid', gridTemplateColumns: grade, alignItems: 'center', minHeight: 62, padding: '0 20px', borderBottom: '1px solid var(--linha)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                <div
+                  key={u.id}
+                  style={
+                    empilhado
+                      ? { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: '1px solid var(--linha)' }
+                      : { display: 'grid', gridTemplateColumns: grade, alignItems: 'center', minHeight: 62, padding: '0 20px', borderBottom: '1px solid var(--linha)' }
+                  }
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: empilhado ? '1 1 100%' : undefined }}>
                     <div style={{ width: 34, height: 34, borderRadius: 99, background: 'var(--marca-suave)', color: 'var(--marca-tinta)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>
                       {iniciaisDe(u.nome)}
                     </div>
@@ -94,7 +105,7 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
                       </Selo>
                     )}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: empilhado ? 'auto' : undefined }}>
                     <Botao variante="secundario" tamanho="sm" disabled={resetandoSenha === u.id} onClick={() => onDefinirSenha(u)}>
                       {resetandoSenha === u.id ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
                       Redefinir senha
