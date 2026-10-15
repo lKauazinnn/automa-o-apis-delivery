@@ -222,7 +222,7 @@ export function DashboardView({
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: celular ? 14 : 20, maxWidth: 1480 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: celular ? 14 : 20 }}>
       {celular && (
         <button
           type="button"

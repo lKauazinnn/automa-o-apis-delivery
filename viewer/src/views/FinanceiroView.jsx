@@ -178,7 +178,7 @@ export function FinanceiroView({ apiFetch, notificar, lojaAtual }) {
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1480 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <Segmentado
           rotulo="Período"

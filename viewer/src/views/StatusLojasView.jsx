@@ -252,7 +252,7 @@ export function StatusLojasView({ apiFetch, notificar, podeGerenciar }) {
   const estreito = largura < 820
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1480 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 16 }}>
         <section style={{ background: 'var(--card)', border: `1px solid ${fechadas ? 'var(--bad-bd)' : 'var(--borda)'}`, borderRadius: 12, padding: estreito ? 16 : '20px 24px', display: 'flex', alignItems: 'center', gap: estreito ? 14 : 20, flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 200px', minWidth: 0 }}>

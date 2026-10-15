@@ -1637,7 +1637,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
           />
         )}
 
-        <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: 'var(--bg)', color: 'var(--t1)' }}>
+        <div style={{ display: 'flex', height: '100dvh', overflow: 'clip', background: 'var(--bg)', color: 'var(--t1)' }}>
           {compacta && !celular && sidebarSobreposta && (
             <div onClick={() => setSidebarSobreposta(false)} style={{ position: 'fixed', inset: 0, background: 'var(--veu)', zIndex: 60 }} aria-hidden="true" />
           )}
@@ -1771,7 +1771,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               )}
 
               {view === 'catalogo' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1480 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {podeCriarItem && !celular && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--borda)', marginTop: -4 }}>
                   <div role="tablist" aria-label="Seções do cardápio" style={{ display: 'flex', gap: 4, flex: 1, minWidth: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>

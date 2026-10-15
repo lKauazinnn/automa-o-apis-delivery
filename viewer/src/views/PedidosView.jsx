@@ -101,7 +101,7 @@ export function PedidosView({ apiFetch, notificar, lojaNome, plataforma, celular
   const filtrados = pedidos.filter((p) => !termo || String(p.ifood_order_id || '').toLowerCase().includes(termo))
 
   return (
-    <div style={{ maxWidth: 1480 }}>
+    <div>
       <section style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: '1px solid var(--linha)', flexWrap: 'wrap' }}>
           <CampoBusca valor={busca} onChange={setBusca} onLimpar={() => setBusca('')} placeholder="Buscar pelo ID do pedido" icone={<Search size={16} />} aria-label="Buscar pedido" style={{ flex: '0 1 300px' }} />

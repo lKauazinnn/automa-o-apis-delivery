@@ -26,7 +26,7 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
   const podeCriar = conviteForm.nome.trim().length > 1 && /.+@.+\..+/.test(conviteForm.email)
 
   return (
-    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', maxWidth: 1480 }}>
+    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
       <section style={{ ...cartao, flex: '1 1 640px', minWidth: 0, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: '1px solid var(--linha)', flexWrap: 'wrap' }}>
           <CampoBusca valor={busca} onChange={setBusca} onLimpar={() => setBusca('')} placeholder="Buscar por nome ou e-mail" icone={<Search size={16} />} style={{ flex: '0 1 300px' }} />
@@ -178,7 +178,7 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
 export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, lojaForm, setLojaForm, criandoLoja, onCriar, onAtivar, onRemover, onDetalhes }) {
   const [formAberto, setFormAberto] = useState(false)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1480 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13.5, color: 'var(--t2)', flex: 1, minWidth: 240 }}>A loja ativa é a que o painel inteiro mostra — cardápio, pedidos e cozinha.</span>
         {!formAberto && (
@@ -357,7 +357,7 @@ export function MarcaSecao({ apiFetch, notificar, tema }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 440px), 1fr))', gap: 16, alignItems: 'start', maxWidth: 1480 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 440px), 1fr))', gap: 16, alignItems: 'start' }}>
       <section style={{ ...cartao, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 22 }}>
         <Campo rotulo="Nome da empresa" dica="Aparece no menu, no login e no título da aba.">
           <input className="ds-input" maxLength={40} value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome que a equipe vê no painel" />
