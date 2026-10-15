@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, ArrowRight, CalendarClock, Clock, Handshake, LayoutGrid, Loader2, Plus, RefreshCw, X } from 'lucide-react'
 import { Esqueleto, Modal } from '../ui'
+import { codigoCurto, PROXIMO_STATUS, STATUS_COR, TIPO_LABEL } from '../rotulos'
 import { DetalhesPedidoModal } from '../DetalhesPedidoModal'
 
 const INTERVALO_ATUALIZACAO_MS = 10000
@@ -14,14 +15,9 @@ const LANES_ATIVAS = [
   { status: 'DESPACHADO', titulo: 'Despachado' },
 ]
 const STATUS_FINALIZADOS = ['CONCLUIDO', 'CANCELADO']
-// Avançar o pedido direto do card: no rush, abrir o modal só pra mudar de coluna custa caro.
-const PROXIMO_STATUS = { NOVO: 'CONFIRMADO', CONFIRMADO: 'DESPACHADO', DESPACHADO: 'CONCLUIDO' }
 const ACAO_PROXIMA = { NOVO: 'Confirmar', CONFIRMADO: 'Despachar', DESPACHADO: 'Concluir' }
 // Retirada/mesa não "despacha": no iFood vira readyToPickup ("pronto pra retirada").
 const acaoProxima = (p) => (p.status === 'CONFIRMADO' && p.tipo !== 'ENTREGA' ? 'Pronto p/ retirada' : ACAO_PROXIMA[p.status])
-const TIPO_LABEL = { ENTREGA: 'Entrega', RETIRADA: 'Retirada', MESA: 'Mesa' }
-// Cor por status: novo=azul, em preparo=âmbar, a caminho=azul, concluído=verde, cancelado=vermelho.
-const STATUS_COR = (C) => ({ NOVO: C.info, CONFIRMADO: C.neutral, DESPACHADO: C.info, CONCLUIDO: C.good, CANCELADO: C.bad })
 
 function horaCurta(iso) {
   try {
@@ -396,8 +392,12 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
                     >
                       <div className="p-3.5">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="fonte-mono font-bold" style={{ color: C.text1, fontSize: 17, letterSpacing: '-0.02em' }}>
-                            {p.ifood_order_id}
+                          <span
+                            className="fonte-mono font-bold"
+                            style={{ color: C.text1, fontSize: 17, letterSpacing: '-0.02em' }}
+                            title={p.ifood_order_id}
+                          >
+                            {codigoCurto(p.ifood_order_id)}
                           </span>
                           {t ? (
                             <span
@@ -546,8 +546,8 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, onAbrirHistori
               >
                 <span className="w-1 rounded-full flex-shrink-0" style={{ height: 28, background: STATUS_COR(C)[p.status] }} />
                 <div className="min-w-0 flex-1">
-                  <div className="fonte-mono font-semibold truncate" style={{ color: C.text1, fontSize: 14 }}>
-                    {p.ifood_order_id}
+                  <div className="fonte-mono font-semibold truncate" style={{ color: C.text1, fontSize: 14 }} title={p.ifood_order_id}>
+                    {codigoCurto(p.ifood_order_id)}
                   </div>
                   <div className="truncate" style={{ color: C.text3, fontSize: 12.5 }}>
                     {p.cliente?.name || p.cliente?.nome || '—'}

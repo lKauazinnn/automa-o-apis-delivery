@@ -1,25 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Loader2, PackageSearch, RefreshCw, Search } from 'lucide-react'
 import { formatarTimestamp, Pill } from '../ui'
+import { codigoCurto, rotularPagamento, STATUS_COR, STATUS_LABEL, TIPO_LABEL } from '../rotulos'
 import { DetalhesPedidoModal } from '../DetalhesPedidoModal'
 
 const INTERVALO_ATUALIZACAO_MS = 15000
-
-const STATUS_LABEL = {
-  NOVO: 'Novo',
-  CONFIRMADO: 'Confirmado',
-  DESPACHADO: 'Despachado',
-  CONCLUIDO: 'Concluído',
-  CANCELADO: 'Cancelado',
-}
-const STATUS_COR = (C) => ({
-  NOVO: C.info,
-  CONFIRMADO: C.neutral,
-  DESPACHADO: C.info,
-  CONCLUIDO: C.good,
-  CANCELADO: C.bad,
-})
-const TIPO_LABEL = { ENTREGA: 'Entrega', RETIRADA: 'Retirada', MESA: 'Mesa' }
 
 export function PedidosView({ apiFetch, C, notificar, inputStyle, lojaNome }) {
   const [pedidos, setPedidos] = useState([])
@@ -186,10 +171,12 @@ export function PedidosView({ apiFetch, C, notificar, inputStyle, lojaNome }) {
             {!carregando &&
               filtrados.map((p) => (
                 <tr key={p.id} className="border-t" style={{ borderColor: C.rowBorder }}>
-                  <td className="px-4 py-4 fonte-mono text-sm font-semibold" style={{ color: C.marcaTinta }}>{p.ifood_order_id}</td>
+                  <td className="px-4 py-4 fonte-mono text-sm font-semibold" style={{ color: C.marcaTinta }} title={p.ifood_order_id}>
+                    {codigoCurto(p.ifood_order_id)}
+                  </td>
                   <td className="px-4 py-4 text-sm" style={{ color: C.text2 }}>{lojaNome || '—'}</td>
                   <td className="px-4 py-4 text-sm" style={{ color: C.text2 }}>{TIPO_LABEL[p.tipo] || p.tipo}</td>
-                  <td className="px-4 py-4 text-sm" style={{ color: C.text2 }}>{p.pagamento || '—'}</td>
+                  <td className="px-4 py-4 text-sm" style={{ color: C.text2 }}>{rotularPagamento(p.pagamento)}</td>
                   <td className="px-4 py-4 text-center">
                     <Pill color={cores[p.status] || C.text2} dot>{STATUS_LABEL[p.status] || p.status}</Pill>
                   </td>
@@ -219,7 +206,14 @@ export function PedidosView({ apiFetch, C, notificar, inputStyle, lojaNome }) {
       {!carregando && (
         <div className="px-6 py-3.5 flex items-center justify-between text-[13px] border-t" style={{ borderColor: C.cardBorder, color: C.text3 }}>
           <span>
-            {filtrados.length === 0 ? 'Nenhum registro' : `Mostrando 1 até ${filtrados.length} de ${filtrados.length} registros`}
+            {/* A tabela rola inteira dentro do card — não há paginação, então o antigo
+                "Mostrando 1 até N de N registros" só repetia o mesmo número duas vezes.
+                O que falta saber é quanto o filtro escondeu. */}
+            {filtrados.length === 0
+              ? 'Nenhum pedido encontrado'
+              : `${filtrados.length} ${filtrados.length === 1 ? 'pedido' : 'pedidos'}${
+                  filtrados.length < pedidos.length ? ` de ${pedidos.length} · filtro ativo` : ''
+                }`}
           </span>
         </div>
       )}

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Ban, Download, Landmark, Loader2, Receipt, ShoppingBag, Wallet } from 'lucide-react'
 import { Esqueleto, formatarTimestamp, StatCard } from '../ui'
+import { rotularPagamento, TIPO_LABEL } from '../rotulos'
+import { GraficoFaturamentoDiario } from '../Graficos'
 
 const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-const TIPO_LABEL = { ENTREGA: 'Entrega', RETIRADA: 'Retirada', MESA: 'Mesa' }
 const STATUS_VENDA = { CONCLUDED: 'Concluída', CANCELLED: 'Cancelada', CONFIRMED: 'Confirmada', DISPATCHED: 'Despachada', PLACED: 'Recebida' }
 
 function isoLocal(d) {
@@ -151,8 +152,6 @@ export function FinanceiroView({ apiFetch, C, notificar, lojaAtual }) {
   return (
     <div className="mx-auto flex flex-col gap-4" style={{ maxWidth: 1200 }}>
       <div className="flex items-center gap-2.5 flex-wrap">
-        <Wallet size={17} color={C.marcaTinta} />
-        <h2 className="font-bold mr-2" style={{ color: C.text1, fontSize: 18, letterSpacing: '-0.02em' }}>Financeiro</h2>
         {[['hoje', 'Hoje'], ['7d', '7 dias'], ['30d', '30 dias'], ['mes', 'Este mês']].map(([chave, rotulo]) => (
           <button
             key={chave}
@@ -230,6 +229,8 @@ export function FinanceiroView({ apiFetch, C, notificar, lojaAtual }) {
         O que a plataforma efetivamente repassa (descontadas comissão e taxas) está no extrato oficial abaixo.
       </p>
 
+      {!carregando && <GraficoFaturamentoDiario porDia={resumo?.por_dia} C={C} />}
+
       <Cartao
         C={C}
         titulo="Por dia"
@@ -260,7 +261,7 @@ export function FinanceiroView({ apiFetch, C, notificar, lojaAtual }) {
           <TabelaAgrupada C={C} linhas={resumo?.por_plataforma} rotulo="Plataforma" />
         </Cartao>
         <Cartao C={C} titulo="Por forma de pagamento">
-          <TabelaAgrupada C={C} linhas={resumo?.por_pagamento} rotulo="Pagamento" />
+          <TabelaAgrupada C={C} linhas={resumo?.por_pagamento} rotulo="Pagamento" formatarChave={rotularPagamento} />
         </Cartao>
         <Cartao C={C} titulo="Por tipo de pedido">
           <TabelaAgrupada C={C} linhas={resumo?.por_tipo} rotulo="Tipo" formatarChave={(k) => TIPO_LABEL[k] || k} />

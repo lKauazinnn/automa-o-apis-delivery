@@ -260,6 +260,16 @@ export function Modal({ titulo, eyebrow, onClose, children, largura = 'max-w-md'
     return () => window.removeEventListener('keydown', aoTeclar)
   }, [onClose])
 
+  // Trava a rolagem do fundo enquanto o modal está aberto: sem isso, rolar dentro de um modal
+  // curto passava o scroll pra tabela atrás e a pessoa perdia o lugar na lista ao fechar.
+  useEffect(() => {
+    const anterior = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = anterior
+    }
+  }, [])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"

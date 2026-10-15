@@ -1,33 +1,8 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, CalendarClock, CheckCircle2, Handshake, Loader2 } from 'lucide-react'
 import { formatarTimestamp, Modal, Pill } from './ui'
+import { METODO_LABEL, PROXIMO_STATUS, STATUS_COR, STATUS_LABEL, TIPO_LABEL } from './rotulos'
 
-const STATUS_LABEL = {
-  NOVO: 'Novo',
-  CONFIRMADO: 'Confirmado',
-  DESPACHADO: 'Despachado',
-  CONCLUIDO: 'Concluído',
-  CANCELADO: 'Cancelado',
-}
-const STATUS_COR = (C) => ({
-  NOVO: C.info,
-  CONFIRMADO: C.neutral,
-  DESPACHADO: C.info,
-  CONCLUIDO: C.good,
-  CANCELADO: C.bad,
-})
-const PROXIMO_STATUS = { NOVO: 'CONFIRMADO', CONFIRMADO: 'DESPACHADO', DESPACHADO: 'CONCLUIDO' }
-const TIPO_LABEL = { ENTREGA: 'Entrega', RETIRADA: 'Retirada', MESA: 'Mesa' }
-const METODO_LABEL = {
-  CREDIT: 'Crédito',
-  DEBIT: 'Débito',
-  CASH: 'Dinheiro',
-  MEAL_VOUCHER: 'Vale-refeição',
-  FOOD_VOUCHER: 'Vale-alimentação',
-  PIX: 'Pix',
-  DIGITAL_WALLET: 'Carteira digital',
-  GIFT_CARD: 'Vale-presente',
-}
 const ACAO_DISPUTA_LABEL = {
   CANCELLATION: 'Cancelamento total',
   PARTIAL_CANCELLATION: 'Cancelamento parcial',
@@ -104,7 +79,7 @@ function Campo({ C, rotulo, valor, destaque }) {
   )
 }
 
-function Alerta({ C, cor, Icone, children }) {
+function Alerta({ cor, Icone, children }) {
   return (
     <div className="flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs" style={{ color: cor, background: cor + '18', border: `1px solid ${cor}55` }}>
       <Icone size={15} className="flex-shrink-0" style={{ marginTop: 1 }} />
@@ -136,7 +111,7 @@ function PainelDisputa({ pedido, disputa, C, apiFetch, notificar, onAtualizado }
   }
 
   return (
-    <Alerta C={C} cor={C.bad} Icone={Handshake}>
+    <Alerta cor={C.bad} Icone={Handshake}>
       <p className="font-bold">Cliente pediu: {ACAO_DISPUTA_LABEL[disputa.acao] || disputa.acao || 'negociação'}</p>
       {disputa.mensagem && <p className="mt-0.5" style={{ color: C.text1 }}>"{disputa.mensagem}"</p>}
       {disputa.expira_em && (
@@ -274,7 +249,7 @@ export function DetalhesPedidoModal({ pedido, C, onClose, onAlterarStatus, alter
           <PainelDisputa pedido={pedido} disputa={disputa} C={C} apiFetch={apiFetch} notificar={notificar} onAtualizado={onAtualizado} />
         )}
         {r?.agendado && (
-          <Alerta C={C} cor={C.info} Icone={CalendarClock}>
+          <Alerta cor={C.info} Icone={CalendarClock}>
             <p className="font-bold">Pedido AGENDADO</p>
             <p>
               Entregar entre {formatarTimestamp(r.agendadoPara)}
@@ -283,7 +258,7 @@ export function DetalhesPedidoModal({ pedido, C, onClose, onAlterarStatus, alter
           </Alerta>
         )}
         {r && r.cobrarNaEntrega > 0 && (
-          <Alerta C={C} cor={C.neutral} Icone={AlertTriangle}>
+          <Alerta cor={C.neutral} Icone={AlertTriangle}>
             <p className="font-bold">Cobrar na entrega: {brl(r.cobrarNaEntrega)}</p>
             {r.pagamentos.filter((p) => p.troco).map((p, i) => (
               <p key={i}>Troco para {brl(p.troco)} (levar {brl(p.troco - p.valor)})</p>

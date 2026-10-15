@@ -98,7 +98,10 @@ function CartaoLoja({ loja, C, podeGerenciar, apiFetch, notificar, onMudou }) {
             <div key={i} className="flex items-start gap-2 rounded-lg px-2.5 py-2 text-xs" style={{ background: C.badBg, color: C.text1 }}>
               <AlertTriangle size={13} className="flex-shrink-0" style={{ color: C.bad, marginTop: 1 }} />
               <div>
-                <p className="font-semibold">{p.titulo || p.id}</p>
+                {/* Normalmente o problema é um objeto {id, titulo, detalhe} da validação do iFood.
+                    Aceita string também: quando vinha assim, a caixa de alerta aparecia vazia —
+                    um aviso sem texto é pior que aviso nenhum. */}
+                <p className="font-semibold">{typeof p === 'string' ? p : p.titulo || p.id}</p>
                 {p.detalhe && <p style={{ color: C.text2 }}>{p.detalhe}</p>}
                 {p.id === 'is-connected' && (
                   <p className="mt-0.5" style={{ color: C.neutral }}>

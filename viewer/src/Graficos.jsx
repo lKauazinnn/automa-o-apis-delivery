@@ -21,12 +21,44 @@ const MAX_ITENS_REINCIDENTES = 8
 // vira ilegível e crua nenhuma serve pra leitura direta (o tooltip já dá o dia exato).
 const INTERVALO_EIXO_DIAS = Math.max(0, Math.ceil(DIAS_TENDENCIA / 7) - 1)
 
+// Só itens do cardápio — é o que o ranking de reincidência mede (ruptura de estoque de um item).
 const ACOES_PAUSAR = new Set(['pausar', 'pausar_em_massa'])
-const ACOES_DESPAUSAR = new Set(['despausar', 'despausar_em_massa'])
+
+// A TENDÊNCIA mede volume de pausa da operação inteira, então conta também o que o ranking de
+// itens deixa de fora: complemento pausado e a reativação automática no fim do prazo. Sem isso a
+// linha de despausas ficava quase sempre em zero, já que a maioria das pausas tem prazo e volta
+// sozinha — ninguém clica em "despausar".
+const ACOES_PAUSAR_TENDENCIA = new Set([...ACOES_PAUSAR, 'pausar_opcao'])
+const ACOES_DESPAUSAR_TENDENCIA = new Set([
+  'despausar',
+  'despausar_em_massa',
+  'despausar_opcao',
+  'reativar_automatico',
+  'reativar_opcao_automatico',
+])
 
 function truncar(texto, max) {
   if (!texto || texto.length <= max) return texto
   return `${texto.slice(0, max - 1)}…`
+}
+
+// O Recharts anima por JS (recalcula o `d` do path a cada frame), então a regra de
+// prefers-reduced-motion do index.css — que só alcança animação/transição CSS — não o atinge.
+// Quem pediu menos movimento no sistema continuava vendo a linha ser desenhada a cada refresh
+// automático do Painel. Aqui a preferência é lida de verdade e desliga a animação do gráfico.
+function animacaoDeGrafico() {
+  if (typeof window === 'undefined' || !window.matchMedia) return true
+  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+const reais = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+// No eixo Y, "R$ 4.480,00" em cada marca rouba metade da largura do gráfico. Abrevia o milhar
+// ("4,5 mil") e deixa o valor exato pro tooltip e pra tabela logo abaixo.
+function eixoReais(v) {
+  const n = Number(v || 0)
+  if (n >= 1000) return `${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`
+  return n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
 }
 
 function chaveDia(data) {
@@ -44,8 +76,12 @@ function ultimosDias(qtd) {
   return dias
 }
 
-function TooltipCartao({ active, payload, label, C }) {
+// `formatar` deixa o mesmo tooltip servir pra contagem (padrão) e pra dinheiro, sem uma
+// segunda cópia do componente. `extras` acrescenta linhas de contexto que não são séries do
+// gráfico (ex: pedidos e ticket médio do dia) — contexto no hover evita o segundo eixo Y.
+function TooltipCartao({ active, payload, label, C, formatar = (v) => v, extras }) {
   if (!active || !payload?.length) return null
+  const linhasExtras = extras ? extras(payload[0]?.payload) : []
   return (
     <div
       className="rounded-lg px-3 py-2 text-xs shadow-lg"
@@ -55,7 +91,12 @@ function TooltipCartao({ active, payload, label, C }) {
       {payload.map((p) => (
         <p key={p.dataKey} className="flex items-center gap-1.5" style={{ color: C.text2 }}>
           <span style={{ color: p.stroke || p.fill || p.color }}>●</span>
-          {p.name}: <span className="font-semibold" style={{ color: C.text1 }}>{p.value}</span>
+          {p.name}: <span className="font-semibold" style={{ color: C.text1 }}>{formatar(p.value)}</span>
+        </p>
+      ))}
+      {linhasExtras.map((linha) => (
+        <p key={linha} style={{ color: C.text3 }}>
+          {linha}
         </p>
       ))}
     </div>
@@ -117,10 +158,10 @@ export function GraficoTendenciaAtividade({ auditoria, C }) {
       if (!item.timestamp) continue
       const bucket = porDia.get(chaveDia(new Date(item.timestamp)))
       if (!bucket) continue
-      if (ACOES_PAUSAR.has(item.acao)) {
+      if (ACOES_PAUSAR_TENDENCIA.has(item.acao)) {
         bucket.pausas += 1
         totalPausas += 1
-      } else if (ACOES_DESPAUSAR.has(item.acao)) {
+      } else if (ACOES_DESPAUSAR_TENDENCIA.has(item.acao)) {
         bucket.despausas += 1
         totalDespausas += 1
       }
@@ -159,8 +200,11 @@ export function GraficoTendenciaAtividade({ auditoria, C }) {
             tickLine={false}
           />
           <Tooltip content={<TooltipCartao C={C} />} cursor={{ stroke: C.cardBorder }} />
+          {/* `linear`, não `monotone`: a contagem é DIÁRIA e discreta — a curva suavizada
+              desenhava morros entre dois dias, sugerindo valores em horários que não existem
+              no dado, e estourava acima do pico real. */}
           <Area
-            type="monotone"
+            type="linear"
             dataKey="pausas"
             name="Pausas"
             stroke={C.neutral}
@@ -168,10 +212,11 @@ export function GraficoTendenciaAtividade({ auditoria, C }) {
             fillOpacity={0.1}
             strokeWidth={2}
             dot={false}
+            isAnimationActive={animacaoDeGrafico()}
             activeDot={{ r: 4, fill: C.neutral, stroke: C.cardBg, strokeWidth: 2 }}
           />
           <Area
-            type="monotone"
+            type="linear"
             dataKey="despausas"
             name="Despausas"
             stroke={C.good}
@@ -179,6 +224,7 @@ export function GraficoTendenciaAtividade({ auditoria, C }) {
             fillOpacity={0.1}
             strokeWidth={2}
             dot={false}
+            isAnimationActive={animacaoDeGrafico()}
             activeDot={{ r: 4, fill: C.good, stroke: C.cardBg, strokeWidth: 2 }}
           />
         </AreaChart>
@@ -233,11 +279,117 @@ export function GraficoItensReincidentes({ auditoria, C }) {
             tickLine={false}
           />
           <Tooltip content={<TooltipCartao C={C} />} cursor={{ fill: C.inputBg }} />
-          <Bar dataKey="vezes" name="Vezes pausado" fill={C.marca} radius={[0, 4, 4, 0]} maxBarSize={20}>
+          <Bar
+            dataKey="vezes"
+            name="Vezes pausado"
+            fill={C.marca}
+            radius={[0, 4, 4, 0]}
+            maxBarSize={20}
+            isAnimationActive={animacaoDeGrafico()}
+          >
             <LabelList dataKey="vezes" position="right" formatter={(valor) => `${valor}x`} fill={C.text2} fontSize={11} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+    </CartaoGrafico>
+  )
+}
+
+// Faturamento por dia no Financeiro, que antes só tinha tabela — a tabela responde "quanto
+// no dia 12?" e o gráfico responde "está subindo ou caindo?", que é a pergunta de quem abre
+// a tela. Série ÚNICA de propósito: pedidos e ticket médio têm outra escala e virariam um
+// segundo eixo Y (leitura enganosa); eles entram como contexto no hover.
+//
+// Cor: `marcaTinta` — faturamento não é status (não é bom nem ruim por natureza), então não
+// usa good/neutral/bad; e a tinta é derivada por tokensDaMarca() até passar de 4,5:1 sobre o
+// card nos dois temas, então funciona com a cor de qualquer cliente.
+export function GraficoFaturamentoDiario({ porDia, C }) {
+  const { dados, pico, total } = useMemo(() => {
+    const linhas = (porDia || []).map((l) => {
+      const [, mes, dia] = String(l.chave).split('-')
+      return {
+        dia: `${dia}/${mes}`,
+        faturamento: Number(l.faturamento || 0),
+        pedidos: Number(l.pedidos || 0),
+        cancelados: Number(l.cancelados || 0),
+      }
+    })
+    const total = linhas.reduce((s, l) => s + l.faturamento, 0)
+    const pico = linhas.reduce((melhor, l) => (!melhor || l.faturamento > melhor.faturamento ? l : melhor), null)
+    return { dados: linhas, pico, total }
+  }, [porDia])
+
+  // Com muitos dias (ex: "30 dias" ou "Este mês") as datas se espremem e viram um borrão;
+  // mostra ~8 marcas no eixo e deixa o dia exato pro tooltip.
+  const intervaloEixo = Math.max(0, Math.ceil(dados.length / 8) - 1)
+
+  return (
+    <CartaoGrafico
+      titulo="Faturamento por dia"
+      subtitulo={`${dados.length} ${dados.length === 1 ? 'dia' : 'dias'} no período · só pedidos válidos`}
+      icon={TrendingUp}
+      C={C}
+      vazio={total === 0}
+      mensagemVazia="Nenhum pedido válido no período escolhido."
+    >
+      <ResponsiveContainer width="100%" height={240}>
+        {/* right=28: a marca do último dia é centrada no ponto, que fica na borda do plot —
+            com a margem de 12 a data saía cortada pela metade ("14/1"). */}
+        <AreaChart data={dados} margin={{ top: 8, right: 28, bottom: 0, left: 0 }}>
+          <CartesianGrid vertical={false} stroke={C.rowBorder} />
+          <XAxis
+            dataKey="dia"
+            interval={intervaloEixo}
+            tick={{ fill: C.text3, fontSize: 11 }}
+            axisLine={{ stroke: C.cardBorder }}
+            tickLine={false}
+          />
+          <YAxis
+            width={54}
+            tick={{ fill: C.text3, fontSize: 11 }}
+            axisLine={{ stroke: C.cardBorder }}
+            tickLine={false}
+            tickFormatter={eixoReais}
+          />
+          <Tooltip
+            content={
+              <TooltipCartao
+                C={C}
+                formatar={reais}
+                extras={(linha) =>
+                  linha
+                    ? [
+                        `${linha.pedidos} pedido(s) · ticket ${linha.pedidos ? reais(linha.faturamento / linha.pedidos) : '—'}`,
+                        ...(linha.cancelados ? [`${linha.cancelados} cancelado(s)`] : []),
+                      ]
+                    : []
+                }
+              />
+            }
+            cursor={{ stroke: C.cardBorder }}
+          />
+          <Area
+            type="linear"
+            dataKey="faturamento"
+            name="Faturamento"
+            stroke={C.marcaTinta}
+            fill={C.marcaTinta}
+            fillOpacity={0.12}
+            strokeWidth={2}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            dot={false}
+            isAnimationActive={animacaoDeGrafico()}
+            activeDot={{ r: 4, fill: C.marcaTinta, stroke: C.cardBg, strokeWidth: 2 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+      {pico && pico.faturamento > 0 && (
+        <p className="text-[11px] mt-1" style={{ color: C.text3 }}>
+          Melhor dia do período: <span className="font-semibold" style={{ color: C.text2 }}>{pico.dia}</span> com{' '}
+          <span className="fonte-mono font-semibold" style={{ color: C.text2 }}>{reais(pico.faturamento)}</span>.
+        </p>
+      )}
     </CartaoGrafico>
   )
 }

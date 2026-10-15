@@ -31,13 +31,20 @@ import { StatusLojasView } from './views/StatusLojasView'
 import { KDSView } from './views/KDSView'
 import { PedidosView } from './views/PedidosView'
 
+// Uma entrada por `chave` de VIEWS no Sidebar.jsx — o header lê daqui. Sem a entrada, a tela
+// abria e derrubava o painel inteiro no boundary de erro (era o caso de `lojas` e `financeiro`).
 const TITULOS_VIEW = {
   dashboard: { t: 'Painel', sub: 'Visão geral da operação' },
   pedidos: { t: 'Pedidos', sub: 'Histórico completo, atualizando sozinho' },
   kds: { t: 'Cozinha', sub: 'Quadro de preparo em tempo real' },
   catalogo: { t: 'Cardápio', sub: 'Gestão de itens' },
+  lojas: { t: 'Status das lojas', sub: 'Aberta ou fechada agora, loja a loja' },
+  financeiro: { t: 'Financeiro', sub: 'Faturamento, ticket médio e repasses' },
   auditoria: { t: 'Histórico', sub: 'Tudo que a equipe alterou, em ordem' },
 }
+
+// Rede de segurança: uma view sem entrada aqui nunca mais deve quebrar o header.
+const TITULO_PADRAO = { t: 'Painel', sub: '' }
 
 // Views que se atualizam sozinhas — o selo "Ao vivo" no header existe pra deixar claro que a
 // tela relê os pedidos por conta própria, e (junto com o estado de erro) pra dar onde olhar
@@ -1143,7 +1150,9 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   return (
     <CoresContext.Provider value={C}>
       <div className="min-h-screen">
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-2.5 max-w-sm">
+        {/* Abaixo do header (74px de altura): em `top-4` o toast cobria o seletor de tema e o
+            botão de sair justamente enquanto a pessoa agia na tela. */}
+        <div className="fixed right-4 z-50 flex flex-col gap-2.5 max-w-sm" style={{ top: 88 }}>
           {toasts.map((t) => {
             const cor = CORES_TOAST[t.tipo] || C.text1
             const Icone = ICONES_TOAST[t.tipo] || CheckCircle2
@@ -2117,10 +2126,10 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             >
               <div className="py-3">
                 <h1 className="font-bold" style={{ color: C.text1, fontSize: 21, letterSpacing: '-0.02em' }}>
-                  {TITULOS_VIEW[view].t}
+                  {(TITULOS_VIEW[view] || TITULO_PADRAO).t}
                 </h1>
                 <p className="mt-0.5" style={{ color: C.text2, fontSize: 13 }}>
-                  {TITULOS_VIEW[view].sub}
+                  {(TITULOS_VIEW[view] || TITULO_PADRAO).sub}
                   {lojaAtual?.nome ? ` · ${lojaAtual.nome}` : ''}
                 </p>
               </div>
