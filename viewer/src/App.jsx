@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Check, CheckCircle2, Loader2, Moon, Sun, Trash2, X } from 'lucide-react'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { AlertTriangle, Check, Clock, Layers, Loader2, PowerOff, Tag, Tags, Trash2 } from 'lucide-react'
 import {
   API,
   buscarEu,
@@ -20,8 +20,11 @@ import { PausaInsumoModal } from './modals/PausaInsumoModal'
 import { PausarModal } from './modals/PausarModal'
 import { RupturasModal } from './modals/RupturasModal'
 import { Sidebar } from './Sidebar'
+import { BannerConexao, BarraProgresso, Header, Toasts } from './Shell'
+import { Botao, Dialogo, MONO } from './ds'
+import { encontrarRelacionados } from './pausas'
 import { TelaDefinirSenha, TelaLogin } from './TelasAuth'
-import { Avatar, CoresContext, iniciaisDe, lerImagemComoDataUrl, Modal, PALETAS, Pill } from './ui'
+import { Avatar, CoresContext, iniciaisDe, lerImagemComoDataUrl, Modal, ModalEmbutidoContext, PALETAS, Pill } from './ui'
 import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
 import { AuditoriaView } from './views/AuditoriaView'
 import { CatalogoView } from './views/CatalogoView'
@@ -58,43 +61,17 @@ const PAPEIS = [
 ]
 const PAPEIS_QUE_PODEM_CRIAR = new Set(['administrador', 'gerente'])
 
-// Prefixos de porção/linha que não ajudam a identificar o "prato" em si
-// (ex: "Com Ancho Black" / "Fam Ancho Black" / "Exec Ancho Black" são o mesmo corte, tamanhos diferentes).
-const PALAVRAS_IGNORADAS = new Set([
-  'com', 'de', 'da', 'do', 'das', 'dos', 'e', 'a', 'o', 'as', 'os', 'na', 'no', 'em', 'pra', 'ao', 'aos',
-  'add', 'fam', 'exec', 'kids', 'promo', 'pro', 'week', 'def', 'fest', 'vt', 'esp', 'dose', 't',
-])
+// Abas do Cardápio (gerente pra cima). Antes eram 4 modais na sidebar; agora são sub-telas do
+// próprio Cardápio, que é onde a pessoa já está quando precisa delas.
+const ABAS_CARDAPIO = [
+  { chave: 'itens', label: 'Itens', Icon: Tag },
+  { chave: 'categorias', label: 'Categorias', Icon: Tags },
+  { chave: 'complementos', label: 'Complementos', Icon: Layers },
+  { chave: 'horario', label: 'Horário', Icon: Clock },
+  { chave: 'interrupcoes', label: 'Interrupções', Icon: PowerOff },
+]
 
-function removerAcentos(texto) {
-  // NFD separa a letra da marca de acento (ex: "ó" -> "o" + marca); descartamos
-  // qualquer code point de marca combinante (faixa Unicode 0x0300–0x036F).
-  return Array.from(texto)
-    .filter((ch) => {
-      const codigo = ch.codePointAt(0)
-      return codigo < 0x0300 || codigo > 0x036f
-    })
-    .join('')
-}
-
-function palavrasChave(nome) {
-  return removerAcentos((nome || '').toLowerCase().normalize('NFD'))
-    .split(/[^a-z0-9]+/)
-    .filter(Boolean)
-    .filter((p) => p.length >= 4)
-    .filter((p) => !/\d/.test(p))
-    .filter((p) => !PALAVRAS_IGNORADAS.has(p))
-}
-
-function encontrarRelacionados(item, todosItens) {
-  const chave = palavrasChave(item.nome)
-  if (!chave.length) return []
-  return todosItens
-    .filter((i) => i.itemId !== item.itemId)
-    .map((i) => ({ item: i, comuns: palavrasChave(i.nome).filter((p) => chave.includes(p)).length }))
-    .filter((r) => r.comuns > 0)
-    .sort((a, b) => b.comuns - a.comuns)
-    .map((r) => r.item)
-}
+const CHAVE_SIDEBAR = 'sidebar_aberta'
 
 function campoPreenchido(valor) {
   return String(valor ?? '').trim().length > 0
@@ -197,6 +174,7 @@ let contadorToast = 0
 const CHAVE_SESSAO = 'sessao_ifood_v1'
 
 function Painel({ sessao, onSair, tema, setTema, C }) {
+  const { marca } = useContext(MarcaContext)
 
   const [itens, setItens] = useState([])
   const [categorias, setCategorias] = useState([])
@@ -276,10 +254,45 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [toasts, setToasts] = useState([])
   const [confirmacao, setConfirmacao] = useState(null)
 
-  function notificar(tipo, mensagem) {
+  const [sidebarAberta, setSidebarAberta] = useState(() => {
+    try {
+      return localStorage.getItem(CHAVE_SIDEBAR) !== '0'
+    } catch {
+      return true
+    }
+  })
+  const [abaCardapio, setAbaCardapio] = useState('itens')
+  // 'online' | 'reconectando' (1 falha de rede) | 'offline' (2+ seguidas ou navegador sem rede)
+  const [conexao, setConexao] = useState(() => (navigator.onLine === false ? 'offline' : 'online'))
+  const falhasRede = useRef(0)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CHAVE_SIDEBAR, sidebarAberta ? '1' : '0')
+    } catch {
+      // sem storage: só não lembra no próximo acesso
+    }
+  }, [sidebarAberta])
+
+  useEffect(() => {
+    const ficouOffline = () => setConexao('offline')
+    const voltou = () => {
+      falhasRede.current = 0
+      setConexao('online')
+    }
+    window.addEventListener('offline', ficouOffline)
+    window.addEventListener('online', voltou)
+    return () => {
+      window.removeEventListener('offline', ficouOffline)
+      window.removeEventListener('online', voltou)
+    }
+  }, [])
+
+  // `opcoes`: { sub, desfazer } — `desfazer` vira o botão "Desfazer" do aviso.
+  function notificar(tipo, mensagem, opcoes = {}) {
     const id = ++contadorToast
-    setToasts((prev) => [...prev, { id, tipo, mensagem }])
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 5000)
+    setToasts((prev) => [{ id, tipo, mensagem, ...opcoes }, ...prev].slice(0, 4))
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), opcoes.desfazer ? 7000 : 5000)
   }
 
   async function apiFetch(caminho, opcoes = {}) {
@@ -289,10 +302,25 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     // um merchant morto que gera 403.
     const loja = lojaAtual?.merchant_id
     const url = loja ? `${API}${caminho}${separador}loja=${encodeURIComponent(loja)}` : `${API}${caminho}`
-    const resp = await fetch(url, {
-      ...opcoes,
-      headers: { ...(opcoes.headers || {}), Authorization: `Bearer ${sessao.accessToken}` },
-    })
+    let resp
+    try {
+      resp = await fetch(url, {
+        ...opcoes,
+        headers: { ...(opcoes.headers || {}), Authorization: `Bearer ${sessao.accessToken}` },
+      })
+    } catch (e) {
+      // fetch só rejeita em falha de REDE (servidor fora, sem internet) — erro HTTP chega aqui
+      // como resposta normal. Uma falha é "reconectando"; duas seguidas, "sem conexão".
+      falhasRede.current += 1
+      setConexao(falhasRede.current >= 2 ? 'offline' : 'reconectando')
+      const erro = new Error('Sem conexão com o servidor. Tente de novo em instantes.')
+      erro.cause = e
+      throw erro
+    }
+    if (falhasRede.current) {
+      falhasRede.current = 0
+      setConexao('online')
+    }
     let dados = null
     try {
       dados = await resp.json()
@@ -668,6 +696,23 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   function abrirPausar(alvos, { titulo, descricao, motivoInicial = '' } = {}) {
     setModalPausar({ alvos, titulo, descricao, motivoInicial })
   }
+
+  // Atalho P = "Pausar item" (o botão do topo da sidebar). Não dispara digitando num campo nem
+  // com outro painel aberto por cima.
+  useEffect(() => {
+    function aoTeclar(e) {
+      if (e.key !== 'p' && e.key !== 'P') return
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      const alvo = e.target
+      const tag = alvo?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || alvo?.isContentEditable) return
+      if (document.querySelector('[aria-modal="true"]')) return
+      e.preventDefault()
+      setModalPausar({ alvos: [] })
+    }
+    window.addEventListener('keydown', aoTeclar)
+    return () => window.removeEventListener('keydown', aoTeclar)
+  }, [])
 
   // Clique no botão da linha. Pausar abre o modal de motivo/prazo já com os itens parecidos
   // sugeridos (ex: mesma proteína em tamanhos "Com/Fam/Exec" — ruptura de insumo, onde travar
@@ -1132,113 +1177,79 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const inputCls = 'w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all'
   const inputStyle = { background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }
 
-  const CORES_TOAST = {
-    sucesso: C.good,
-    erro: C.bad,
-    aviso: C.neutral,
-  }
-  const ICONES_TOAST = {
-    sucesso: CheckCircle2,
-    erro: AlertTriangle,
-    aviso: AlertTriangle,
-  }
-
   function fecharToast(id) {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }
 
+  // Administração ainda abre os painéis de sempre (vira tela própria numa etapa seguinte).
+  function mudarView(chave) {
+    if (chave === 'usuarios') return abrirModalUsuarios()
+    if (chave === 'lojas-admin') return setModalLojas(true)
+    if (chave === 'marca') return setModalMarca(true)
+    setView(chave)
+  }
+
   return (
     <CoresContext.Provider value={C}>
-      <div className="min-h-screen">
-        {/* Abaixo do header (74px de altura): em `top-4` o toast cobria o seletor de tema e o
-            botão de sair justamente enquanto a pessoa agia na tela. */}
-        <div className="fixed right-4 z-50 flex flex-col gap-2.5 max-w-sm" style={{ top: 88 }}>
-          {toasts.map((t) => {
-            const cor = CORES_TOAST[t.tipo] || C.text1
-            const Icone = ICONES_TOAST[t.tipo] || CheckCircle2
-            return (
-              <div
-                key={t.id}
-                className="toast-entrada rounded-xl shadow-lg overflow-hidden"
-                style={{ background: C.cardBg, border: `1px solid ${cor}40` }}
-              >
-                <div className="px-4 py-3 flex items-start gap-2.5">
-                  <Icone size={16} style={{ color: cor }} className="mt-0.5 flex-shrink-0" />
-                  <span className="text-xs font-semibold flex-1" style={{ color: C.text1 }}>
-                    {t.mensagem}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => fecharToast(t.id)}
-                    className="flex-shrink-0 -m-1 p-1 rounded"
-                    style={{ color: C.text3 }}
-                    title="Fechar"
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-                <div className="h-[2px] toast-progresso" style={{ background: cor }} />
-              </div>
-            )
-          })}
-        </div>
+      <div>
+        <Toasts toasts={toasts} onFechar={fecharToast} />
 
         {confirmacao && (
-          <div
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-            style={{ background: C.overlay, backdropFilter: 'blur(6px)' }}
-            onClick={() => setConfirmacao(null)}
-          >
-            <div
-              className="modal-entrada w-full max-w-sm rounded-2xl p-5"
-              style={{
-                background: C.modalBg,
-                backdropFilter: 'blur(24px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-                border: `1px solid ${C.modalBorder}`,
-                boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-2.5 mb-2.5">
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{
-                    background: (confirmacao.perigo ? C.bad : C.marca) + '18',
-                    border: `1px solid ${(confirmacao.perigo ? C.bad : C.marca)}30`,
-                  }}
-                >
-                  <AlertTriangle size={16} color={confirmacao.perigo ? C.bad : C.marca} />
-                </div>
-                <h3 className="text-sm font-bold" style={{ color: C.text1 }}>
-                  {confirmacao.titulo}
-                </h3>
-              </div>
-              <p className="text-xs leading-relaxed mb-4" style={{ color: C.text2 }}>
-                {confirmacao.mensagem}
-              </p>
-              <div className="flex gap-2 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setConfirmacao(null)}
-                  className="text-xs font-semibold px-3.5 py-2.5 rounded-xl"
-                  style={{ color: C.text2, background: C.inputBg, border: `1px solid ${C.cardBorder}` }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
+          <Dialogo
+            alerta
+            largura={440}
+            titulo={confirmacao.titulo}
+            onClose={() => setConfirmacao(null)}
+            rodape={
+              <>
+                <span style={{ flex: 1 }} />
+                <Botao variante="secundario" tamanho="lg" onClick={() => setConfirmacao(null)}>
+                  {confirmacao.textoCancelar || 'Cancelar'}
+                </Botao>
+                {confirmacao.alternativa && (
+                  <Botao
+                    variante="secundario"
+                    tamanho="lg"
+                    onClick={() => {
+                      confirmacao.alternativa.aoEscolher()
+                      setConfirmacao(null)
+                    }}
+                  >
+                    {confirmacao.alternativa.texto}
+                  </Botao>
+                )}
+                <Botao
+                  variante={confirmacao.perigo ? 'perigo' : 'primario'}
+                  tamanho="lg"
                   onClick={() => {
                     confirmacao.aoConfirmar()
                     setConfirmacao(null)
                   }}
-                  className={`text-xs font-bold px-3.5 py-2.5 rounded-xl ${confirmacao.perigo ? 'botao-perigo' : 'botao-primario'}`}
                 >
                   {confirmacao.textoConfirmar}
-                </button>
+                </Botao>
+              </>
+            }
+          >
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: confirmacao.perigo ? 'var(--bad-bg)' : 'var(--marca-suave)',
+                  color: confirmacao.perigo ? 'var(--bad)' : 'var(--marca-tinta)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {confirmacao.perigo ? <Trash2 size={22} /> : <AlertTriangle size={22} />}
               </div>
+              <p style={{ margin: 0, fontSize: 14, color: 'var(--t2)', lineHeight: 1.5, textWrap: 'pretty' }}>{confirmacao.mensagem}</p>
             </div>
-          </div>
+          </Dialogo>
         )}
 
         {modalLojas && (
@@ -2017,17 +2028,15 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
         {modalPausar && (
           <PausarModal
-            titulo={modalPausar.titulo}
-            descricao={modalPausar.descricao}
             alvos={modalPausar.alvos}
+            itens={itens}
+            paraAlvo={alvoDoItem}
             motivoInicial={modalPausar.motivoInicial}
             outrasLojas={outrasLojas}
+            lojaAtual={lojaAtual}
             executando={executandoMassa}
             onConfirmar={confirmarPausa}
             onClose={() => setModalPausar(null)}
-            C={C}
-            inputCls={inputCls}
-            inputStyle={inputStyle}
           />
         )}
 
@@ -2088,28 +2097,25 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
           />
         )}
 
-        <div className="flex min-h-screen">
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg)', color: 'var(--t1)' }}>
           <Sidebar
+            aberta={sidebarAberta}
+            onExpandir={() => setSidebarAberta(true)}
             view={view}
-            onMudarView={setView}
+            onMudarView={mudarView}
             totalPausados={totalPausados}
             lojaNome={lojaAtual?.nome}
             lojaPlataforma={lojaAtual?.plataforma}
             totalLojas={lojas.length}
             podeTrocarLoja={lojas.length > 1 || sessao.usuario.papel === 'administrador'}
+            onTrocarLoja={() => setModalLojas(true)}
             userNome={sessao.usuario.nome}
             userIniciais={iniciaisDe(sessao.usuario.nome)}
             userPapel={sessao.usuario.papel}
-            podeGerenciarUsuarios={sessao.usuario.papel === 'administrador'}
-            podeGerenciarCatalogoAvancado={podeCriarItem}
-            onAbrirUsuarios={abrirModalUsuarios}
-            onAbrirLojas={() => setModalLojas(true)}
-            onAbrirMarca={() => setModalMarca(true)}
-            onAbrirCategorias={() => setModalCategorias(true)}
-            onAbrirGruposOpcao={() => setModalGruposOpcao(true)}
-            onAbrirHorario={() => setModalHorario(true)}
-            onAbrirInterrupcoes={() => setModalInterrupcoes(true)}
+            podeVerFinanceiro={podeCriarItem}
+            souAdministrador={sessao.usuario.papel === 'administrador'}
             totalRupturas={totalRupturas}
+            onPausarItem={() => setModalPausar({ alvos: [] })}
             onAbrirRupturas={() => {
               setModalRupturas(true)
               carregarPausas()
@@ -2119,80 +2125,28 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             onSair={onSair}
           />
 
-          <div className="flex-1 min-w-0 flex flex-col">
-            <header
-              className="sticky top-0 z-20 flex items-center gap-4 px-6 flex-wrap flex-shrink-0"
-              style={{ minHeight: 74, background: C.headerBg, borderBottom: `1px solid ${C.cardBorder}` }}
-            >
-              <div className="py-3">
-                <h1 className="font-bold" style={{ color: C.text1, fontSize: 21, letterSpacing: '-0.02em' }}>
-                  {(TITULOS_VIEW[view] || TITULO_PADRAO).t}
-                </h1>
-                <p className="mt-0.5" style={{ color: C.text2, fontSize: 13 }}>
-                  {(TITULOS_VIEW[view] || TITULO_PADRAO).sub}
-                  {lojaAtual?.nome ? ` · ${lojaAtual.nome}` : ''}
-                </p>
-              </div>
-              <div className="ml-auto flex items-center gap-2.5">
-                {AO_VIVO[view] && (
-                  <span
-                    className="inline-flex items-center gap-2 rounded-full px-3 font-semibold"
-                    style={{
-                      height: 32,
-                      fontSize: 12.5,
-                      color: C.good,
-                      background: C.goodBg,
-                      border: `1px solid ${C.goodBd}`,
-                    }}
-                    title={`A tela relê os pedidos a cada ${AO_VIVO[view]}`}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full pulso-vivo" style={{ background: C.good }} />
-                    Ao vivo · {AO_VIVO[view]}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
-                  className="botao-icone-fantasma w-10 h-10 inline-flex items-center justify-center rounded-xl"
-                  style={{ color: C.text2, border: `1px solid ${C.cardBorder}` }}
-                  title={tema === 'escuro' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-                  aria-label={tema === 'escuro' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-                >
-                  {tema === 'escuro' ? <Sun size={16} /> : <Moon size={16} />}
-                </button>
-              </div>
-            </header>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+            <Header
+              crumb={[marca.nome, lojaAtual?.nome, lojaAtual ? (lojaAtual.plataforma === '99food' ? '99Food' : 'iFood') : null]
+                .filter(Boolean)
+                .join(' · ')}
+              titulo={(TITULOS_VIEW[view] || TITULO_PADRAO).t}
+              aoVivo={AO_VIVO[view]}
+              conexao={conexao}
+              tema={tema}
+              onAlternarTema={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
+              onAlternarSidebar={() => setSidebarAberta((v) => !v)}
+            />
+            <BarraProgresso progresso={progressoMassa} />
+            <BannerConexao
+              conexao={conexao}
+              onTentar={() => {
+                carregar()
+                carregarAuditoria()
+              }}
+            />
 
-            {progressoMassa && (
-              <div
-                className="px-6 py-3 flex-shrink-0"
-                style={{ background: C.headerBg, borderBottom: `1px solid ${C.cardBorder}` }}
-              >
-                <div className="flex items-center gap-3.5">
-                  <Loader2 size={17} className="animate-spin flex-shrink-0" style={{ color: C.marcaTinta }} />
-                  <span className="font-semibold flex-shrink-0" style={{ color: C.text1, fontSize: 14 }}>
-                    {progressoMassa.status === 'UNAVAILABLE' ? 'Pausando' : 'Despausando'} itens
-                  </span>
-                  <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: C.inputBg }}>
-                    <div
-                      className="h-full rounded-full transition-all duration-200 ease-out"
-                      style={{
-                        width: `${(progressoMassa.atual / progressoMassa.total) * 100}%`,
-                        background: C.marca,
-                      }}
-                    />
-                  </div>
-                  <span
-                    className="fonte-mono font-semibold flex-shrink-0"
-                    style={{ color: C.text2, fontSize: 13.5 }}
-                  >
-                    {progressoMassa.atual} / {progressoMassa.total}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            <main className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
+            <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative', padding: '24px 28px 40px' }}>
               {view === 'dashboard' && (
                 <DashboardView
                   itens={itens}
@@ -2227,6 +2181,97 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               )}
 
               {view === 'catalogo' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1480 }}>
+                {podeCriarItem && (
+                  <div role="tablist" aria-label="Seções do cardápio" style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--borda)', marginTop: -4, overflowX: 'auto' }}>
+                    {ABAS_CARDAPIO.map((a) => {
+                      const ativa = abaCardapio === a.chave
+                      return (
+                        <button
+                          key={a.chave}
+                          type="button"
+                          role="tab"
+                          aria-selected={ativa}
+                          onClick={() => setAbaCardapio(a.chave)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            height: 42,
+                            padding: '0 14px',
+                            border: 0,
+                            borderBottom: `2px solid ${ativa ? 'var(--marca)' : 'transparent'}`,
+                            marginBottom: -1,
+                            background: 'transparent',
+                            color: ativa ? 'var(--t1)' : 'var(--t2)',
+                            fontSize: 14,
+                            fontWeight: ativa ? 600 : 500,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          <a.Icon size={16} />
+                          {a.label}
+                          {a.chave === 'itens' && (
+                            <span style={{ fontFamily: MONO, fontSize: 12, color: 'var(--t3)' }}>{itens.length}</span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {podeCriarItem && abaCardapio !== 'itens' && (
+                  <ModalEmbutidoContext.Provider value={true}>
+                    {abaCardapio === 'categorias' && (
+                      <CategoriasModal
+                        onClose={() => setAbaCardapio('itens')}
+                        apiFetch={apiFetch}
+                        notificar={notificar}
+                        podeEditar={podeCriarItem}
+                        souAdministrador={sessao.usuario.papel === 'administrador'}
+                        C={C}
+                        inputCls={inputCls}
+                        inputStyle={inputStyle}
+                      />
+                    )}
+                    {abaCardapio === 'complementos' && (
+                      <GruposOpcaoModal
+                        onClose={() => setAbaCardapio('itens')}
+                        apiFetch={apiFetch}
+                        notificar={notificar}
+                        podeEditar={podeCriarItem}
+                        souAdministrador={sessao.usuario.papel === 'administrador'}
+                        C={C}
+                        inputCls={inputCls}
+                        inputStyle={inputStyle}
+                      />
+                    )}
+                    {abaCardapio === 'horario' && (
+                      <HorarioFuncionamentoModal
+                        onClose={() => setAbaCardapio('itens')}
+                        apiFetch={apiFetch}
+                        notificar={notificar}
+                        podeEditar={podeCriarItem}
+                        C={C}
+                        inputStyle={inputStyle}
+                      />
+                    )}
+                    {abaCardapio === 'interrupcoes' && (
+                      <InterrupcoesModal
+                        onClose={() => setAbaCardapio('itens')}
+                        apiFetch={apiFetch}
+                        notificar={notificar}
+                        podeEditar={podeCriarItem}
+                        C={C}
+                        inputCls={inputCls}
+                        inputStyle={inputStyle}
+                      />
+                    )}
+                  </ModalEmbutidoContext.Provider>
+                )}
+
+                {(abaCardapio === 'itens' || !podeCriarItem) && (
                 <CatalogoView
                   itens={itens}
                   categorias={categorias}
@@ -2292,6 +2337,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   inputCls={inputCls}
                   inputStyle={inputStyle}
                 />
+                )}
+                </div>
               )}
 
               {view === 'lojas' && (
@@ -2310,10 +2357,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   C={C}
                 />
               )}
-
-              <p className="text-xs text-center pt-6" style={{ color: C.text3, fontSize: 12.5 }}>
-                {itens.length} itens sincronizados
-              </p>
             </main>
           </div>
         </div>

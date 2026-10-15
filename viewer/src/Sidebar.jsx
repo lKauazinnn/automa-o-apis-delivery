@@ -1,88 +1,137 @@
 import { useContext } from 'react'
 import {
-  Activity,
-  ChevronsUpDown,
+  ChevronDown,
+  ChevronRight,
   ClipboardList,
-  Clock,
-  Columns3,
+  Droplet,
   History,
   KeyRound,
-  Layers,
-  LayoutDashboard,
   LayoutGrid,
   LogOut,
   PackageX,
-  Palette,
-  PowerOff,
-  SearchX,
+  Pause,
   Store,
-  Tags,
+  Tag,
   Users,
+  UtensilsCrossed,
   Wallet,
+  Zap,
+  Activity,
 } from 'lucide-react'
-import { LogoMarca } from './Logo'
-import { CoresContext } from './ui'
+import { MarcaContext } from './marca'
+import { SimboloPausaFast } from './Logo'
+import { Contador, MONO, Rotulo, tons } from './ds'
 
-// Os itens que TROCAM DE VIEW. Tudo abaixo deles na sidebar abre um painel em cima da
-// view atual — antes os onze itens eram visualmente idênticos, então não dava pra saber o que
-// era navegação e o que era ação sem clicar.
-const VIEWS = [
-  { chave: 'dashboard', label: 'Painel', Icon: LayoutDashboard },
+// Os itens que TROCAM DE TELA. "Ações rápidas" abre um painel por cima da tela atual — fica numa
+// caixa tracejada justamente pra não se confundir com navegação.
+export const VIEWS = [
+  { chave: 'dashboard', label: 'Painel', Icon: LayoutGrid },
   { chave: 'pedidos', label: 'Pedidos', Icon: ClipboardList },
-  { chave: 'kds', label: 'Cozinha', Icon: Columns3 },
-  { chave: 'catalogo', label: 'Cardápio', Icon: LayoutGrid },
+  { chave: 'kds', label: 'Cozinha', Icon: UtensilsCrossed },
+  { chave: 'catalogo', label: 'Cardápio', Icon: Tag },
   { chave: 'lojas', label: 'Status das lojas', Icon: Activity },
   { chave: 'financeiro', label: 'Financeiro', Icon: Wallet, restrito: true },
   { chave: 'auditoria', label: 'Histórico', Icon: History },
 ]
 
-function Secao({ children, C }) {
+export const VIEWS_ADMIN = [
+  { chave: 'usuarios', label: 'Usuários', Icon: Users },
+  { chave: 'lojas-admin', label: 'Lojas', Icon: Store },
+  { chave: 'marca', label: 'Marca', Icon: Droplet },
+]
+
+const PAPEL_LABEL = { administrador: 'Administrador', gerente: 'Gerente', operador: 'Operador' }
+
+function SecaoNav({ children, aberta, topo = 18 }) {
+  if (!aberta) return null
   return (
-    <div
-      className="font-semibold uppercase px-3 pt-5 pb-2"
-      style={{ color: C.text3, fontSize: 11.5, letterSpacing: '0.08em' }}
-    >
+    <Rotulo style={{ padding: `${topo}px 12px 6px`, flexShrink: 0 }}>
       {children}
-    </div>
+    </Rotulo>
   )
 }
 
-function ItemNav({ Icon, label, ativo, badge, badgeCor, onClick, painel = false, C }) {
+function ItemNav({ Icon, label, ativo, badge, badgeTipo = 'warn', onClick, aberta }) {
+  const t = tons(badgeTipo)
   return (
     <button
       type="button"
       onClick={onClick}
+      title={label}
       aria-current={ativo ? 'page' : undefined}
-      className="flex items-center gap-3 px-3 rounded-xl w-full text-left botao-icone-fantasma"
+      className="ds-nav"
+      style={{ justifyContent: aberta ? 'flex-start' : 'center' }}
+    >
+      <span className="ds-nav__icone" style={{ display: 'flex', position: 'relative', color: ativo ? undefined : 'var(--t2)' }}>
+        <Icon size={18} />
+        {!!badge && !aberta && (
+          <span
+            style={{
+              position: 'absolute',
+              top: -3,
+              right: -4,
+              width: 9,
+              height: 9,
+              borderRadius: 99,
+              background: t.fg,
+              border: '2px solid var(--card)',
+            }}
+          />
+        )}
+      </span>
+      {aberta && <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
+      {aberta && !!badge && <Contador tipo={badgeTipo}>{badge}</Contador>}
+    </button>
+  )
+}
+
+function AcaoRapida({ Icon, label, badge, onClick, aberta }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      className="ds-opcao"
       style={{
-        height: painel ? 38 : 42,
-        fontSize: painel ? 13.5 : 14,
-        fontWeight: ativo ? 600 : 500,
-        border: `1px solid ${ativo ? C.marcaBorda : 'transparent'}`,
-        background: ativo ? C.marcaSuave : 'transparent',
-        color: ativo ? C.text1 : C.text2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: aberta ? 'flex-start' : 'center',
+        gap: 12,
+        height: 38,
+        padding: '0 8px',
+        borderRadius: 7,
+        border: 0,
+        background: 'transparent',
+        color: 'var(--t1)',
+        fontSize: 13.5,
+        fontWeight: 500,
+        cursor: 'pointer',
+        width: '100%',
+        flexShrink: 0,
       }}
     >
-      <Icon size={painel ? 17 : 18} className="flex-shrink-0" style={ativo ? { color: C.marcaTinta } : undefined} />
-      <span className="flex-1 truncate">{label}</span>
-      {!!badge && (
-        <span
-          className="font-bold rounded-full px-2 inline-flex items-center justify-center flex-shrink-0"
-          style={{
-            minWidth: 22,
-            height: 20,
-            fontSize: 11.5,
-            background: (badgeCor || C.neutral) + '24',
-            color: badgeCor || C.neutral,
-            border: `1px solid ${(badgeCor || C.neutral)}4D`,
-          }}
-        >
-          {badge}
-        </span>
-      )}
-      {painel && (
-        <span className="flex-shrink-0 leading-none" style={{ color: C.text3, fontSize: 12 }} aria-hidden="true">
-          ↗
+      <span style={{ color: 'var(--t2)', display: 'flex', position: 'relative' }}>
+        <Icon size={18} />
+        {!!badge && !aberta && (
+          <span
+            style={{
+              position: 'absolute',
+              top: -3,
+              right: -4,
+              width: 9,
+              height: 9,
+              borderRadius: 99,
+              background: 'var(--warn)',
+              border: '2px solid var(--card)',
+            }}
+          />
+        )}
+      </span>
+      {aberta && <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}>{label}</span>}
+      {aberta && !!badge && <Contador tipo="warn">{badge}</Contador>}
+      {aberta && (
+        <span style={{ color: 'var(--t3)', display: 'flex' }}>
+          <ChevronRight size={14} />
         </span>
       )}
     </button>
@@ -90,172 +139,240 @@ function ItemNav({ Icon, label, ativo, badge, badgeCor, onClick, painel = false,
 }
 
 export function Sidebar({
+  aberta,
   view,
   onMudarView,
   totalPausados,
-  totalPedidosAtivos = 0,
   lojaNome,
   lojaPlataforma,
   totalLojas = 0,
+  podeTrocarLoja = true,
+  onTrocarLoja,
   userNome,
   userIniciais,
   userPapel,
-  podeGerenciarUsuarios,
-  podeGerenciarCatalogoAvancado,
-  podeTrocarLoja = true,
-  onAbrirUsuarios,
-  onAbrirLojas,
-  onAbrirMarca,
-  onAbrirCategorias,
-  onAbrirGruposOpcao,
-  onAbrirHorario,
-  onAbrirInterrupcoes,
+  podeVerFinanceiro,
+  souAdministrador,
   totalRupturas = 0,
+  onPausarItem,
   onAbrirRupturas,
   onAbrirInsumo,
   onMinhaSenha,
   onSair,
+  onExpandir,
 }) {
-  const C = useContext(CoresContext)
+  const { marca } = useContext(MarcaContext)
   const plataformaLabel = lojaPlataforma === '99food' ? '99Food' : 'iFood'
 
   return (
     <aside
-      className="w-[248px] flex-shrink-0 flex flex-col p-3 sticky top-0 h-screen overflow-y-auto"
-      style={{ borderRight: `1px solid ${C.cardBorder}`, background: C.cardBg }}
+      style={{
+        width: aberta ? 256 : 72,
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--card)',
+        borderRight: '1px solid var(--borda)',
+        transition: 'width .18s ease',
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+      }}
     >
-      <div className="flex items-center px-1.5 pb-3.5 min-w-0">
-        <div className="min-w-0">
-          <LogoMarca tamanho={34} corTexto={C.text1} />
-          <div
-            className="font-semibold uppercase mt-1.5"
-            style={{ color: C.text3, fontSize: 11.5, letterSpacing: '0.08em' }}
-          >
-            Operação delivery
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '18px 16px 14px', justifyContent: aberta ? 'flex-start' : 'center' }}>
+        {marca.logo && aberta ? (
+          <img src={marca.logo} alt={marca.nome} style={{ height: 36, width: 'auto', maxWidth: 160, objectFit: 'contain' }} />
+        ) : (
+          <SimboloPausaFast cor={marca.cor} tamanho={36} />
+        )}
+        {aberta && !marca.logo && (
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 15.5, fontWeight: 700, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--t1)' }}>
+              {marca.nome}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap' }}>Operação delivery</div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Seletor de loja: contexto global, não ação de header. Saiu do topo da tela pra cá
-          porque tudo que a sidebar lista embaixo é relativo a ESTA loja. */}
-      <button
-        type="button"
-        onClick={podeTrocarLoja ? onAbrirLojas : undefined}
-        disabled={!podeTrocarLoja}
-        title={podeTrocarLoja ? 'Trocar de loja' : undefined}
-        className="flex items-center gap-2.5 w-full px-3 mb-1 rounded-xl text-left disabled:cursor-default"
-        style={{
-          height: 50,
-          background: C.inputBg,
-          border: `1px solid ${C.cardBorder}`,
-          color: C.text1,
-        }}
-      >
-        <Store size={17} className="flex-shrink-0" style={{ color: podeTrocarLoja ? C.marca : C.text3 }} />
-        <span className="flex-1 min-w-0">
-          <span className="block font-semibold truncate leading-tight" style={{ fontSize: 13.5 }}>
-            {lojaNome || 'Selecionar loja'}
+      <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {aberta && (
+          <button
+            type="button"
+            onClick={podeTrocarLoja ? onTrocarLoja : undefined}
+            disabled={!podeTrocarLoja}
+            title={podeTrocarLoja ? 'Trocar de loja' : undefined}
+            className="ds-btn--secundario"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '100%',
+              padding: '8px 10px',
+              borderRadius: 9,
+              border: '1px solid var(--borda)',
+              background: 'var(--card2)',
+              color: 'var(--t1)',
+              cursor: podeTrocarLoja ? 'pointer' : 'default',
+              textAlign: 'left',
+            }}
+          >
+            <span style={{ color: 'var(--t2)', display: 'flex' }}>
+              <Store size={18} />
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {lojaNome ? `${lojaNome} · ${plataformaLabel}` : 'Selecionar loja'}
+              </span>
+              <span style={{ display: 'block', fontSize: 12, color: 'var(--t3)' }}>
+                {lojaNome ? `${totalLojas} ${totalLojas === 1 ? 'loja cadastrada' : 'lojas cadastradas'}` : 'nenhuma cadastrada'}
+              </span>
+            </span>
+            {podeTrocarLoja && (
+              <span style={{ color: 'var(--t3)', display: 'flex' }}>
+                <ChevronDown size={16} />
+              </span>
+            )}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onPausarItem}
+          title="Pausar item (P)"
+          className="ds-btn--pausar-suave"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: aberta ? 'flex-start' : 'center',
+            gap: 10,
+            width: '100%',
+            height: 44,
+            padding: '0 12px',
+            borderRadius: 9,
+            border: '1px solid var(--warn-bd)',
+            background: 'var(--warn-bg)',
+            color: 'var(--t1)',
+            cursor: 'pointer',
+            fontSize: 14,
+            fontWeight: 600,
+          }}
+        >
+          <span style={{ color: 'var(--warn)', display: 'flex' }}>
+            <Pause size={18} />
           </span>
-          <span className="block truncate leading-tight mt-0.5" style={{ color: C.text3, fontSize: 11.5 }}>
-            {lojaNome ? `${plataformaLabel}${totalLojas > 1 ? ` · ${totalLojas} lojas` : ''}` : 'nenhuma cadastrada'}
-          </span>
-        </span>
-        {podeTrocarLoja && <ChevronsUpDown size={15} className="flex-shrink-0" style={{ color: C.text3 }} />}
-      </button>
+          {aberta && (
+            <>
+              <span style={{ flex: 1, textAlign: 'left' }}>Pausar item</span>
+              <kbd
+                style={{
+                  fontFamily: MONO,
+                  fontSize: 11.5,
+                  color: 'var(--t2)',
+                  border: '1px solid var(--borda)',
+                  background: 'var(--card)',
+                  borderRadius: 5,
+                  padding: '1px 6px',
+                }}
+              >
+                P
+              </kbd>
+            </>
+          )}
+        </button>
+      </div>
 
-      <Secao C={C}>Operação</Secao>
-      <div className="flex flex-col gap-1">
-        {VIEWS.filter((v) => !v.restrito || podeGerenciarCatalogoAvancado).map((v) => (
+      <nav
+        aria-label="Navegação principal"
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}
+      >
+        <SecaoNav aberta={aberta} topo={12}>
+          Operação
+        </SecaoNav>
+        {VIEWS.filter((v) => !v.restrito || podeVerFinanceiro).map((v) => (
           <ItemNav
             key={v.chave}
             Icon={v.Icon}
             label={v.label}
             ativo={view === v.chave}
-            badge={v.chave === 'catalogo' ? totalPausados : v.chave === 'kds' ? totalPedidosAtivos : 0}
-            badgeCor={v.chave === 'kds' ? C.info : C.neutral}
+            badge={v.chave === 'catalogo' ? totalPausados : 0}
             onClick={() => onMudarView(v.chave)}
-            C={C}
+            aberta={aberta}
           />
         ))}
-      </div>
 
-      {/* Pausas ficam fora do bloco restrito: pausar é tarefa do operador também. */}
-      <Secao C={C}>Pausas</Secao>
-      <div className="flex flex-col gap-1">
-        <ItemNav painel Icon={PackageX} label="Rupturas" badge={totalRupturas} onClick={onAbrirRupturas} C={C} />
-        <ItemNav painel Icon={SearchX} label="Pausar por insumo" onClick={onAbrirInsumo} C={C} />
-      </div>
-
-      {podeGerenciarCatalogoAvancado && (
-        <>
-          <Secao C={C}>Cardápio</Secao>
-          <div className="flex flex-col gap-1">
-            <ItemNav painel Icon={Tags} label="Categorias" onClick={onAbrirCategorias} C={C} />
-            <ItemNav painel Icon={Layers} label="Complementos" onClick={onAbrirGruposOpcao} C={C} />
-            <ItemNav painel Icon={Clock} label="Horário" onClick={onAbrirHorario} C={C} />
-            <ItemNav painel Icon={PowerOff} label="Interrupções" onClick={onAbrirInterrupcoes} C={C} />
-          </div>
-        </>
-      )}
-
-      {podeGerenciarUsuarios && (
-        <>
-          <Secao C={C}>Administração</Secao>
-          <div className="flex flex-col gap-1">
-            <ItemNav painel Icon={Users} label="Usuários" onClick={onAbrirUsuarios} C={C} />
-            <ItemNav painel Icon={Store} label="Lojas" onClick={onAbrirLojas} C={C} />
-            <ItemNav painel Icon={Palette} label="Marca" onClick={onAbrirMarca} C={C} />
-          </div>
-        </>
-      )}
-
-      {!podeGerenciarCatalogoAvancado && (
+        <SecaoNav aberta={aberta}>Ações rápidas</SecaoNav>
         <div
-          className="mt-5 rounded-xl p-3.5 leading-relaxed"
-          style={{ background: C.inputBg, border: `1px solid ${C.cardBorder}`, color: C.text3, fontSize: 12.5 }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            border: '1px dashed var(--borda)',
+            borderRadius: 9,
+            padding: 4,
+            flexShrink: 0,
+            marginTop: aberta ? 0 : 12,
+          }}
         >
-          Criar item, categorias, complementos e horário são do <b style={{ color: C.text2 }}>gerente</b> pra cima.
-          Pausar e ajustar preço continuam com você.
+          <AcaoRapida Icon={PackageX} label="Rupturas" badge={totalRupturas} onClick={onAbrirRupturas} aberta={aberta} />
+          <AcaoRapida Icon={Zap} label="Pausar por insumo" onClick={onAbrirInsumo} aberta={aberta} />
         </div>
-      )}
 
-      <div className="mt-auto" />
+        {souAdministrador && (
+          <>
+            <SecaoNav aberta={aberta}>Administração</SecaoNav>
+            {!aberta && <div style={{ height: 12 }} />}
+            {VIEWS_ADMIN.map((v) => (
+              <ItemNav key={v.chave} Icon={v.Icon} label={v.label} ativo={view === v.chave} onClick={() => onMudarView(v.chave)} aberta={aberta} />
+            ))}
+          </>
+        )}
+      </nav>
 
-      <div className="flex items-center gap-2.5 pt-3 mt-3 border-t" style={{ borderColor: C.rowBorder }}>
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0"
-          style={{ background: C.marca, color: C.marcaTexto, fontSize: 12.5 }}
-        >
-          {userIniciais}
-        </div>
-        <div className="min-w-0 flex-1 leading-tight">
-          <div className="font-semibold truncate" style={{ color: C.text1, fontSize: 13.5 }}>
-            {userNome}
+      <div style={{ borderTop: '1px solid var(--linha)', padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: aberta ? 'flex-start' : 'center' }}>
+          {/* Recolhida, a sidebar esconde "trocar senha" e "sair": o avatar vira o jeito de abrir
+              ela de volta, pra essas duas ações nunca ficarem inalcançáveis. */}
+          <div
+            role={aberta ? undefined : 'button'}
+            tabIndex={aberta ? undefined : 0}
+            onClick={aberta ? undefined : onExpandir}
+            onKeyDown={aberta ? undefined : (e) => (e.key === 'Enter' || e.key === ' ') && onExpandir()}
+            title={aberta ? undefined : `${userNome} · ${PAPEL_LABEL[userPapel] || userPapel} — abrir menu`}
+            style={{
+              cursor: aberta ? 'default' : 'pointer',
+              width: 34,
+              height: 34,
+              borderRadius: 99,
+              background: 'var(--marca-suave)',
+              color: 'var(--marca-tinta)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 12.5,
+              fontWeight: 700,
+              flexShrink: 0,
+            }}
+          >
+            {userIniciais}
           </div>
-          <div className="truncate capitalize" style={{ color: C.text3, fontSize: 11.5 }}>
-            {userPapel}
-          </div>
+          {aberta && (
+            <>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--t1)' }}>
+                  {userNome}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--t3)' }}>{PAPEL_LABEL[userPapel] || userPapel}</div>
+              </div>
+              <button type="button" onClick={onMinhaSenha} title="Trocar minha senha" aria-label="Trocar minha senha" className="ds-icone" style={{ width: 34, height: 34 }}>
+                <KeyRound size={16} />
+              </button>
+              <button type="button" onClick={onSair} title="Sair" aria-label="Sair" className="ds-icone" style={{ width: 34, height: 34 }}>
+                <LogOut size={16} />
+              </button>
+            </>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={onMinhaSenha}
-          title="Trocar minha senha"
-          aria-label="Trocar minha senha"
-          className="botao-icone-fantasma w-8 h-8 rounded-lg inline-flex items-center justify-center flex-shrink-0"
-          style={{ color: C.text3 }}
-        >
-          <KeyRound size={15} />
-        </button>
-        <button
-          type="button"
-          onClick={onSair}
-          title="Sair"
-          aria-label="Sair"
-          className="botao-icone-fantasma w-8 h-8 rounded-lg inline-flex items-center justify-center flex-shrink-0"
-          style={{ color: C.text3 }}
-        >
-          <LogOut size={15} />
-        </button>
+        {aberta && <div style={{ fontSize: 12, color: 'var(--t3)', paddingLeft: 2 }}>com PausaFast</div>}
       </div>
     </aside>
   )

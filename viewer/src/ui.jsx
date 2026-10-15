@@ -247,28 +247,50 @@ export function Toggle({ ligado, onChange, disabled = false, titulo }) {
   )
 }
 
+// Dentro de um provider com `true`, o Modal vira um cartão na própria página (sem fundo escuro,
+// sem Esc, sem travar rolagem). É como as telas de gestão (categorias, complementos, horário,
+// interrupções) viram abas do Cardápio sem duplicar a lógica delas.
+export const ModalEmbutidoContext = createContext(false)
+
 export function Modal({ titulo, eyebrow, onClose, children, largura = 'max-w-md' }) {
   const C = useContext(CoresContext)
+  const embutido = useContext(ModalEmbutidoContext)
 
   // Esc fecha. Antes só o clique no overlay ou no X fechavam — quem navega por teclado ficava
   // preso dentro do modal.
   useEffect(() => {
+    if (embutido) return undefined
     function aoTeclar(e) {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', aoTeclar)
     return () => window.removeEventListener('keydown', aoTeclar)
-  }, [onClose])
+  }, [onClose, embutido])
 
   // Trava a rolagem do fundo enquanto o modal está aberto: sem isso, rolar dentro de um modal
   // curto passava o scroll pra tabela atrás e a pessoa perdia o lugar na lista ao fechar.
   useEffect(() => {
+    if (embutido) return undefined
     const anterior = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = anterior
     }
-  }, [])
+  }, [embutido])
+
+  if (embutido) {
+    return (
+      <section
+        aria-label={titulo}
+        style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12, overflow: 'hidden', maxWidth: 1040 }}
+      >
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--linha)' }}>
+          <h2 style={{ margin: 0, fontSize: 15.5, fontWeight: 700, color: 'var(--t1)' }}>{titulo}</h2>
+        </div>
+        <div className="p-5">{children}</div>
+      </section>
+    )
+  }
 
   return (
     <div

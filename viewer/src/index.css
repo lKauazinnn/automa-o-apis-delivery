@@ -27,10 +27,62 @@
   --marca-borda: #2b59c347;
   --marca-anel: #2b59c340;
 
+  /* Tokens do redesign (mesmos valores de PALETAS em ui.jsx), pros componentes de ds.jsx
+     escreverem cor como var(--card), var(--t1)... em vez de receber `C` por prop. */
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --card2: #f7f8fa;
+  --input: #f1f3f5;
+  --borda: #dfe2e7;
+  --linha: #eceef1;
+  --t1: #12151b;
+  --t2: #4b5361;
+  --t3: #626a79;
+  --good: #1a7f4b;
+  --good-bg: #e7f3ec;
+  --good-bd: #bbdcc9;
+  --warn: #a35406;
+  --warn-bg: #fbf0e3;
+  --warn-bd: #eccca8;
+  --bad: #c8322b;
+  --bad-bg: #fbeae8;
+  --bad-bd: #f0c2be;
+  --info: #0b7285;
+  --info-bg: #e4f1f3;
+  --info-bd: #b2d6dd;
+  --sh: 0 16px 40px -10px rgba(16, 24, 40, 0.22), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --sh-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --veu: rgba(14, 17, 22, 0.44);
+
   color-scheme: light;
 }
 
 :root.tema-escuro {
+  --bg: #0d0f13;
+  --card: #15181e;
+  --card2: #1b1f26;
+  --input: #111419;
+  --borda: #272c35;
+  --linha: #1e2229;
+  --t1: #f1f3f6;
+  --t2: #a7afbc;
+  --t3: #858e9c;
+  --good: #3dc981;
+  --good-bg: rgba(61, 201, 129, 0.11);
+  --good-bd: rgba(61, 201, 129, 0.3);
+  --warn: #f0a23b;
+  --warn-bg: rgba(240, 162, 59, 0.12);
+  --warn-bd: rgba(240, 162, 59, 0.32);
+  --bad: #f26a5f;
+  --bad-bg: rgba(242, 106, 95, 0.12);
+  --bad-bd: rgba(242, 106, 95, 0.34);
+  --info: #3bb6d4;
+  --info-bg: rgba(59, 182, 212, 0.11);
+  --info-bd: rgba(59, 182, 212, 0.3);
+  --sh: 0 18px 44px -10px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --veu: rgba(0, 0, 0, 0.6);
+
   --fundo: #0d0f13;
   --texto: #f1f3f6;
   --borda-rolagem: #2e343e;
@@ -161,6 +213,258 @@ tr {
 }
 .botao-perigo:hover:not(:disabled) {
   background: var(--perigo-hover);
+}
+
+/* ── Componentes do redesign (ds.jsx) ─────────────────────────────────────────────────────
+   Botões: altura vem do tamanho (`.ds-btn--sm/md/lg`), cor da variante. Hover sempre aumenta o
+   contraste ou só escurece a borda — nunca troca a cor de destaque por outra. */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  line-height: 1;
+}
+.ds-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ds-btn--xs {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+  border-radius: 7px;
+}
+.ds-btn--sm {
+  height: 36px;
+  padding: 0 12px;
+}
+.ds-btn--lg {
+  height: 44px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+.ds-btn--xl {
+  height: 48px;
+  padding: 0 18px;
+  font-size: 15px;
+}
+.ds-btn--primario {
+  background: var(--marca);
+  color: var(--marca-texto);
+}
+.ds-btn--primario:hover:not(:disabled) {
+  background: var(--marca-hover);
+}
+.ds-btn--secundario {
+  background: var(--card);
+  color: var(--t1);
+  border-color: var(--borda);
+}
+.ds-btn--secundario:hover:not(:disabled) {
+  border-color: var(--t3);
+}
+.ds-btn--pausar {
+  background: var(--card);
+  color: var(--t1);
+  border-color: var(--borda);
+}
+.ds-btn--pausar:hover:not(:disabled) {
+  border-color: var(--warn-bd);
+  background: var(--warn-bg);
+}
+.ds-btn--pausar-suave {
+  background: var(--warn-bg);
+  color: var(--t1);
+  border-color: var(--warn-bd);
+}
+.ds-btn--pausar-suave:hover:not(:disabled) {
+  border-color: var(--warn);
+}
+.ds-btn--reativar {
+  background: var(--good-bg);
+  color: var(--good);
+  border-color: var(--good-bd);
+}
+.ds-btn--reativar:hover:not(:disabled) {
+  border-color: var(--good);
+}
+.ds-btn--fantasma {
+  background: transparent;
+  color: var(--t2);
+}
+.ds-btn--fantasma:hover:not(:disabled) {
+  background: var(--input);
+  color: var(--t1);
+}
+.ds-btn--perigo {
+  background: var(--bad);
+  color: var(--card);
+}
+.ds-btn--perigo-fantasma {
+  background: transparent;
+  color: var(--bad);
+}
+.ds-btn--perigo-fantasma:hover:not(:disabled) {
+  background: var(--bad-bg);
+}
+.ds-btn--link {
+  background: transparent;
+  color: var(--marca-tinta);
+  padding: 6px 4px;
+  height: auto;
+}
+.ds-btn--link:hover:not(:disabled) {
+  color: var(--marca-hover);
+}
+
+/* Botão só de ícone: quadrado, sem fundo em repouso. */
+.ds-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 7px;
+  border: 0;
+  background: transparent;
+  color: var(--t2);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ds-icone:hover:not(:disabled) {
+  background: var(--input);
+  color: var(--t1);
+}
+.ds-icone--perigo:hover:not(:disabled) {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+.ds-icone:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Campo com ícone (busca) — o anel de foco aparece no contêiner, não no <input> interno. */
+.ds-campo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 9px;
+  background: var(--input);
+  border: 1px solid var(--borda);
+  color: var(--t1);
+}
+.ds-campo:focus-within {
+  border-color: var(--marca-tinta);
+  box-shadow: 0 0 0 3px var(--marca-anel);
+}
+.ds-campo input,
+.ds-campo input:focus {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--t1);
+}
+.ds-input {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid var(--borda);
+  background: var(--input);
+  color: var(--t1);
+  font-size: 14px;
+  width: 100%;
+}
+textarea.ds-input {
+  height: auto;
+  padding: 10px 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+.ds-input::placeholder,
+.ds-campo input::placeholder {
+  color: var(--t3);
+}
+
+/* Item de navegação da sidebar. Ativo = fundo suave da marca + ícone na tinta da marca. */
+.ds-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--t2);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+  flex-shrink: 0;
+  text-align: left;
+}
+.ds-nav:hover {
+  background: var(--input);
+}
+.ds-nav[aria-current='page'] {
+  background: var(--marca-suave);
+  border-color: var(--marca-borda);
+  color: var(--t1);
+  font-weight: 600;
+}
+.ds-nav[aria-current='page'] .ds-nav__icone {
+  color: var(--marca-tinta);
+}
+
+/* Linha de tabela/lista com hover sutil. */
+.ds-linha:hover {
+  background: var(--card2);
+}
+.ds-opcao:hover {
+  background: var(--input);
+}
+
+@keyframes drawer-entrar {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.drawer-entrada {
+  animation: drawer-entrar 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes folha-entrar {
+  from {
+    transform: translateY(32px);
+  }
+  to {
+    transform: none;
+  }
+}
+.folha-entrada {
+  animation: folha-entrar 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes toast-entrar {

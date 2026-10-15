@@ -34,6 +34,35 @@ export function normalizar(texto) {
     .trim()
 }
 
+// Prefixos de porção/linha que não ajudam a identificar o "prato" em si
+// (ex: "Com Ancho Black" / "Fam Ancho Black" / "Exec Ancho Black" são o mesmo corte, tamanhos diferentes).
+const PALAVRAS_IGNORADAS = new Set([
+  'com', 'de', 'da', 'do', 'das', 'dos', 'e', 'a', 'o', 'as', 'os', 'na', 'no', 'em', 'pra', 'ao', 'aos',
+  'add', 'fam', 'exec', 'kids', 'promo', 'pro', 'week', 'def', 'fest', 'vt', 'esp', 'dose', 't',
+])
+
+export function palavrasChave(nome) {
+  return normalizar(nome)
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .filter((p) => p.length >= 4)
+    .filter((p) => !/\d/.test(p))
+    .filter((p) => !PALAVRAS_IGNORADAS.has(p))
+}
+
+// Itens com palavra em comum no nome, os mais parecidos primeiro — sinal de que usam o mesmo
+// insumo (ruptura de um ingrediente derruba todas as variações do prato).
+export function encontrarRelacionados(item, todosItens) {
+  const chave = palavrasChave(item.nome)
+  if (!chave.length) return []
+  return todosItens
+    .filter((i) => i.itemId !== item.itemId)
+    .map((i) => ({ item: i, comuns: palavrasChave(i.nome).filter((p) => chave.includes(p)).length }))
+    .filter((r) => r.comuns > 0)
+    .sort((a, b) => b.comuns - a.comuns)
+    .map((r) => r.item)
+}
+
 export function horaCurta(iso) {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
