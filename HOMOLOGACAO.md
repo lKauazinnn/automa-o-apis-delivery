@@ -175,3 +175,30 @@ Parceiro continuam sem aparecer (a API não devolve).
 `PATCH .../items/status`, `.../items/price` e `.../items/externalCode` estão marcados como
 deprecados pelo iFood (ainda funcionam). Trocar exige testar o substituto contra o sandbox
 alterando item real — pendente. Se o avaliador apontar, é a próxima troca a fazer.
+
+## Desempenho (equivalente à aba Desempenho do Portal) — adicionado 2026-11-10
+
+Tela **Desempenho** no painel (`viewer/src/views/DesempenhoView.jsx`), rota `GET /api/desempenho`
+(`?inicio&fim[&todas=1][&atualizar=1]`), agregação em `server/desempenho.py`.
+
+| Bloco | Fonte | Endpoint real do iFood | Confiança |
+|---|---|---|---|
+| Vendas (nº de pedidos, valor, ticket médio, por dia/hora/canal/logística/loja) | Financial v3 sales | `GET financial/v3.0/merchants/{id}/sales` (paginado, `page` começa em 1) | 🟢 |
+| Promoções: pedidos com promoção, investimento por patrocinador (Loja/iFood/Rede/Indústria), retorno por R$ 1 | Financial v3 sales | `benefits.benefits[].sponsorships[]` | 🟡 formato da doc; sandbox não tem venda com desconto |
+| Tempos da loja (aceite, preparo, despacho, entrega, total) | Financial v3 sales | `orderEvents[]` (RECEIVED, CONFIRMED, PREPARATION_STARTED, READY_TO_DELIVER, DISPATCHED, CONCLUDED) | 🟢 |
+| Tempos de logística (entregador esperando na loja, indo à loja, até o cliente, atraso) | Analytics (D-1) | `POST analytics/v1.0/merchants/{id}/orders/kpis` (`page`/`size` no corpo) | 🟢 acesso; sandbox sem dado agregado |
+| Cancelamentos (motivo, quem cancelou, estágio) | Sales (código) + evento `CAN` em `eventos_ifood` (texto) + Analytics | idem | 🟢 |
+| Clientes (novos, recorrentes, recuperados, em alerta, perdidos) | `pedidos.cliente.id` + `customer.ordersCountOnMerchant`; Analytics `customerFirstOrderInMerchant` | — | 🟢 regras; histórico só desde que o painel recebe pedidos |
+| Avaliações (nota, distribuição, comentários) | Review v2 | `GET review/v2.0/merchants/{id}/reviews` e `/summary` (404 = sem avaliação) | 🟢 acesso; sandbox sem avaliação |
+| Relatórios CSV separados de **vendas** e de **promoções** | front (`relatorioVendas` / `relatorioPromocoes`) | — | 🟢 |
+
+**Sem API pública (confirmado na doc em 10/11/2026):** funil de conversão do cardápio, Ads
+(anúncios) e Super Restaurante.
+
+**Bug corrigido junto:** `get_sales` só lia a 1ª página de cada janela de 8 dias (a API pagina);
+a tela Financeiro subcontava vendas em loja com movimento real.
+
+**Aviso de loja fechada no WhatsApp:** `server/alertas.py`, disparado por `registrar_status_loja`
+na virada aberta ↔ fechada (ignora fechamento só por horário). Provedor configurável no `.env`
+(callmebot, zapi, evolution ou webhook) — **ainda sem provedor escolhido**, então hoje só registra
+no log.

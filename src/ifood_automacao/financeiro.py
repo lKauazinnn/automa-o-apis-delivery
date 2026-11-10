@@ -59,15 +59,29 @@ def _como_lista(corpo, *chaves):
     return []
 
 
+MAX_PAGINAS_VENDAS = 200  # trava de segurança: 200 páginas por janela de 8 dias
+
+
 def get_sales(merchant_id: str, inicio: date, fim: date) -> list[dict]:
-    """Vendas do período, já juntando as janelas de 8 dias."""
+    """Vendas do período, juntando as janelas de 8 dias e TODAS as páginas de cada uma.
+
+    A resposta é paginada (confirmado no sandbox em 2026-11-10): {page, size, total, pageCount,
+    sales}; `page` começa em 1 (0 → 400 "Page must be greater than 0") e não passa de pageCount.
+    `size` não é aceito como parâmetro. Antes só a 1ª página era lida, e em loja real isso
+    cortava o período nas primeiras vendas de cada janela."""
     vendas = []
     for de, ate in _janelas(inicio, fim, JANELA_MAX_VENDAS):
-        corpo = _get(
-            f"/merchants/{merchant_id}/sales",
-            {"beginSalesDate": de.isoformat(), "endSalesDate": ate.isoformat()},
-        )
-        vendas.extend(_como_lista(corpo, "sales", "data", "content"))
+        pagina = 1
+        while True:
+            corpo = _get(
+                f"/merchants/{merchant_id}/sales",
+                {"beginSalesDate": de.isoformat(), "endSalesDate": ate.isoformat(), "page": pagina},
+            )
+            vendas.extend(_como_lista(corpo, "sales", "data", "content"))
+            total_paginas = int((corpo or {}).get("pageCount") or 1) if isinstance(corpo, dict) else 1
+            if pagina >= total_paginas or pagina >= MAX_PAGINAS_VENDAS:
+                break
+            pagina += 1
     return vendas
 
 

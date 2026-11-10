@@ -18,6 +18,8 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+# Módulos irmãos (desempenho.py, alertas.py) — vale também quando o worker importa `server.app`.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from dotenv import load_dotenv  # noqa: E402
 
@@ -46,6 +48,10 @@ from ifood_automacao.pedidos import (  # noqa: E402
     reject_dispute,
 )
 from ifood_automacao.financeiro import get_financial_events, get_sales, get_settlements  # noqa: E402
+from ifood_automacao import analytics as ifood_analytics  # noqa: E402
+from ifood_automacao import avaliacoes as ifood_avaliacoes  # noqa: E402
+import desempenho  # noqa: E402  (server/desempenho.py — agregações da tela Desempenho)
+import alertas  # noqa: E402  (server/alertas.py — aviso no WhatsApp quando a loja fecha)
 from ifood_automacao.client import (  # noqa: E402
     create_category,
     create_combo,
@@ -1834,6 +1840,11 @@ def _lojas_ifood():
     return [l for l in resp.json() if (l.get("plataforma") or "ifood") == "ifood"]
 
 
+def _eh_keepalive(linha_evento):
+    payload = linha_evento.get("payload") or {}
+    return str(payload.get("code") or payload.get("fullCode") or "").upper() == "KEEPALIVE"
+
+
 def _processar_eventos(merchant_ids) -> int:
     """Um ciclo de polling pra uma ou mais lojas: busca eventos pendentes, materializa/atualiza
     pelos MESMOS helpers do webhook, grava o log em `eventos_ifood` e confirma (ack) no iFood.
@@ -1874,6 +1885,9 @@ def _processar_eventos(merchant_ids) -> int:
         if novo:
             novos_pedidos += 1
 
+    # KEEPALIVE chega a cada polling e não diz nada — em 10/11/2026 eram quase todas as ~316 mil
+    # linhas de `eventos_ifood`. Continua recebendo ACK (abaixo), só não é mais gravado.
+    linhas_evento = [l for l in linhas_evento if not _eh_keepalive(l)]
     if linhas_evento:
         try:
             requests.post(f"{SUPABASE_URL}/rest/v1/eventos_ifood", headers=_supabase_headers(), json=linhas_evento, timeout=10)
@@ -2272,6 +2286,7 @@ def webhook_ifood():
             }
         linhas.append(linha)
 
+    linhas = [l for l in linhas if not _eh_keepalive(l)]
     if linhas:
         try:
             requests.post(f"{SUPABASE_URL}/rest/v1/eventos_ifood", headers=_supabase_headers(), json=linhas, timeout=10)
@@ -2862,6 +2877,8 @@ def registrar_status_loja(status):
             json={k: status[k] for k in ("merchant_id", "plataforma", "aberta", "estado", "motivo")},
             timeout=10,
         ).raise_for_status()
+        # WhatsApp só na virada aberta ↔ fechada (troca de motivo com a loja já fechada não avisa).
+        alertas.avisar_mudanca_loja(status, linha_anterior.get("aberta") if linha_anterior else None)
     return mudou
 
 
@@ -3091,6 +3108,158 @@ def get_financeiro_ifood():
         "saldo_repasses": _num(repasses.get("balance")),
         "qtd_repasses": len(repasses.get("settlements") or []),
     }
+    return jsonify(resultado)
+
+
+# --------------------------------------------------------------------------- Desempenho
+# Equivalente à aba "Desempenho" do Portal do Parceiro: vendas, promoções/ROI, tempos de operação,
+# cancelamentos, clientes e avaliações. Agregação em server/desempenho.py. Cada bloco é
+# independente: se uma API falhar, os outros blocos voltam e o erro vai em `erros`.
+
+_CACHE_DESEMPENHO = {}
+CACHE_DESEMPENHO_SEG = 180
+
+
+def _lojas_ifood_alvo(todas):
+    """Loja atual, ou todas as lojas iFood cadastradas (`?todas=1`)."""
+    if todas:
+        lojas = [l for l in _todas_lojas() if (l.get("plataforma") or "ifood") == "ifood"]
+        if lojas:
+            return lojas
+    merchant_id = _merchant_id()
+    try:
+        cadastradas = {l["merchant_id"]: l for l in _todas_lojas()}
+    except requests.exceptions.RequestException:
+        cadastradas = {}
+    loja = cadastradas.get(merchant_id) or {"merchant_id": merchant_id, "nome": "", "plataforma": "ifood"}
+    if (loja.get("plataforma") or "ifood") != "ifood":
+        raise ValueError("Desempenho usa as APIs do iFood — selecione uma loja iFood (o 99Food não tem API de relatórios).")
+    return [loja]
+
+
+def _pedidos_para_clientes(merchant_ids, fim):
+    """Histórico de pedidos não cancelados (até `fim`) com o id do cliente, pra segmentação."""
+    pedidos = []
+    for mid in merchant_ids:
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/pedidos",
+            headers=_supabase_headers(),
+            params={
+                "select": "cliente,recebido_em,status,anteriores:detalhes_brutos->customer->>ordersCountOnMerchant",
+                "merchant_id": f"eq.{mid}",
+                "status": "neq.CANCELADO",
+                "recebido_em": f"lte.{fim.isoformat()}T23:59:59",
+                "order": "recebido_em.asc",
+                "limit": "50000",
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        for p in resp.json():
+            cliente = p.get("cliente") or {}
+            anteriores = p.get("anteriores")
+            pedidos.append({
+                "cliente_id": cliente.get("id"),
+                "nome": cliente.get("name"),
+                "quando": desempenho._dt(p.get("recebido_em")),
+                "anteriores": int(anteriores) if str(anteriores or "").isdigit() else None,
+            })
+    return pedidos
+
+
+def _completar_motivos_cancelamento(linhas):
+    """A Sales API só traz o código do cancelamento; o motivo por extenso (e origem/estágio) está
+    no evento CAN que o polling já gravou em `eventos_ifood`. O id da venda é o id do pedido."""
+    canceladas = {l["id"]: l for l in linhas if l.get("cancelamento") and l.get("id")}
+    ids = list(canceladas)
+    for i in range(0, len(ids), 100):
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/eventos_ifood",
+            headers=_supabase_headers(),
+            params={"select": "pedido_ifood_id,payload", "pedido_ifood_id": f"in.({','.join(ids[i:i + 100])})", "payload->>code": "eq.CAN"},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        for ev in resp.json():
+            desempenho.completar_cancelamento(canceladas.get(ev["pedido_ifood_id"]), (ev.get("payload") or {}).get("metadata"))
+
+
+def _desempenho_da_loja(loja, inicio, fim):
+    """Tudo que vem do iFood pra UMA loja. Roda em thread (uma por loja)."""
+    mid, nome = loja["merchant_id"], loja.get("nome") or ""
+    saida = {"merchant_id": mid, "linhas": [], "analytics": {}, "resumo_avaliacoes": None, "avaliacoes": [], "erros": {}}
+
+    def tentar(chave, func):
+        try:
+            return com_retry(func)
+        except requests.exceptions.HTTPError as exc:
+            corpo = exc.response.text[:300] if exc.response is not None else str(exc)
+            saida["erros"][chave] = f"{nome or mid}: {corpo}"
+            logger.warning("Desempenho (%s, %s) falhou: %s", chave, mid, corpo)
+        except Exception as exc:  # noqa: BLE001 — um bloco não derruba os outros
+            saida["erros"][chave] = f"{nome or mid}: {exc}"
+            logger.warning("Desempenho (%s, %s) falhou: %s", chave, mid, exc)
+        return None
+
+    vendas = tentar("vendas", lambda: get_sales(mid, inicio, fim)) or []
+    saida["linhas"] = [desempenho.linha_venda(v, nome) for v in vendas]
+    for chave, agg, filtro in desempenho.consultas_analytics():
+        saida["analytics"][chave] = tentar("analytics", lambda: ifood_analytics.get_kpis(mid, inicio, fim, agg, filtro)) or []
+    saida["resumo_avaliacoes"] = tentar("avaliacoes", lambda: ifood_avaliacoes.get_resumo(mid))
+    avals = tentar("avaliacoes", lambda: ifood_avaliacoes.get_avaliacoes(mid, inicio, fim)) or []
+    saida["avaliacoes"] = [{**a, "_loja": nome} for a in avals]
+    return saida
+
+
+@app.get("/api/desempenho")
+@requer_papel("administrador", "gerente")
+def get_desempenho():
+    from concurrent.futures import ThreadPoolExecutor
+
+    inicio, fim = _periodo()
+    todas = request.args.get("todas") == "1"
+    lojas = _lojas_ifood_alvo(todas)
+    chave_cache = (tuple(sorted(l["merchant_id"] for l in lojas)), inicio, fim)
+    em_cache = _CACHE_DESEMPENHO.get(chave_cache)
+    if em_cache and time.time() - em_cache[0] < CACHE_DESEMPENHO_SEG and request.args.get("atualizar") != "1":
+        return jsonify(em_cache[1])
+
+    with ThreadPoolExecutor(max_workers=min(8, len(lojas))) as pool:
+        por_loja = list(pool.map(lambda l: _desempenho_da_loja(l, inicio, fim), lojas))
+
+    linhas = [l for p in por_loja for l in p["linhas"]]
+    erros = {}
+    try:
+        _completar_motivos_cancelamento(linhas)
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Não consegui completar motivos de cancelamento: %s", exc)
+    for p in por_loja:
+        for k, v in p["erros"].items():
+            erros.setdefault(k, []).append(v)
+
+    clientes = None
+    try:
+        clientes = desempenho.segmentar_clientes(_pedidos_para_clientes([l["merchant_id"] for l in lojas], fim), inicio, fim)
+    except requests.exceptions.RequestException as exc:
+        erros.setdefault("clientes", []).append(str(exc)[:300])
+
+    resultado = {
+        "inicio": inicio.isoformat(),
+        "fim": fim.isoformat(),
+        "lojas": [{"merchant_id": l["merchant_id"], "nome": l.get("nome")} for l in lojas],
+        "analytics_ate": min(fim, ifood_analytics.ultimo_dia_disponivel()).isoformat(),
+        "vendas": desempenho.resumir_vendas(linhas, inicio, fim),
+        "promocoes": desempenho.resumir_promocoes(linhas),
+        "operacao": desempenho.resumir_operacao(linhas),
+        "cancelamentos": desempenho.resumir_cancelamentos(linhas),
+        "analytics": desempenho.juntar_analytics([p["analytics"] for p in por_loja]),
+        "clientes": clientes,
+        "avaliacoes": desempenho.resumir_avaliacoes([p["resumo_avaliacoes"] for p in por_loja], [a for p in por_loja for a in p["avaliacoes"]]),
+        # pedido a pedido, pros relatórios CSV de vendas e de promoções
+        "linhas": linhas,
+        "erros": erros,
+    }
+    _CACHE_DESEMPENHO[chave_cache] = (time.time(), resultado)
     return jsonify(resultado)
 
 

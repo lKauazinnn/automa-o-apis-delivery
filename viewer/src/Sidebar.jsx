@@ -15,6 +15,7 @@ import {
   Users,
   UtensilsCrossed,
   Wallet,
+  TrendingUp,
   Zap,
   Activity,
 } from 'lucide-react'
@@ -31,6 +32,7 @@ export const VIEWS = [
   { chave: 'catalogo', label: 'Cardápio', Icon: Tag },
   { chave: 'lojas', label: 'Status das lojas', Icon: Activity },
   { chave: 'financeiro', label: 'Financeiro', Icon: Wallet, restrito: true },
+  { chave: 'desempenho', label: 'Desempenho', Icon: TrendingUp, restrito: true },
   { chave: 'auditoria', label: 'Histórico', Icon: History },
 ]
 

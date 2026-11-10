@@ -33,6 +33,7 @@ import { LojasSecao, MarcaSecao, UsuariosSecao } from './views/AdminView'
 import { CatalogoCelular, CatalogoView } from './views/CatalogoView'
 import { DashboardView } from './views/DashboardView'
 import { FinanceiroView } from './views/FinanceiroView'
+import { DesempenhoView } from './views/DesempenhoView'
 import { StatusLojasView } from './views/StatusLojasView'
 import { KDSView } from './views/KDSView'
 import { PedidosView } from './views/PedidosView'
@@ -46,6 +47,7 @@ const TITULOS_VIEW = {
   catalogo: { t: 'Cardápio', sub: 'Gestão de itens' },
   lojas: { t: 'Status das lojas', sub: 'Aberta ou fechada agora, loja a loja' },
   financeiro: { t: 'Financeiro', sub: 'Faturamento, ticket médio e repasses' },
+  desempenho: { t: 'Desempenho', sub: 'Vendas, promoções, tempos, cancelamentos, clientes e avaliações do iFood' },
   auditoria: { t: 'Histórico', sub: 'Tudo que a equipe alterou, em ordem' },
   usuarios: { t: 'Usuários', sub: 'Quem tem acesso ao painel' },
   'lojas-admin': { t: 'Lojas', sub: 'Lojas e plataformas conectadas' },
@@ -1961,6 +1963,10 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
               {view === 'financeiro' && podeCriarItem && (
                 <FinanceiroView apiFetch={apiFetch} notificar={notificar} lojaAtual={lojaAtual} />
+              )}
+
+              {view === 'desempenho' && podeCriarItem && (
+                <DesempenhoView apiFetch={apiFetch} notificar={notificar} lojaAtual={lojaAtual} />
               )}
 
               {view === 'auditoria' && <AuditoriaView auditoria={auditoria} />}

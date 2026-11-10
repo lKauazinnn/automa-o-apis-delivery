@@ -3,44 +3,10 @@ import { AlertTriangle, Download, Landmark, Loader2, Wallet } from 'lucide-react
 import { Botao, EstadoVazio, Esqueleto, MONO, Segmentado } from '../ds'
 import { formatarTimestamp } from '../ui'
 import { rotularPagamento, TIPO_LABEL } from '../rotulos'
+import { baixarCsv, br, brl, diaCurto, periodoPreset } from '../periodo'
 
-const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const STATUS_VENDA = { CONCLUDED: 'Concluída', CANCELLED: 'Cancelada', CONFIRMED: 'Confirmada', DISPATCHED: 'Despachada', PLACED: 'Recebida' }
 const CORES_QUEBRA = ['var(--marca)', 'var(--info)', 'var(--warn)', 'var(--t3)', 'var(--good)', 'var(--bad)']
-
-function isoLocal(d) {
-  const off = d.getTimezoneOffset()
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10)
-}
-
-function periodoPreset(chave) {
-  const hoje = new Date()
-  const fim = isoLocal(hoje)
-  if (chave === 'hoje') return { inicio: fim, fim }
-  if (chave === '7d') return { inicio: isoLocal(new Date(hoje.getTime() - 6 * 86400000)), fim }
-  if (chave === '30d') return { inicio: isoLocal(new Date(hoje.getTime() - 29 * 86400000)), fim }
-  if (chave === 'mes') return { inicio: isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), 1)), fim }
-  return null
-}
-
-const br = (iso) => (iso ? iso.split('-').reverse().slice(0, 2).join('/') : '')
-
-function diaCurto(iso) {
-  const [a, m, d] = iso.split('-')
-  const dt = new Date(Number(a), Number(m) - 1, Number(d))
-  return `${dt.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')} ${d}/${m}`
-}
-
-function baixarCsv(nome, linhas) {
-  const csv = linhas.map((l) => l.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(';')).join('\n')
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = nome
-  a.click()
-  URL.revokeObjectURL(url)
-}
 
 const cartao = { background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12 }
 
