@@ -15,26 +15,32 @@ export function InterrupcoesModal({ onClose, apiFetch, notificar, podeEditar, C,
     try {
       const dados = await apiFetch('/interrupcoes')
       if (montado.current) setInterrupcoes(dados)
+      return dados
     } catch (e) {
       if (!silencioso) notificar('erro', e.message)
+      return null
     } finally {
       if (!silencioso && montado.current) setCarregando(false)
     }
   }
 
-  // A lista do iFood é eventualmente consistente: uma interrupção recém-criada/removida leva
-  // ~10-15s pra aparecer/sumir. Reconsultamos em silêncio algumas vezes pra a tela refletir a
-  // realidade sem depender de um refresh manual (importante na gravação da homologação).
-  function recarregarComPropagacao() {
-    carregar()
-    for (const ms of [6000, 13000]) {
-      setTimeout(() => {
-        if (montado.current) carregar(true)
-      }, ms)
+  // A lista do iFood é eventualmente consistente: uma interrupção recém-criada/removida leva de
+  // ~10s a mais de 1 min pra aparecer/sumir (medido no sandbox em 10/11/2026). Reconsultamos em
+  // silêncio a cada 5s até a lista refletir a mudança (ou 2 min), sem depender de refresh manual.
+  async function recarregarComPropagacao(refletiu) {
+    const ate = Date.now() + 120000
+    let dados = await carregar(true)
+    while (montado.current && !(dados && refletiu(dados)) && Date.now() < ate) {
+      await new Promise((r) => setTimeout(r, 5000))
+      if (!montado.current) return
+      dados = (await carregar(true)) ?? dados
     }
   }
 
   useEffect(() => {
+    // Religa a flag: no StrictMode (dev) o efeito monta → limpa → monta de novo, e sem isso
+    // `montado` ficava false pra sempre e a lista travava em "Carregando...".
+    montado.current = true
     carregar()
     return () => {
       montado.current = false
@@ -47,7 +53,7 @@ export function InterrupcoesModal({ onClose, apiFetch, notificar, podeEditar, C,
     if (!form.descricao.trim() || !form.inicio || !form.fim) return
     setCriando(true)
     try {
-      await apiFetch('/interrupcoes', {
+      const criada = await apiFetch('/interrupcoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -58,7 +64,8 @@ export function InterrupcoesModal({ onClose, apiFetch, notificar, podeEditar, C,
       })
       notificar('sucesso', 'Interrupção criada — a loja fecha automaticamente nesse período.')
       setForm({ descricao: '', inicio: '', fim: '' })
-      recarregarComPropagacao()
+      const idNovo = criada?.id
+      recarregarComPropagacao((lista) => (idNovo ? lista.some((i) => i.id === idNovo) : lista.length > 0))
     } catch (e) {
       notificar('erro', e.message)
     } finally {
@@ -71,7 +78,7 @@ export function InterrupcoesModal({ onClose, apiFetch, notificar, podeEditar, C,
     try {
       await apiFetch(`/interrupcoes/${interrupcao.id}`, { method: 'DELETE' })
       notificar('sucesso', 'Interrupção removida.')
-      recarregarComPropagacao()
+      recarregarComPropagacao((lista) => !lista.some((i) => i.id === interrupcao.id))
     } catch (e) {
       notificar('erro', e.message)
     } finally {

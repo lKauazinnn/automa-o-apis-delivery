@@ -321,7 +321,9 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
         for (const [grupoId, opcoes] of Object.entries(prev)) {
           next[grupoId] = opcoes.map((o) =>
             o.productId === opcao.productId
-              ? { ...o, name: form.nome.trim(), imagePath: imagemPath, price: { value: preco } }
+              ? // Mostra a foto do formulário (data URL ou URL completa), não o `imagemPath` do upload:
+                // ele é relativo ("<merchant>/<arquivo>.png") e o <img> quebrava. Igual ao criar.
+                { ...o, name: form.nome.trim(), imagePath: form.foto, price: { value: preco } }
               : o
           )
         }
@@ -424,6 +426,16 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
                           value={novaOpcao.nome}
                           onChange={(e) => setNovaOpcao({ ...novaOpcao, nome: e.target.value })}
                           placeholder="Nome do complemento"
+                        />
+                        {/* O iFood recusa opção sem externalCode ("externalCode must be longer than or equal to 1 characters"). */}
+                        <input
+                          required
+                          className="w-24 flex-shrink-0 rounded-md px-2 py-1.5 text-xs outline-none fonte-mono"
+                          style={inputStyle}
+                          value={novaOpcao.codigo_pdv}
+                          onChange={(e) => setNovaOpcao({ ...novaOpcao, codigo_pdv: e.target.value })}
+                          placeholder="Código PDV"
+                          aria-label="Código PDV do complemento"
                         />
                         <input
                           required
