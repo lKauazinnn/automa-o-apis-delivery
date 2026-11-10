@@ -3224,7 +3224,9 @@ def get_desempenho():
     if em_cache and time.time() - em_cache[0] < CACHE_DESEMPENHO_SEG and request.args.get("atualizar") != "1":
         return jsonify(em_cache[1])
 
-    with ThreadPoolExecutor(max_workers=min(8, len(lojas))) as pool:
+    # Uma thread por loja (até 16): na Vercel a função tem 60s, e uma loja com 30 dias de vendas
+    # leva ~10-15s na 1ª consulta. Limites do iFood: Sales 1000 req/min, Analytics 500 req/min.
+    with ThreadPoolExecutor(max_workers=min(16, len(lojas))) as pool:
         por_loja = list(pool.map(lambda l: _desempenho_da_loja(l, inicio, fim), lojas))
 
     linhas = [l for p in por_loja for l in p["linhas"]]
