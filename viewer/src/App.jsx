@@ -188,6 +188,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   // consultado; { disponivel:false } = iFood não respondeu (não mostra selo).
   const [verificacaoIfood, setVerificacaoIfood] = useState(null)
   const [verificacao99, setVerificacao99] = useState(null)
+  const [statusLojasCartao, setStatusLojasCartao] = useState(null) // { carregando, porLoja: {merchant_id: {aberta, motivo}} }
   const [modalDetalhesLoja, setModalDetalhesLoja] = useState(false)
   const [carregandoDetalhesLoja, setCarregandoDetalhesLoja] = useState(false)
   const [detalhesLoja, setDetalhesLoja] = useState(null)
@@ -397,6 +398,19 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       })
       .catch(() => {
         if (!cancelado) setVerificacaoIfood({ disponivel: false, ids: new Set() })
+      })
+    // Aberta/fechada de cada loja (iFood e 99): a mesma verificação da tela Status das lojas —
+    // lê o que o monitor gravou ou consulta as plataformas agora.
+    setStatusLojasCartao((v) => ({ ...(v || {}), carregando: true }))
+    apiFetch('/lojas/status')
+      .then((r) => {
+        if (cancelado) return
+        const porLoja = {}
+        for (const s of r?.lojas || []) porLoja[String(s.merchant_id)] = { aberta: s.aberta, motivo: s.motivo }
+        setStatusLojasCartao({ carregando: false, porLoja })
+      })
+      .catch(() => {
+        if (!cancelado) setStatusLojasCartao({ carregando: false, porLoja: {} })
       })
     // Sessão de cada loja 99Food (token entregue pro app de produção) — vira o selo do cartão.
     setVerificacao99((v) => ({ ...(v || {}), carregando: true }))
@@ -2024,6 +2038,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   lojaAtual={lojaAtual}
                   verificacaoIfood={verificacaoIfood}
                   verificacao99={verificacao99}
+                  statusLojas={statusLojasCartao}
                   lojaForm={lojaForm}
                   setLojaForm={setLojaForm}
                   criandoLoja={criandoLoja}

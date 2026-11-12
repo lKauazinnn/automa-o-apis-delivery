@@ -204,7 +204,34 @@ function SeloSessao99({ v, carregando }) {
   )
 }
 
-export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, verificacao99, lojaForm, setLojaForm, criandoLoja, onCriar, onAtivar, onRemover, onDetalhes }) {
+// Aberta / fechada agora (vem de /api/lojas/status). O motivo da plataforma fica no title.
+function StatusAberta({ s, carregando }) {
+  if (!s || s.aberta == null) {
+    if (carregando) {
+      return (
+        <Selo tipo="neutro" altura={26} icone={<Loader2 size={12} className="animate-spin" />} style={{ fontSize: 12.5 }}>
+          verificando…
+        </Selo>
+      )
+    }
+    return s ? (
+      <span title={s.motivo || ''} style={{ display: 'inline-flex' }}>
+        <Selo tipo="warn" altura={26} style={{ fontSize: 12.5 }}>
+          sem status
+        </Selo>
+      </span>
+    ) : null
+  }
+  return (
+    <span title={s.motivo || ''} style={{ display: 'inline-flex' }}>
+      <Selo tipo={s.aberta ? 'good' : 'bad'} altura={26} icone={<span className={s.aberta ? 'pulso-vivo' : undefined} style={{ width: 7, height: 7, borderRadius: 99, background: 'currentColor' }} />} style={{ fontSize: 12.5 }}>
+        {s.aberta ? 'Aberta' : 'Fechada'}
+      </Selo>
+    </span>
+  )
+}
+
+export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, verificacao99, statusLojas, lojaForm, setLojaForm, criandoLoja, onCriar, onAtivar, onRemover, onDetalhes }) {
   const [formAberto, setFormAberto] = useState(false)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -294,16 +321,7 @@ export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, verificacao99, 
                   <div style={{ flex: 1, minWidth: 0, fontFamily: MONO, fontSize: 13, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={l.merchant_id}>
                     {l.merchant_id}
                   </div>
-                  {l.plataforma === '99food' && verificacao99?.lojas?.[String(l.merchant_id)]?.status && (() => {
-                    const st = verificacao99.lojas[String(l.merchant_id)].status
-                    const aberta = st === 'Loja aberta'
-                    return (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600, color: aberta ? 'var(--good)' : 'var(--bad)', whiteSpace: 'nowrap' }}>
-                        <span className={aberta ? 'pulso-vivo' : undefined} style={{ width: 8, height: 8, borderRadius: 99, background: 'currentColor' }} />
-                        {st}
-                      </span>
-                    )
-                  })()}
+                  <StatusAberta s={statusLojas?.porLoja?.[String(l.merchant_id)]} carregando={statusLojas?.carregando} />
                   {ativa && l.plataforma !== '99food' && (
                     <Botao variante="secundario" tamanho="xs" onClick={onDetalhes}>
                       Detalhes

@@ -86,9 +86,29 @@ SUB_STATUS_LOJA = {
 }
 
 
+_loja_cache: dict[str, tuple[float, dict]] = {}
+_LOJA_TTL = 55  # o 99 limita shop/detail a 1 chamada por 60s POR LOJA (erro 10005)
+_LOJA_RESERVA = 600  # se o 99 bloquear, ainda vale usar o último detalhe de até 10 min atrás
+
+
 def shop_detail(app_shop_id: str) -> dict:
-    """Detalhe da loja, incluindo `biz_status` e `sub_biz_status` (ver SUB_STATUS_LOJA)."""
-    return _get("/v1/shop/shop/detail", {"auth_token": get_auth_token(app_shop_id)})
+    """Detalhe da loja, incluindo `biz_status` e `sub_biz_status` (ver SUB_STATUS_LOJA).
+
+    Cacheado por ~55s: a tela Lojas, a tela Status e o monitor consultam a mesma loja e o 99
+    só aceita 1 chamada por minuto. Se mesmo assim vier 10005, devolve o último detalhe
+    conhecido (até 10 min) em vez de falhar."""
+    agora = time.time()
+    if app_shop_id in _loja_cache and agora - _loja_cache[app_shop_id][0] < _LOJA_TTL:
+        return _loja_cache[app_shop_id][1]
+    try:
+        dados = _get("/v1/shop/shop/detail", {"auth_token": get_auth_token(app_shop_id)})
+    except Exception as exc:
+        guardado = _loja_cache.get(app_shop_id)
+        if "10005" in str(exc) and guardado and agora - guardado[0] < _LOJA_RESERVA:
+            return guardado[1]
+        raise
+    _loja_cache[app_shop_id] = (agora, dados)
+    return dados
 
 
 # ------------------------------------------------------------------ Itens / cardápio

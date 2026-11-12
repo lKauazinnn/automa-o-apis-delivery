@@ -447,13 +447,9 @@ def verificar_lojas_99():
         try:
             auth99.get_auth_token(mid)
             exp = auth99._cache.get(mid, (None, 0))[1]
+            # Aberta/fechada NÃO vem daqui: a tela usa /api/lojas/status (mesma verificação da
+            # tela Status, com o que o monitor já gravou), pra não dobrar chamadas ao 99.
             info = {"ativa": True, "validade": datetime.fromtimestamp(exp, timezone.utc).isoformat() if exp else None, "erro": None}
-            try:
-                sub = (food99.shop_detail(mid) or {}).get("sub_biz_status")
-                info["status"] = food99.SUB_STATUS_LOJA.get(sub, f"status {sub}") if sub is not None else None
-            except Exception as exc:  # noqa: BLE001 — status é extra; a sessão já está confirmada
-                logger.info("99Food: sessão ok mas shop/detail falhou pra %s: %s", mid, exc)
-                info["status"] = None
         except Exception as exc:  # noqa: BLE001
             texto = str(exc)
             info = {
@@ -3047,6 +3043,11 @@ def registrar_status_loja(status):
     )
     anterior.raise_for_status()
     linha_anterior = anterior.json()[0] if anterior.json() else None
+    # Consulta que falhou (rede, limite de chamadas do 99...) NÃO apaga o último estado bom:
+    # gravar aberta=None faria a próxima verificação perder a virada aberta↔fechada (e o aviso).
+    if status.get("aberta") is None and linha_anterior and linha_anterior.get("aberta") is not None:
+        logger.info("Status da loja %s não veio (%s) — mantendo o último conhecido.", status["merchant_id"], status.get("motivo"))
+        return False
     mudou = linha_anterior is None or linha_anterior.get("aberta") != status["aberta"] or linha_anterior.get("motivo") != status["motivo"]
     linha = {
         "merchant_id": status["merchant_id"],
@@ -3114,15 +3115,36 @@ def get_status_lojas():
                 "mudou_em": s.get("mudou_em"),
             })
     else:
-        resultado = []
-        for loja in lojas:
+        # Uma thread por loja: em série, 8 lojas levavam ~30s (cada uma consulta a plataforma e
+        # grava no Supabase). A ordem do resultado segue a de `lojas`.
+        from concurrent.futures import ThreadPoolExecutor
+
+        def verificar_e_gravar(loja):
             status = verificar_status_loja(loja)
             try:
                 registrar_status_loja(status)
             except requests.exceptions.RequestException as exc:
                 logger.warning("Não gravei status da loja %s (rodou a migration 009?): %s", loja["merchant_id"], exc)
             status.pop("detalhes", None)
-            resultado.append({**status, "verificado_em": _agora_iso()})
+            return {**status, "verificado_em": _agora_iso()}
+
+        with ThreadPoolExecutor(max_workers=max(1, min(10, len(lojas)))) as pool:
+            resultado = list(pool.map(verificar_e_gravar, lojas))
+
+        # Consulta que falhou agora (ex.: limite de 1 chamada/min do 99) mostra o último estado
+        # bom gravado, marcado com a hora em que foi verificado, em vez de "sem status".
+        falhas = [r for r in resultado if r.get("aberta") is None]
+        if falhas:
+            try:
+                resp = requests.get(f"{SUPABASE_URL}/rest/v1/status_lojas", headers=_supabase_headers(), params={"select": "*"}, timeout=10)
+                resp.raise_for_status()
+                gravados = {s["merchant_id"]: s for s in resp.json()}
+                for r in falhas:
+                    g = gravados.get(r["merchant_id"])
+                    if g and g.get("aberta") is not None:
+                        r.update({"aberta": g["aberta"], "estado": g.get("estado"), "motivo": g.get("motivo"), "verificado_em": g.get("verificado_em")})
+            except requests.exceptions.RequestException as exc:
+                logger.warning("Não consegui ler o último status gravado: %s", exc)
     return jsonify({
         "monitor": {"ativo": ativo, "ultimo_ping": (heartbeat or {}).get("ultimo_ping"), "info": (heartbeat or {}).get("info")},
         "lojas": resultado,
