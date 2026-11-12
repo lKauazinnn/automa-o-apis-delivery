@@ -314,7 +314,7 @@ export function GruposOpcaoModal({ onClose, apiFetch, notificar, podeEditar, sou
       await apiFetch(`/grupos-opcao/opcoes/${opcao.productId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: form.nome.trim(), preco, imagem_path: imagemPath, nome_anterior: opcao.name }),
+        body: JSON.stringify({ nome: form.nome.trim(), preco, option_id: opcao.id, imagem_path: imagemPath, nome_anterior: opcao.name }),
       })
       setOpcoesCriadasAqui((prev) => {
         const next = {}

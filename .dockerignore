@@ -1,0 +1,16 @@
+# O Dockerfile.monitor só copia src/, server/ e worker/. Isto evita mandar o resto (front com
+# node_modules, venv, dados e segredos) pro contexto do build.
+.git
+.venv
+.vercel
+.env
+.env.*
+viewer
+data
+graphify-out
+cerebro-sistema
+supabase
+sql
+scripts
+**/__pycache__
+*.md

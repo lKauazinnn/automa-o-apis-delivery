@@ -155,11 +155,13 @@ export function KDSView({ apiFetch, C, notificar, setConfirmacao, plataforma, lo
     const anterior = pedido.status
     moverStatusLocal(pedido.id, novo, true) // instantâneo
     try {
-      await apiFetchRef.current(`/pedidos/${pedido.id}/status`, {
+      const r = await apiFetchRef.current(`/pedidos/${pedido.id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: novo, ...extra }),
       })
+      // Movido, mas a plataforma não recebeu o aviso (ex: "pronto" recusado pelo 99Food).
+      if (r?.aviso) notificar('aviso', r.aviso)
     } catch (e) {
       moverStatusLocal(pedido.id, anterior, false) // desfaz se o servidor recusar
       notificar('erro', e.message)

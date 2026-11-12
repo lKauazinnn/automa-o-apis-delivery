@@ -93,9 +93,21 @@ def shop_detail(app_shop_id: str) -> dict:
 
 # ------------------------------------------------------------------ Itens / cardápio
 
-def list_items(app_shop_id: str) -> dict:
-    """Cardápio da loja (v1): {menus, categories, items} — bom pra EXIBIR o catálogo."""
-    return _get("/v1/item/item/list", {"auth_token": get_auth_token(app_shop_id)})
+_v1_cache: dict[str, tuple[float, dict]] = {}
+_V1_TTL = 60  # segundos — o 99 limita item/list a 2 req/120s também em PRODUÇÃO
+
+
+def list_items(app_shop_id: str, usar_cache: bool = True) -> dict:
+    """Cardápio da loja (v1): {menus, categories, items} — bom pra EXIBIR o catálogo.
+    Cacheado por ~60s: recarregar a tela seguidas vezes estourava o rate-limit (erro 10005)."""
+    agora = time.time()
+    if usar_cache and app_shop_id in _v1_cache:
+        ts, dados = _v1_cache[app_shop_id]
+        if agora - ts < _V1_TTL:
+            return dados
+    dados = _get("/v1/item/item/list", {"auth_token": get_auth_token(app_shop_id)})
+    _v1_cache[app_shop_id] = (agora, dados)
+    return dados
 
 
 def list_items_v3(app_shop_id: str, usar_cache: bool = True) -> dict:
@@ -124,6 +136,7 @@ def update_item_v3(app_shop_id: str, item_struct: dict):
     body = {**item_struct, "auth_token": get_auth_token(app_shop_id)}
     resultado = _post("/v3/item/item/updateItem", body=body)
     _v3_cache.pop(app_shop_id, None)  # invalida o cache após salvar
+    _v1_cache.pop(app_shop_id, None)
     return resultado
 
 
@@ -159,6 +172,7 @@ def upload_menu(app_shop_id: str, menus: list, categories: list, items: list, mo
     }
     resultado = _post("/v3/item/item/upload", body=body)
     _v3_cache.pop(app_shop_id, None)
+    _v1_cache.pop(app_shop_id, None)
     return resultado
 
 
@@ -223,12 +237,31 @@ def criar_item(
 
 
 def update_item_status(app_shop_id: str, item_id: str, disponivel: bool):
-    """Pausa/despausa um item (status 1=disponível, 2=indisponível)."""
-    return _post(
-        "/v1/item/item/updateItemStatus",
-        body={"item_id": item_id, "status": 1 if disponivel else 2},
-        params={"auth_token": get_auth_token(app_shop_id)},
-    )
+    """Pausa/despausa um item (status 1=disponível, 2=indisponível) via /v3/item/item/updateItemStatus.
+
+    NÃO usar o v1 (/v1/item/item/updateItemStatus): na loja Caminito (produção) ele respondia
+    errno=0 "ok" e NÃO mudava nada no 99 — o painel achava que pausou e o cliente continuava
+    vendo o item. O v3 devolve {"success": [...], "failed": [...]}: só consideramos pausado se o
+    item voltou em `success` (conferido ao vivo: status mudou de 1 pra 2)."""
+    novo = 1 if disponivel else 2
+    data = _post(
+        "/v3/item/item/updateItemStatus",
+        body={"auth_token": get_auth_token(app_shop_id), "app_item_ids": [item_id], "status": novo},
+    ) or {}
+    if item_id not in (data.get("success") or []):
+        falhou = data.get("failed") or []
+        raise RuntimeError(
+            f"o 99 não confirmou a mudança do item {item_id}"
+            + (f" (recusado: {', '.join(map(str, falhou))})" if falhou else "")
+        )
+    # Atualiza o status nos caches em vez de descartá-los: recarregar a tela logo após pausar
+    # mostra o estado novo sem gastar outra leitura (rate-limit).
+    for cache in (_v1_cache, _v3_cache):
+        if app_shop_id in cache:
+            for it in cache[app_shop_id][1].get("items", []):
+                if it.get("app_item_id") == item_id:
+                    it["status"] = novo
+    return data
 
 
 # ------------------------------------------------------------------ Lojas (nível-app, assinado)

@@ -4,7 +4,7 @@ Chamado por `registrar_status_loja` (server/app.py) sempre que o estado aberta/f
 monitor (worker/monitor.py) verifica as lojas a cada ciclo, então o aviso sai em ~30-60s.
 
 Configuração (.env):
-    ALERTA_WHATSAPP_NUMEROS=5561992127911          # um ou mais, separados por vírgula (com DDI 55)
+    ALERTA_WHATSAPP_NUMEROS=55DDDNUMERO           # um ou mais, separados por vírgula (com DDI 55)
     ALERTA_WHATSAPP_PROVEDOR=callmebot|zapi|evolution|webhook
     ALERTA_IGNORAR_FORA_DO_HORARIO=1               # padrão 1: não avisa fechamento só por horário
 
@@ -15,6 +15,9 @@ Configuração (.env):
   evolution: EVOLUTION_URL=https://..., EVOLUTION_INSTANCIA=..., EVOLUTION_APIKEY=...
   webhook:   ALERTA_WEBHOOK_URL=https://...  (recebe POST JSON {numero, mensagem, loja, ...};
              serve pra Make/n8n/Zapier ou qualquer provedor)
+  waha:      WAHA_URL=https://... (endereço PÚBLICO do WAHA — o Vercel não enxerga a rede
+             interna do Docker, então http://waha:3000 não serve aqui), WAHA_API_KEY=...,
+             WAHA_SESSION=... (a mesma sessão do WhatsApp já conectada no WAHA)
 
 Sem provedor configurado, o aviso só vai pro log — nunca derruba o registro de status.
 """
@@ -55,6 +58,28 @@ def montar_mensagem(status, abriu):
     return "\n".join(linhas)
 
 
+_chat_ids_waha: dict[str, str] = {}
+
+
+def chat_id_waha(base, headers, sessao, numero):
+    """Pergunta ao WAHA o chatId real do número (GET /api/contacts/check-exists). Se o WAHA não
+    responder, cai no formato padrão "<número>@c.us". Guarda em memória pra não repetir."""
+    if numero in _chat_ids_waha:
+        return _chat_ids_waha[numero]
+    try:
+        r = requests.get(f"{base}/api/contacts/check-exists", params={"phone": numero, "session": sessao}, headers=headers, timeout=10)
+        if r.ok:
+            dados = r.json() or {}
+            if dados.get("numberExists") and dados.get("chatId"):
+                _chat_ids_waha[numero] = dados["chatId"]
+                return dados["chatId"]
+            if dados.get("numberExists") is False:
+                logger.warning("WAHA: o número %s não tem WhatsApp.", numero)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("WAHA: não consegui conferir o número %s: %s", numero, exc)
+    return f"{numero}@c.us"
+
+
 def _enviar(numero, mensagem, contexto):
     provedor = os.environ.get("ALERTA_WHATSAPP_PROVEDOR", "").strip().lower()
     if provedor == "callmebot":
@@ -73,6 +98,18 @@ def _enviar(numero, mensagem, contexto):
             f"{os.environ['EVOLUTION_URL'].rstrip('/')}/message/sendText/{os.environ['EVOLUTION_INSTANCIA']}",
             headers={"apikey": os.environ["EVOLUTION_APIKEY"]},
             json={"number": numero, "text": mensagem},
+            timeout=20,
+        )
+    elif provedor == "waha":
+        # WAHA (WhatsApp HTTP API): POST /api/sendText. O chatId vem do próprio WhatsApp
+        # (check-exists), porque celular brasileiro antigo às vezes está registrado SEM o 9.
+        base = os.environ["WAHA_URL"].rstrip("/")
+        headers = {"X-Api-Key": os.environ.get("WAHA_API_KEY", "")}
+        sessao = os.environ.get("WAHA_SESSION", "default")
+        resp = requests.post(
+            f"{base}/api/sendText",
+            headers=headers,
+            json={"session": sessao, "chatId": chat_id_waha(base, headers, sessao, numero), "text": mensagem},
             timeout=20,
         )
     elif provedor == "webhook":

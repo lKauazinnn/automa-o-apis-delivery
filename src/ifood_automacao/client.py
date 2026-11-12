@@ -440,18 +440,25 @@ def edit_option(merchant_id: str, product_id: str, name: str, image_path: str) -
     return resp.json()
 
 
-def update_option_price(merchant_id: str, product_id: str, price: float) -> dict:
-    """Atualiza o preço de uma opção (complemento) já existente. Endpoint em lote (aceita
-    vários produtos de uma vez, mas usamos com 1); resposta 202 só confirma que o lote foi
-    aceito para processamento — não é síncrono."""
+def update_option_price(
+    merchant_id: str, option_id: str, price: float, parent_customization_option_id: str | None = None
+) -> dict:
+    """Atualiza o preço de uma opção (complemento) já existente via `PATCH .../options/price`
+    — endpoint exigido pelo checklist de homologação do iFood (antes usávamos
+    `.../products/price` com resources=OPTION, que o avaliador não aceita). `option_id` é o
+    `id` da opção (mesmo usado em `update_option_status`), não o `productId`."""
     resp = requests.patch(
-        f"{CATALOG_BASE}/merchants/{merchant_id}/products/price",
+        f"{CATALOG_BASE}/merchants/{merchant_id}/options/price",
         headers=auth_headers(),
-        json=[{"productId": product_id, "price": {"value": price, "originalValue": price}, "resources": ["OPTION"]}],
+        json={
+            "optionId": option_id,
+            "price": {"value": price, "originalValue": price},
+            "parentCustomizationOptionId": parent_customization_option_id,
+        },
         timeout=30,
     )
     resp.raise_for_status()
-    return resp.json()
+    return resp.json() if resp.content else {}
 
 
 def update_option_status(merchant_id: str, option_id: str, status: str, parent_customization_option_id: str | None = None) -> None:

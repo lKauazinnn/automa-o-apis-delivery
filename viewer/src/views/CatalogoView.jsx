@@ -1,14 +1,181 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Check, ImageOff, MoreHorizontal, Pause, Pencil, Play, RefreshCw, Search, Tag, Trash2, Zap } from 'lucide-react'
-import { Botao, CampoBusca, EstadoVazio, Esqueleto, Marcador, MONO, Segmentado, Selo, useLarguraConteudo } from '../ds'
-import { normalizar, tempoDesde, tempoRestante } from '../pausas'
+import { AlertTriangle, Check, ImageOff, LayoutGrid, List, Lock, MoreHorizontal, Pause, Pencil, Play, RefreshCw, Search, Tag, Trash2, Zap } from 'lucide-react'
+import { Botao, CampoBusca, EstadoVazio, Esqueleto, Interruptor, Marcador, MONO, Segmentado, Selo, seguirLuz, useLarguraConteudo } from '../ds'
+import { bateBusca, normalizar, tempoDesde, tempoRestante, termosBusca } from '../pausas'
 import { MiniaturaItem } from './DashboardView'
 
-// Mesma grade no cabeçalho e nas linhas. Larguras mínimas somam ~880px: cabe a partir de ~1180px
+// Mesma grade no cabeçalho e nas linhas. Larguras mínimas somam ~900px: cabe a partir de ~1180px
 // de janela com o menu aberto; abaixo disso o celular usa a lista em cartões.
-const GRADE = '52px minmax(200px,2.4fr) minmax(90px,1fr) 124px 120px minmax(150px,1.2fr) 156px'
+const GRADE = '52px minmax(220px,2.6fr) minmax(110px,1fr) 116px 116px minmax(200px,1.3fr) 56px'
 
 const brl = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+// Destaca no nome os trechos que bateram na busca (começo de palavra, sem acento). Compara letra
+// a letra numa versão sem acento do MESMO tamanho do original, então o realce cai no lugar certo.
+function semAcento(t) {
+  return Array.from(String(t || '').toLowerCase())
+    .map((c) => c.normalize('NFD').charAt(0))
+    .join('')
+}
+function Realce({ texto, busca }) {
+  const termos = semAcento(busca).split(/[^a-z0-9]+/).filter(Boolean)
+  if (!termos.length || !texto) return texto
+  const base = semAcento(texto)
+  const marca = new Array(texto.length).fill(false)
+  for (const t of termos) {
+    for (let i = 0; i <= base.length - t.length; i++) {
+      const inicio = i === 0 || !/[a-z0-9]/.test(base[i - 1])
+      if (inicio && base.startsWith(t, i)) for (let j = i; j < i + t.length; j++) marca[j] = true
+    }
+  }
+  const partes = []
+  for (let i = 0; i < texto.length; i++) {
+    const ult = partes[partes.length - 1]
+    if (ult && ult.m === marca[i]) ult.t += texto[i]
+    else partes.push({ t: texto[i], m: marca[i] })
+  }
+  return partes.map((p, k) =>
+    p.m ? (
+      <mark key={k} style={{ background: 'var(--marca-suave)', color: 'var(--t1)', borderRadius: 4, boxShadow: '0 0 0 1px var(--marca-borda)', padding: '0 1px' }}>
+        {p.t}
+      </mark>
+    ) : (
+      <span key={k}>{p.t}</span>
+    ),
+  )
+}
+
+// Interruptor "no ar" do item. Desligar abre o modal de pausa (prazo + motivo) via
+// onAlternarStatus; religar reativa direto. Item sem ID no 99Food não pode ser pausado pela API:
+// mostra um cadeado no lugar.
+function ControleNoAr({ item, alterandoStatus, executando, onAlternarStatus }) {
+  if (item.semIdIntegracao) {
+    return (
+      <span
+        title="Cadastre o ID do item no portal do parceiro 99 para pausar por aqui"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 28, padding: '0 9px', borderRadius: 99, border: '1px dashed var(--warn-bd)', color: 'var(--warn)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}
+      >
+        <Lock size={12} />
+        Sem ID
+      </span>
+    )
+  }
+  const pausado = item.status !== 'AVAILABLE'
+  return (
+    <Interruptor
+      grande
+      ligado={!pausado}
+      ocupado={alterandoStatus === item.itemId}
+      disabled={executando}
+      rotulo={pausado ? `Reativar ${item.nome}` : `Pausar ${item.nome}`}
+      onChange={() => onAlternarStatus(item)}
+    />
+  )
+}
+
+// Cartão da vista em grade: foto grande, preço em vidro sobre a foto, interruptor embaixo.
+function CartaoItem({ item, idx, busca, sel, idRepetido, pausa, alterandoStatus, executando, onAlternarStatus, onAlternarSelecao, onAbrirEdicaoModal }) {
+  const pausado = item.status !== 'AVAILABLE'
+  const enviando = alterandoStatus === item.itemId
+  return (
+    <article
+      className="ds-cartao ergue cartao-item"
+      onMouseMove={seguirLuz}
+      style={{
+        animationDelay: `${Math.min(idx, 16) * 35}ms`,
+        background: 'var(--card)',
+        border: `1px solid ${sel ? 'var(--marca)' : 'var(--borda)'}`,
+        borderRadius: 18,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: sel ? '0 0 0 1px var(--marca), var(--sh)' : 'var(--brilho), var(--sh)',
+      }}
+    >
+      <div style={{ position: 'relative', aspectRatio: '4 / 3', background: 'var(--input)', overflow: 'hidden' }}>
+        {item.foto ? (
+          <img src={item.foto} alt="" loading="lazy" className="cartao-item__foto" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: pausado ? 'grayscale(1) brightness(.6)' : undefined }} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t3)' }}>
+            <ImageOff size={28} />
+          </div>
+        )}
+        <div style={{ position: 'absolute', inset: 'auto 0 0 0', height: '55%', background: 'linear-gradient(to top, rgba(0,0,0,.6), transparent)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+          {idRepetido && <span className="selo-foto selo-foto--ruim">ID {item.codigo_pdv} repetido</span>}
+        </div>
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={sel}
+          aria-label={`Selecionar ${item.nome}`}
+          onClick={() => onAlternarSelecao(item.itemId)}
+          style={{ position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: 9, border: '1px solid rgba(255,255,255,.25)', background: 'rgba(10,12,16,.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+        >
+          <Marcador estado={sel} tamanho={18} />
+        </button>
+        {pausado && (
+          <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+            <span className="selo-foto" style={{ height: 32, padding: '0 14px', fontSize: 13 }}>
+              <Pause size={13} /> Pausado
+            </span>
+          </span>
+        )}
+        <span style={{ position: 'absolute', left: 12, bottom: 12, height: 30, padding: '0 11px', display: 'flex', alignItems: 'center', borderRadius: 10, background: 'rgba(10,12,16,.55)', border: '1px solid rgba(255,255,255,.18)', color: '#fff', fontFamily: MONO, fontSize: 14, fontWeight: 600, backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+          {brl(item.preco)}
+        </span>
+      </div>
+      <div style={{ padding: '14px 16px 16px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+        <button
+          type="button"
+          onClick={() => onAbrirEdicaoModal(item)}
+          title={`Editar ${item.nome}`}
+          style={{ border: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4 }}
+        >
+          <span style={{ fontSize: 14.5, fontWeight: 600, lineHeight: 1.35, color: pausado ? 'var(--t2)' : 'var(--t1)' }}>
+            <Realce texto={item.nome} busca={busca} />
+          </span>
+          <span style={{ fontSize: 12.5, color: 'var(--t3)' }}>
+            {item.categoria}
+            {item.codigo_pdv && !item.semIdIntegracao ? ` · PDV ${item.codigo_pdv}` : ''}
+          </span>
+        </button>
+        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingTop: 10, borderTop: '1px solid var(--linha)' }}>
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: enviando ? 'var(--t2)' : pausado ? 'var(--warn)' : 'var(--good)' }}>{enviando ? 'Enviando…' : pausado ? 'Pausado' : 'No ar'}</span>
+            {pausado && !enviando && <SubStatus pausa={pausa} />}
+          </span>
+          <ControleNoAr item={item} alterandoStatus={alterandoStatus} executando={executando} onAlternarStatus={onAlternarStatus} />
+        </div>
+      </div>
+    </article>
+  )
+}
+
+// Anel de saúde: % do cardápio no ar.
+function AnelSaude({ noAr, total }) {
+  const C = 2 * Math.PI * 30
+  const pct = total ? noAr / total : 0
+  return (
+    <div style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
+      <svg width="72" height="72" viewBox="0 0 72 72" role="img" aria-label={`${noAr} de ${total} itens no ar`} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="36" cy="36" r="30" fill="none" strokeWidth="7" style={{ stroke: 'var(--linha)' }} />
+        <circle cx="36" cy="36" r="30" fill="none" strokeWidth="7" strokeLinecap="round" style={{ stroke: 'var(--good)', transition: 'stroke-dasharray 1.1s cubic-bezier(.2,.8,.2,1)' }} strokeDasharray={`${(C * pct).toFixed(1)} ${C.toFixed(1)}`} />
+      </svg>
+      <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 16, fontWeight: 600, color: 'var(--t1)' }}>
+        {Math.round(pct * 100)}%
+      </span>
+    </div>
+  )
+}
+
+function lerVista() {
+  try {
+    return localStorage.getItem('cardapio-vista') === 'grade' ? 'grade' : 'lista'
+  } catch {
+    return 'lista'
+  }
+}
 
 function CelulaEditavel({ tipo, texto, editando, valor, salvando, salvo, onAbrir, onInput, onSalvar, onCancelar }) {
   const direita = tipo === 'preco'
@@ -229,14 +396,34 @@ export function CatalogoView({
   plataforma,
 }) {
   const [menuAberto, setMenuAberto] = useState(null)
+  const [vista, setVistaEstado] = useState(lerVista)
+  const setVista = (v) => {
+    setVistaEstado(v)
+    try {
+      localStorage.setItem('cardapio-vista', v)
+    } catch {
+      // sem storage: só não lembra a escolha no próximo acesso
+    }
+  }
   const temFiltro = busca.trim() !== '' || filtroCategoria !== 'TODAS' || filtroStatus !== 'TODOS'
 
   // Contagens do segmentado respeitam busca + categoria (o que a pessoa veria ao clicar).
-  const termo = normalizar(busca)
-  const base = itens.filter(
-    (i) => (filtroCategoria === 'TODAS' || i.categoria === filtroCategoria) && (!termo || normalizar(`${i.nome} ${i.codigo_pdv}`).includes(termo)),
-  )
+  const termos = termosBusca(busca)
+  const base = itens.filter((i) => (filtroCategoria === 'TODAS' || i.categoria === filtroCategoria) && bateBusca(i, termos))
   const nDisp = base.filter((i) => i.status === 'AVAILABLE').length
+  const nSemIdBase = base.filter((i) => i.semIdIntegracao).length
+  // Saúde do cardápio inteiro (sem filtro) e problemas de integração do 99Food.
+  const totalNoAr = itens.filter((i) => i.status === 'AVAILABLE').length
+  const semId = itens.filter((i) => i.semIdIntegracao).length
+  const contagemPdv = {}
+  itens.forEach((i) => {
+    if (i.codigo_pdv && !i.semIdIntegracao) contagemPdv[i.codigo_pdv] = (contagemPdv[i.codigo_pdv] || 0) + 1
+  })
+  const idsRepetidos = plataforma === '99food' ? Object.keys(contagemPdv).filter((k) => contagemPdv[k] > 1) : []
+  const contagemCategoria = {}
+  base.forEach((i) => {
+    contagemCategoria[i.categoria] = (contagemCategoria[i.categoria] || 0) + 1
+  })
 
   const selecionadosItens = itens.filter((i) => selecionados.has(i.itemId))
   const selDisp = selecionadosItens.filter((i) => i.status === 'AVAILABLE').length
@@ -283,54 +470,121 @@ export function CatalogoView({
       <div>Categoria</div>
       <div>Código PDV</div>
       <div style={{ textAlign: 'right', paddingRight: 8 }}>Preço</div>
-      <div style={{ paddingLeft: 16 }}>Status</div>
-      <div style={{ textAlign: 'right', paddingRight: 20 }}>Ações</div>
+      <div style={{ paddingLeft: 16 }}>No ar</div>
+      <div />
     </div>
   )
 
+  const opcoesStatus = [
+    { valor: 'TODOS', rotulo: 'Todos', contagem: base.length },
+    { valor: 'AVAILABLE', rotulo: 'No ar', contagem: nDisp },
+    { valor: 'UNAVAILABLE', rotulo: 'Pausados', contagem: base.length - nDisp },
+  ]
+  if (semId > 0) opcoesStatus.push({ valor: 'SEM_ID', rotulo: 'Sem ID', contagem: nSemIdBase })
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, position: 'relative' }}>
-      <section style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: '1px solid var(--linha)', flexWrap: 'wrap' }}>
-          <CampoBusca
-            valor={busca}
-            onChange={onBusca}
-            onLimpar={() => onBusca('')}
-            placeholder="Buscar por nome ou código PDV"
-            icone={<Search size={16} />}
-            aria-label="Buscar item"
-            style={{ flex: '1 1 220px', maxWidth: 360 }}
-          />
-          <select
-            value={filtroCategoria}
-            onChange={(e) => onFiltroCategoria(e.target.value)}
-            aria-label="Filtrar por categoria"
-            className="ds-input"
-            style={{ height: 40, width: 'auto', minWidth: 170, maxWidth: 240, cursor: 'pointer' }}
-          >
-            {categoriasFiltro.map((c) => (
-              <option key={c} value={c}>
-                {c === 'TODAS' ? 'Todas as categorias' : c}
-              </option>
-            ))}
-          </select>
-          <Segmentado
-            rotulo="Filtrar por status"
-            valor={filtroStatus}
-            onChange={onFiltroStatus}
-            opcoes={[
-              { valor: 'TODOS', rotulo: 'Todos', contagem: base.length },
-              { valor: 'AVAILABLE', rotulo: 'Disponíveis', contagem: nDisp },
-              { valor: 'UNAVAILABLE', rotulo: 'Pausados', contagem: base.length - nDisp },
-            ]}
-          />
-          <span style={{ flex: 1 }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'relative' }}>
+      {!carregando && !erroCarregamento && itens.length > 0 && (
+        <section
+          className="ds-cartao"
+          onMouseMove={seguirLuz}
+          style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 18, boxShadow: 'var(--brilho), var(--sh)', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}
+        >
+          <AnelSaude noAr={totalNoAr} total={itens.length} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: '1 1 260px', minWidth: 0 }}>
+            <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--t1)' }}>
+              {totalNoAr} de {itens.length} itens no ar
+            </span>
+            <span style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13.5, color: 'var(--t2)' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--warn)' }} />
+                <strong style={{ fontFamily: MONO, color: 'var(--t1)' }}>{itens.length - totalNoAr}</strong> pausados
+              </span>
+              {semId > 0 && (
+                <button type="button" onClick={() => onFiltroStatus('SEM_ID')} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: 0, background: 'transparent', padding: 0, cursor: 'pointer', fontSize: 13.5, color: 'var(--t2)' }}>
+                  <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--bad)' }} />
+                  <strong style={{ fontFamily: MONO, color: 'var(--t1)' }}>{semId}</strong>
+                  <span style={{ textDecoration: 'underline', textUnderlineOffset: 3, textDecorationColor: 'var(--borda)' }}>sem ID no 99Food</span>
+                </button>
+              )}
+              {idsRepetidos.length > 0 && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--bad)' }} />
+                  ID repetido: <strong style={{ fontFamily: MONO, color: 'var(--t1)' }}>{idsRepetidos.join(', ')}</strong>
+                </span>
+              )}
+            </span>
+            {(semId > 0 || idsRepetidos.length > 0) && (
+              <span style={{ fontSize: 12.5, color: 'var(--t3)' }}>O 99Food só deixa pausar pela API itens com ID único. Cadastre os IDs no portal do parceiro 99.</span>
+            )}
+          </div>
           <Botao variante="secundario" onClick={onAbrirInsumo} title="Acabou um ingrediente? Pausa todos os pratos e complementos que usam ele">
             <span style={{ color: 'var(--warn)', display: 'flex' }}>
               <Zap size={16} />
             </span>
             Pausar por insumo
           </Botao>
+        </section>
+      )}
+
+      <section style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 18, boxShadow: 'var(--brilho), var(--sh)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 20px', borderBottom: '1px solid var(--linha)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <CampoBusca
+              valor={busca}
+              onChange={onBusca}
+              onLimpar={() => onBusca('')}
+              placeholder="Buscar por nome, PDV ou ingrediente: bacon, classico, 533…"
+              icone={<Search size={16} />}
+              aria-label="Buscar item"
+              style={{ flex: '1 1 260px', maxWidth: 440, height: 44 }}
+            />
+            <Segmentado rotulo="Filtrar por status" valor={filtroStatus} onChange={onFiltroStatus} altura={34} opcoes={opcoesStatus} />
+            <span style={{ flex: 1 }} />
+            <Segmentado
+              rotulo="Modo de exibição"
+              valor={vista}
+              onChange={setVista}
+              altura={34}
+              opcoes={[
+                { valor: 'lista', rotulo: <span style={{ display: 'flex' }} aria-label="Lista"><List size={16} /></span> },
+                { valor: 'grade', rotulo: <span style={{ display: 'flex' }} aria-label="Grade com fotos"><LayoutGrid size={16} /></span> },
+              ]}
+            />
+          </div>
+          <div role="group" aria-label="Categorias" className="sem-barra" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+            {categoriasFiltro.map((c) => {
+              const ativo = filtroCategoria === c
+              const n = c === 'TODAS' ? base.length : contagemCategoria[c] || 0
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  aria-pressed={ativo}
+                  onClick={() => onFiltroCategoria(c)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    height: 34,
+                    padding: '0 13px',
+                    borderRadius: 99,
+                    border: `1px solid ${ativo ? 'var(--marca-borda)' : 'var(--borda)'}`,
+                    background: ativo ? 'var(--marca-suave)' : 'var(--input)',
+                    color: ativo ? 'var(--t1)' : 'var(--t2)',
+                    fontSize: 13,
+                    fontWeight: ativo ? 600 : 500,
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  {c === 'TODAS' ? 'Todas' : c}
+                  <span style={{ fontFamily: MONO, fontSize: 11.5, color: ativo ? 'var(--marca-tinta)' : 'var(--t3)' }}>{n}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {erroCarregamento ? (
@@ -347,7 +601,7 @@ export function CatalogoView({
           />
         ) : (
           <div role="table" aria-label="Itens do cardápio" aria-rowcount={filtrados.length}>
-            {cabecalho}
+            {vista === 'lista' && cabecalho}
 
             {carregando &&
               Array.from({ length: 8 }).map((_, k) => (
@@ -388,8 +642,30 @@ export function CatalogoView({
               />
             )}
 
+            {!carregando && vista === 'grade' && filtrados.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16, padding: 20 }}>
+                {filtrados.map((item, idx) => (
+                  <CartaoItem
+                    key={item.itemId}
+                    item={item}
+                    idx={idx}
+                    busca={busca}
+                    sel={selecionados.has(item.itemId)}
+                    idRepetido={idsRepetidos.includes(item.codigo_pdv) && !item.semIdIntegracao}
+                    pausa={pausasPorItem[item.itemId]}
+                    alterandoStatus={alterandoStatus}
+                    executando={executando}
+                    onAlternarStatus={onAlternarStatus}
+                    onAlternarSelecao={onAlternarSelecao}
+                    onAbrirEdicaoModal={onAbrirEdicaoModal}
+                  />
+                ))}
+              </div>
+            )}
+
             {!carregando &&
-              filtrados.map((item) => {
+              vista === 'lista' &&
+              filtrados.map((item, idx) => {
                 const sel = selecionados.has(item.itemId)
                 const pausado = item.status !== 'AVAILABLE'
                 const ePreco = edicaoInline?.itemId === item.itemId && edicaoInline.campo === 'preco'
@@ -403,8 +679,9 @@ export function CatalogoView({
                   <div
                     key={item.itemId}
                     role="row"
-                    className={sel ? undefined : 'ds-linha'}
+                    className={`linha-entra${sel ? '' : ' ds-linha'}`}
                     style={{
+                      animationDelay: `${Math.min(idx, 16) * 28}ms`,
                       display: 'grid',
                       gridTemplateColumns: GRADE,
                       alignItems: 'center',
@@ -440,8 +717,15 @@ export function CatalogoView({
                           title={`Editar ${item.nome}`}
                           style={{ display: 'block', maxWidth: '100%', fontSize: 14.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: pausado ? 'var(--t2)' : 'var(--t1)', cursor: 'pointer', border: 0, background: 'transparent', padding: 0, textAlign: 'left' }}
                         >
-                          {item.nome}
+                          <Realce texto={item.nome} busca={busca} />
                         </button>
+                        {!item.semIdIntegracao && idsRepetidos.includes(item.codigo_pdv) && (
+                          <div style={{ display: 'flex', gap: 6, margin: '3px 0 2px' }}>
+                            <Selo tipo="bad" altura={20} style={{ fontSize: 11.5, padding: '0 7px' }}>
+                              ID {item.codigo_pdv} repetido
+                            </Selo>
+                          </div>
+                        )}
                         {descricao ? (
                           <div style={{ fontSize: 12.5, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{descricao}</div>
                         ) : (
@@ -491,33 +775,17 @@ export function CatalogoView({
                       />
                     </div>
 
-                    <div style={{ paddingLeft: 16, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3, minWidth: 0 }}>
-                      {pausado ? (
-                        <Selo tipo="warn" icone={<Pause size={13} />}>
-                          Pausado
-                        </Selo>
-                      ) : (
-                        <Selo tipo="good" icone={<Check size={13} />}>
-                          Disponível
-                        </Selo>
-                      )}
-                      {pausado && <SubStatus pausa={pausasPorItem[item.itemId]} />}
+                    <div style={{ paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                      <ControleNoAr item={item} alterandoStatus={alterandoStatus} executando={executando} onAlternarStatus={onAlternarStatus} />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: alterandoStatus === item.itemId ? 'var(--t2)' : pausado ? 'var(--warn)' : 'var(--good)', whiteSpace: 'nowrap' }}>
+                          {alterandoStatus === item.itemId ? 'Enviando…' : pausado ? 'Pausado' : 'No ar'}
+                        </span>
+                        {pausado && alterandoStatus !== item.itemId && <SubStatus pausa={pausasPorItem[item.itemId]} />}
+                      </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, paddingRight: 12, position: 'relative' }}>
-                      {pausado ? (
-                        <Botao variante="reativar" tamanho="sm" disabled={alterandoStatus === item.itemId || executando} onClick={() => onAlternarStatus(item)} style={{ minWidth: 100 }} aria-label={`Reativar ${item.nome}`}>
-                          <Play size={16} />
-                          Reativar
-                        </Botao>
-                      ) : (
-                        <Botao variante="pausar" tamanho="sm" disabled={alterandoStatus === item.itemId || executando} onClick={() => onAlternarStatus(item)} style={{ minWidth: 100 }} aria-label={`Pausar ${item.nome}`}>
-                          <span style={{ color: 'var(--warn)', display: 'flex' }}>
-                            <Pause size={16} />
-                          </span>
-                          Pausar
-                        </Botao>
-                      )}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, paddingRight: 10, position: 'relative' }}>
                       <button
                         type="button"
                         aria-label={`Mais ações de ${item.nome}`}
@@ -566,18 +834,18 @@ export function CatalogoView({
       <div style={{ position: 'sticky', bottom: 20, display: 'flex', justifyContent: 'center', pointerEvents: 'none', height: 0, zIndex: 5 }}>
         {selecionados.size > 0 && (
           <div
-            className="toast-entrada"
+            className="toast-entrada barra-flutuante"
             style={{
               pointerEvents: 'auto',
               transform: 'translateY(-100%)',
+              // O contêiner tem altura 0 (pra não ocupar espaço na rolagem); sem isto o flex
+              // esticava a barra pra 0 + padding (18px) e o conteúdo vazava por cima dos itens.
+              alignSelf: 'flex-start',
               display: 'flex',
               alignItems: 'center',
               gap: 8,
               padding: '8px 8px 8px 16px',
-              borderRadius: 12,
-              background: 'var(--card)',
-              border: '1px solid var(--borda)',
-              boxShadow: 'var(--sh)',
+              borderRadius: 16,
             }}
           >
             <span style={{ minWidth: 24, height: 24, padding: '0 6px', borderRadius: 99, background: 'var(--marca)', color: 'var(--marca-texto)', fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -644,10 +912,8 @@ export function CatalogoCelular({
   const [limite, setLimite] = useState(LOTE_CELULAR)
   const largura = useLarguraConteudo()
   const { topo, lado } = recuo
-  const termo = normalizar(busca)
-  const base = itens.filter(
-    (i) => (filtroCategoria === 'TODAS' || i.categoria === filtroCategoria) && (!termo || normalizar(`${i.nome} ${i.codigo_pdv}`).includes(termo)),
-  )
+  const termos = termosBusca(busca)
+  const base = itens.filter((i) => (filtroCategoria === 'TODAS' || i.categoria === filtroCategoria) && bateBusca(i, termos))
   const nPaus = base.filter((i) => i.status !== 'AVAILABLE').length
   const visiveis = filtrados.slice(0, limite)
   const emGrade = largura >= 640 && !erroCarregamento && (carregando || visiveis.length > 0)

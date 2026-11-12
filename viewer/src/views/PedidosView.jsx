@@ -32,6 +32,9 @@ export function PedidosView({ apiFetch, notificar, lojaNome, plataforma, celular
   const [alterandoStatus, setAlterandoStatus] = useState(false)
   const apiFetchRef = useRef(apiFetch)
   apiFetchRef.current = apiFetch
+  // Ref (e não a prop direto) porque o setInterval do polling captura o valor do 1º render.
+  const plataformaRef = useRef(plataforma)
+  plataformaRef.current = plataforma
 
   async function carregarPedidos() {
     try {
@@ -47,7 +50,12 @@ export function PedidosView({ apiFetch, notificar, lojaNome, plataforma, celular
   async function atualizarDoIfood(mostrarToast) {
     setAtualizando(true)
     try {
-      const resultado = await apiFetchRef.current('/pedidos/buscar', { method: 'POST' })
+      // 99Food não tem polling (os pedidos chegam pelo webhook): só relê do banco. Chamar
+      // /pedidos/buscar com uma loja do 99 consultava a Events API do iFood e dava 400.
+      const resultado =
+        plataformaRef.current === '99food'
+          ? { novosPedidos: 0 }
+          : await apiFetchRef.current('/pedidos/buscar', { method: 'POST' })
       await carregarPedidos()
       if (mostrarToast && resultado.novosPedidos > 0) {
         notificar('sucesso', `${resultado.novosPedidos} pedido(s) novo(s) recebido(s).`)
@@ -82,12 +90,14 @@ export function PedidosView({ apiFetch, notificar, lojaNome, plataforma, celular
   async function alterarStatusPedido(pedido, novoStatus, extra = {}) {
     setAlterandoStatus(true)
     try {
-      await apiFetchRef.current(`/pedidos/${pedido.id}/status`, {
+      const r = await apiFetchRef.current(`/pedidos/${pedido.id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: novoStatus, ...extra }),
       })
-      notificar('sucesso', `Pedido atualizado para ${STATUS_LABEL[novoStatus]}.`)
+      // Movido, mas a plataforma não recebeu o aviso (ex: "pronto" recusado pelo 99Food).
+      if (r?.aviso) notificar('aviso', r.aviso)
+      else notificar('sucesso', `Pedido atualizado para ${STATUS_LABEL[novoStatus]}.`)
       setPedidoSelecionado(null)
       await carregarPedidos()
     } catch (e) {

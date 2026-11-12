@@ -26,3 +26,6 @@ cerebro-sistema/
 
 # cache local da CLI do Supabase
 supabase/.temp/
+
+.vercel
+.env*

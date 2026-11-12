@@ -32,10 +32,10 @@ function Rodape() {
 
 function Casca({ children }) {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 16px' }}>
+    <div className="app-fundo" style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 16px' }}>
       <div style={{ width: '100%', maxWidth: 380, display: 'flex', flexDirection: 'column', gap: 24 }}>
         <Marca />
-        <div style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12, padding: 28, display: 'flex', flexDirection: 'column', gap: 18, boxShadow: 'var(--sh-sm)' }}>{children}</div>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 20, padding: 28, display: 'flex', flexDirection: 'column', gap: 18, boxShadow: 'var(--brilho), var(--sh)' }}>{children}</div>
         <Rodape />
       </div>
     </div>
@@ -316,7 +316,7 @@ export function TelaDefinirSenha({ accessToken, modo = 'convite', eyebrow, aviso
 
   if (modo === 'obrigatoria') {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+      <div className="app-fundo" style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', background: 'var(--card)', borderBottom: '1px solid var(--borda)' }}>
           <SimboloPausaFast cor={marca.cor} tamanho={30} />
           <span style={{ fontSize: 14, fontWeight: 700, flex: 1, color: 'var(--t1)' }}>{marca.nome}</span>

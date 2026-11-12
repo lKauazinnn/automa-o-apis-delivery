@@ -14,3 +14,9 @@ sql/
 *.md
 *.bat
 .cerebro-pause
+
+# Segredos locais: na Vercel as variáveis vêm do painel (Environment Variables).
+.env
+.env.local
+viewer/.env.local
+.vercel/

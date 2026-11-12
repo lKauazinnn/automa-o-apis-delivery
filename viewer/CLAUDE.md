@@ -1,9 +1,35 @@
 # Design deste painel (PausaFast)
 
-Convenções visuais do `viewer/`. Objetivo: **claro, operacional, sério** — nada de
+Convenções visuais do `viewer/`. Objetivo: **premium, operacional, sério** — nada de
 cara de "template baratinho" (gradiente em todo botão, glow colorido, fonte
-serifada só pra "enfeitar"). A especificação completa (tokens, escala, componentes)
-está em [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md). Antes de mexer na UI, siga isto.
+serifada só pra "enfeitar"). A especificação de tokens/componentes antiga está em
+[`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md); onde ela conflitar com a seção "Vidro"
+abaixo, vale o Vidro. Antes de mexer na UI, siga isto.
+
+## Visual "Vidro" (nov/2026)
+
+Aprovado pelo dono do produto a partir do protótipo no canvas de design.
+
+- **Superfícies de vidro fosco.** `--card` é translúcido; toda superfície escrita como
+  `background: 'var(--card)'` ganha desfoque automaticamente (regra
+  `.app-fundo [style*='background: var(--card)']` em `index.css`). Continue escrevendo
+  `background: 'var(--card)'` — não crie fundo opaco novo nem `backdrop-filter` inline.
+- **O que flutua** (menu, diálogo, gaveta, barra de seleção) usa `boxShadow: 'var(--sh)'`
+  e por isso recebe `--card-forte` (vidro denso). Barra flutuante nova: classe
+  `.barra-flutuante`.
+- **Fundo com luz ambiente**: classe `.app-fundo` na raiz de cada tela (painel, login,
+  erro). São gradientes radiais (baratos), a primeira mancha puxa a cor da marca.
+- **Luz que segue o mouse** nos cartões: `Cartao` (ds.jsx) já faz; em cartão escrito à
+  mão use `className="ds-cartao"` + `onMouseMove={seguirLuz}`. `.ergue` sobe 3px no hover.
+- **Movimento**: entrada em cascata (`.ds-cartao`, `.linha-entra`, com `animation-delay`
+  por índice, no máximo ~16 passos), interruptor com mola, botões que sobem 1px. Sempre
+  `backwards` (não `both`) em animação de entrada — `both` trava o `transform` do hover.
+- **Tema escuro é o padrão**; o claro é vidro fosco branco. O modo TV da cozinha
+  (`[data-tema]`) continua liso, sem vidro.
+- **Fonte: Geist** (+ Geist Mono via `.fonte-mono`/`MONO`).
+- Cor ainda é **sinal**: verde/âmbar/vermelho só para status, a marca do cliente para
+  ação/seleção. O único brilho colorido permitido é o contorno `--marca-suave` da barra
+  flutuante e o realce da busca.
 
 ## White-label: a cor de destaque NÃO é sua
 
@@ -26,9 +52,9 @@ O PausaFast é vendido para várias empresas, e cada uma configura nome, logo e 
 - **Sem gradiente em elemento interativo.** Botão, badge, ícone de ação — tudo cor
   lisa. Gradiente só existe num lugar decorativo: nenhum. A barra de progresso de
   ação em massa também é cor lisa hoje. Não reintroduza.
-- **Sem `box-shadow` colorido/glow.** Sombra é só pra elevação (modal, barra
-  flutuante), nunca um brilho colorido atrás de botão.
-- **Uma família tipográfica só: IBM Plex Sans** (+ IBM Plex Mono via `.fonte-mono` pra preço,
+- **Sem `box-shadow` colorido/glow** atrás de botão. Sombra é pra elevação; a exceção é
+  o contorno da barra flutuante (ver "Vidro").
+- **Uma família tipográfica só: Geist** (+ Geist Mono via `.fonte-mono` pra preço,
   ID de pedido, código PDV e cronômetro). Não reintroduza uma serifada pra títulos
   — hierarquia é peso/tamanho, não fonte diferente.
 - **Piso tipográfico: 12px** pra texto lido; 11,5px só em rótulo caixa-alta com
@@ -36,8 +62,7 @@ O PausaFast é vendido para várias empresas, e cada uma configura nome, logo e 
 - **Rótulo sobre preenchimento é calculado, não escolhido**: `--marca-texto` e
   `--perigo-texto`. O hover anda na direção que aumenta o contraste com o rótulo
   (`--marca-hover`). Não fixe `color: '#fff'` em botão.
-- **Tema claro é o padrão** (tela de balcão e cozinha iluminada); o escuro é a
-  alternativa. Fundo liso, sem vinheta: `--fundo` em `index.css`.
+- **Tema escuro é o padrão** (visual Vidro); o claro fica a um clique e também é vidro.
 
 ## Classes reutilizáveis (`index.css`)
 

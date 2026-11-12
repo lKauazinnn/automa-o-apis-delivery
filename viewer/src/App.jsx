@@ -24,7 +24,7 @@ import { Botao, Dialogo, EstadoVazio, LarguraContext, MONO, OpcaoMarcavel, Segme
 import { SimboloPausaFast } from './Logo'
 import { MaisView } from './views/MaisView'
 import { ItemEditarGaveta, ItemNovoGaveta } from './modals/ItemGaveta'
-import { sugestoesParecidas } from './pausas'
+import { bateBusca, bateNoNome, sugestoesParecidas, termosBusca } from './pausas'
 import { TelaCarregando, TelaDefinirSenha, TelaLogin } from './TelasAuth'
 import { CoresContext, iniciaisDe, lerImagemComoDataUrl, ModalEmbutidoContext, PALETAS, Pill } from './ui'
 import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
@@ -180,6 +180,9 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [lojaForm, setLojaForm] = useState({ nome: '', merchant_id: '', plataforma: 'ifood' })
   const [criandoLoja, setCriandoLoja] = useState(false)
   const [lojaId, setLojaId] = useState('')
+  // A lista de lojas já respondeu (com sucesso ou não). Até lá não dá pra saber se a loja
+  // efetiva é iFood ou 99, então o cardápio não carrega antes disso.
+  const [lojasProntas, setLojasProntas] = useState(false)
   const [modalLojas, setModalLojas] = useState(false)
   // Selo "verificada no iFood": ids que o GET /merchants do iFood reconhece. null = ainda não
   // consultado; { disponivel:false } = iFood não respondeu (não mostra selo).
@@ -376,6 +379,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       setLojas(await apiFetch('/lojas'))
     } catch {
       // se a listagem de lojas falhar, segue usando a loja padrão do .env
+    } finally {
+      setLojasProntas(true)
     }
   }
 
@@ -548,20 +553,11 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   }
 
   useEffect(() => {
-    carregar()
-    carregarAuditoria()
     carregarLojas()
     if (sessao.usuario.papel === 'administrador') carregarUsuarios()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    if (lojas.length) {
-      carregar()
-      carregarAuditoria() // recarrega a auditoria por loja ao trocar de loja (senão o dashboard fica com a loja anterior)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lojaId])
 
   // Se a loja selecionada não existe mais na lista (ex: foi corrigida/removida no banco),
   // limpa o lojaId pra cair na primeira loja — evita ficar pedindo um merchant morto (403).
@@ -572,6 +568,17 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   }, [lojas, lojaId])
 
   const lojaAtual = useMemo(() => lojas.find((l) => l.merchant_id === lojaId) || lojas[0], [lojas, lojaId])
+
+  // Cardápio e auditoria acompanham a loja EFETIVA (lojaAtual), não o lojaId cru: com lojaId vazio
+  // a loja efetiva é lojas[0], que só aparece quando /lojas responde. Antes, o cardápio carregava
+  // no mount (sem loja → iFood) e não recarregava quando lojas[0] era do 99 — a tela ficava com
+  // itens do iFood e pausar mandava o id do iFood pra rota do 99 (502 "dish ID does not exist").
+  useEffect(() => {
+    if (!lojasProntas) return
+    carregar()
+    carregarAuditoria()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lojasProntas, lojaAtual?.merchant_id, lojaAtual?.plataforma])
 
   const categoriaFinal = form.categoria === '__NOVA__' ? form.novaCategoria : form.categoria
   const precoNumerico = Number(String(form.preco).replace(',', '.'))
@@ -1001,6 +1008,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             category_id: item.categoryId,
             nome: nome.trim(),
             preco: precoNum,
+            // Backend manda o PUT com o preço atual e altera o preço pelo PATCH items/price.
+            preco_atual: Number(item.preco),
             codigo_pdv: codigoPdv.trim(),
             status: item.status,
             imagem_path: imagemPath,
@@ -1009,7 +1018,16 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         setItens((prev) =>
           prev.map((i) =>
             i.itemId === item.itemId
-              ? { ...i, nome: nome.trim(), preco: precoNum, codigo_pdv: codigoPdv.trim(), foto: imagemPath }
+              ? {
+                  ...i,
+                  nome: nome.trim(),
+                  preco: precoNum,
+                  codigo_pdv: codigoPdv.trim(),
+                  // Upload devolve o path relativo; a lista precisa da URL completa pra exibir a foto.
+                  foto: imagemPath && !/^(https?:|data:)/.test(imagemPath)
+                    ? `https://static-images.ifood.com.br/pratos/${imagemPath}`
+                    : imagemPath,
+                }
               : i
           )
         )
@@ -1128,13 +1146,18 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const categoriasFiltro = useMemo(() => ['TODAS', ...categorias], [categorias])
 
   const filtrados = useMemo(() => {
-    const termo = busca.trim().toLowerCase()
-    return itens.filter((item) => {
+    const termos = termosBusca(busca)
+    const lista = itens.filter((item) => {
       if (filtroCategoria !== 'TODAS' && item.categoria !== filtroCategoria) return false
-      if (filtroStatus !== 'TODOS' && item.status !== filtroStatus) return false
-      if (termo && !`${item.nome} ${item.codigo_pdv}`.toLowerCase().includes(termo)) return false
-      return true
+      if (filtroStatus === 'SEM_ID') {
+        if (!item.semIdIntegracao) return false
+      } else if (filtroStatus !== 'TODOS' && item.status !== filtroStatus) return false
+      return bateBusca(item, termos)
     })
+    if (!termos.length) return lista
+    // Quem bate pelo nome/PDV vem antes de quem só bate pela descrição ou categoria.
+    const peloNome = lista.filter((i) => bateNoNome(i, termos))
+    return [...peloNome, ...lista.filter((i) => !bateNoNome(i, termos))]
   }, [itens, busca, filtroCategoria, filtroStatus])
 
   const idsVisiveis = useMemo(() => filtrados.map((i) => i.itemId), [filtrados])
@@ -1639,7 +1662,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
           />
         )}
 
-        <div style={{ display: 'flex', height: '100dvh', overflow: 'clip', background: 'var(--bg)', color: 'var(--t1)' }}>
+        <div className="app-fundo" style={{ display: 'flex', height: '100dvh', overflow: 'clip', background: 'var(--bg)', color: 'var(--t1)' }}>
           {compacta && !celular && sidebarSobreposta && (
             <div onClick={() => setSidebarSobreposta(false)} style={{ position: 'fixed', inset: 0, background: 'var(--veu)', zIndex: 60 }} aria-hidden="true" />
           )}
@@ -2040,8 +2063,19 @@ export default function App() {
     if (!erro) return ''
     return MENSAGEM_ERRO_LINK[erro.codigo] || erro.descricao?.replaceAll('+', ' ') || 'Esse link não é mais válido.'
   })
-  // Tema claro é o padrão do produto (tela de balcão/cozinha iluminada); o escuro fica a um clique.
-  const [tema, setTema] = useState(() => localStorage.getItem('tema') || 'claro')
+  // Visual "Vidro": escuro é o padrão; o claro fica a um clique. Quem já tinha um tema salvo do
+  // visual antigo passa uma vez pro escuro (chave tema-v2) e depois a escolha é respeitada.
+  const [tema, setTema] = useState(() => {
+    try {
+      if (!localStorage.getItem('tema-v2')) {
+        localStorage.setItem('tema-v2', '1')
+        return 'escuro'
+      }
+      return localStorage.getItem('tema') || 'escuro'
+    } catch {
+      return 'escuro'
+    }
+  })
   const [marca, setMarca] = useState(lerMarcaEmCache)
   const C = useMemo(() => ({ ...PALETAS[tema], ...tokensDaMarca(marca.cor, tema) }), [tema, marca.cor])
   const valorMarca = useMemo(() => ({ marca, setMarca }), [marca])

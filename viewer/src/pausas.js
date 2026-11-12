@@ -34,6 +34,35 @@ export function normalizar(texto) {
     .trim()
 }
 
+// Busca do cardápio. Um critério só pra lista, contadores e celular (antes a lista comparava
+// com acento e os contadores sem, e os números não batiam com o que aparecia).
+// - ignora acento e maiúscula ("classico" acha "Clássico");
+// - cada palavra digitada precisa ser o COMEÇO de alguma palavra do item, em qualquer ordem
+//   ("bacon burg" acha "Burger Bacon"; "fritas g" acha "Fritas G" e não tudo que tem um "g");
+// - procura em nome, código PDV, categoria e descrição — `bateNoNome` serve pra ordenar,
+//   pondo primeiro quem bate pelo nome;
+// - "gue/gui" = "ge/gi", porque o mesmo cardápio escreve "Burguer" e "Burger".
+function palavrasBusca(texto) {
+  return normalizar(texto).replace(/gu(?=[ei])/g, 'g').split(/[^a-z0-9]+/).filter(Boolean)
+}
+
+export function termosBusca(busca) {
+  return palavrasBusca(busca)
+}
+
+function bate(palavras, termos) {
+  return termos.every((t) => palavras.some((p) => p.startsWith(t)))
+}
+
+export function bateBusca(item, termos) {
+  if (!termos.length) return true
+  return bate(palavrasBusca(`${item.nome || ''} ${item.codigo_pdv || ''} ${item.categoria || ''} ${item.descricao || ''}`), termos)
+}
+
+export function bateNoNome(item, termos) {
+  return bate(palavrasBusca(`${item.nome || ''} ${item.codigo_pdv || ''}`), termos)
+}
+
 // Prefixos de porção/linha que não ajudam a identificar o "prato" em si
 // (ex: "Com Ancho Black" / "Fam Ancho Black" / "Exec Ancho Black" são o mesmo corte, tamanhos diferentes).
 const PALAVRAS_IGNORADAS = new Set([

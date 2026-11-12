@@ -798,7 +798,10 @@ def editar_opcao(product_id):
             raise ValueError("Preço inválido")
         if preco <= 0:
             raise ValueError("Preço deve ser maior que zero")
-        com_retry(update_option_price, merchant_id, product_id, preco)
+        option_id = str(dados.get("option_id", "")).strip()
+        if not option_id or option_id == product_id:
+            raise ValueError("option_id é obrigatório pra alterar o preço do complemento (PATCH options/price).")
+        com_retry(update_option_price, merchant_id, option_id, preco)
         resultado["preco"] = preco
         campos_espelho["preco"] = preco
     _complementos("atualizar", filtro=("product_id", product_id), campos=campos_espelho)
@@ -892,6 +895,16 @@ def editar_item(item_id):
     if dados["status"] not in ("AVAILABLE", "UNAVAILABLE"):
         raise ValueError("status deve ser AVAILABLE ou UNAVAILABLE")
 
+    # Homologação iFood: alteração de preço TEM que sair por `PATCH .../items/price`. O PUT
+    # (único jeito de trocar nome/foto) vai com o preço que o item já tinha, e o preço novo
+    # segue logo depois pelo PATCH dedicado.
+    preco_atual = preco
+    if str(dados.get("preco_atual", "")).strip():
+        try:
+            preco_atual = float(str(dados["preco_atual"]).replace(",", "."))
+        except ValueError:
+            return jsonify({"erro": "preco_atual inválido"}), 400
+
     merchant_id = _merchant_id()
     nome = str(dados["nome"]).strip()
     codigo_pdv = str(dados["codigo_pdv"]).strip()
@@ -904,11 +917,13 @@ def editar_item(item_id):
         product_id=str(dados["product_id"]),
         category_id=str(dados["category_id"]),
         name=nome,
-        price=preco,
+        price=preco_atual,
         external_code=codigo_pdv,
         available=dados["status"] == "AVAILABLE",
         image_path=imagem_path,
     )
+    if round(preco, 2) != round(preco_atual, 2):
+        com_retry(update_item_price, merchant_id, item_id, preco)
     registrar_auditoria(operador, "editar_item", item_id=item_id, codigo_pdv=codigo_pdv, nome=nome, detalhe=f"preço R$ {preco:.2f}")
     return jsonify(resultado)
 
@@ -1624,8 +1639,38 @@ def _atualizar_status_pedido(pedido_id, ifood_order_id, novo_status, operador, t
     Cancelamento no iFood exige `motivo_codigo` vindo de GET /cancellationReasons do pedido."""
     eh_99 = str(ifood_order_id or "").startswith("99-")
     id_99 = _id_real_99(ifood_order_id)
+    aviso = None
     if id_99 is not None:
-        _empurrar_status_99(merchant_id, id_99, novo_status, motivo_codigo, motivo)
+        try:
+            _empurrar_status_99(merchant_id, id_99, novo_status, motivo_codigo, motivo)
+        except ErroPedidoRecusado as exc:
+            detalhe_99 = str(getattr(exc, "detalhe", "") or exc)
+            if "12010" in detalhe_99 and novo_status != "CANCELADO":
+                # [12010] = o pedido já está cancelado no 99 (ex: teste não confirmado em 5 min).
+                # Alinha o painel com a realidade em vez de deixar o card "NOVO" pra sempre.
+                requests.patch(
+                    f"{SUPABASE_URL}/rest/v1/pedidos",
+                    headers=_supabase_headers(),
+                    params={"id": f"eq.{pedido_id}"},
+                    json={"status": "CANCELADO", "atualizado_em": _agora_iso()},
+                    timeout=10,
+                )
+                raise ErroPedidoRecusado(
+                    "Este pedido já foi cancelado pelo 99Food (normalmente por não ter sido confirmado "
+                    "a tempo). O status no painel foi atualizado para CANCELADO.",
+                    detalhe=getattr(exc, "detalhe", None),
+                ) from exc
+            if novo_status != "DESPACHADO":
+                raise
+            # "Pronto" no 99 (order/ready) é só um AVISO pra otimizar a entrega (doc oficial) —
+            # não muda o status do pedido (quem avança 400/500/600 é o próprio 99, pelo
+            # entregador) e a loja de teste não aceita (teste cobre só confirmar/cancelar).
+            # Recusa aqui não pode travar a cozinha: move no painel e devolve o motivo como aviso.
+            logger.warning("99Food recusou order/ready de %s: %s", id_99, detalhe_99)
+            aviso = (
+                f"O 99Food não recebeu o aviso de pedido pronto ({detalhe_99}). "
+                "O pedido foi movido no painel; a entrega segue pelo 99."
+            )
     # Pedido de demonstração/teste não existe em plataforma nenhuma — só muda local.
     somente_local = _pedido_e_local(ifood_order_id) and id_99 is None
     if not eh_99 and not somente_local:
@@ -1678,10 +1723,13 @@ def _atualizar_status_pedido(pedido_id, ifood_order_id, novo_status, operador, t
     resp.raise_for_status()
     origem = " (99Food)" if id_99 is not None else (" (só local)" if somente_local or eh_99 else "")
     sufixo_motivo = f" — motivo: {motivo}" if novo_status == "CANCELADO" and motivo else ""
+    sufixo_aviso = " — 99Food não recebeu o aviso de pronto" if aviso else ""
     registrar_auditoria(
-        operador, "alterar_status_pedido", item_id=pedido_id, detalhe=f"novo status: {novo_status}{origem}{sufixo_motivo}"
+        operador, "alterar_status_pedido", item_id=pedido_id,
+        detalhe=f"novo status: {novo_status}{origem}{sufixo_motivo}{sufixo_aviso}",
     )
-    return resp.json()[0]
+    linha = resp.json()[0]
+    return {**linha, "aviso": aviso} if aviso else linha
 
 
 def _criar_pedido_local(merchant_id, order_id) -> bool:
@@ -2299,9 +2347,12 @@ def webhook_ifood():
 
 # 99 order_status -> status do KDS (aceita código numérico ou texto).
 STATUS_99_KDS = {
-    # códigos numéricos reais do 99 (evento orderNew traz status=100 = novo)
+    # Tabela oficial (developer.didi-food.com > Order API > Get Order Details > Order Status):
+    # 100 criado · 200 aceito pela loja · 400 entregador pegou · 500 entregador chegou no cliente
+    # · 600 finalizado · 9xx cancelado (901/902 cliente, 921/923 loja, 922 timeout de
+    # confirmação, 961 atendimento, 971/981 entregador). 300/700/800 não existem na tabela.
     "100": "NOVO", "200": "CONFIRMADO", "300": "CONFIRMADO", "400": "DESPACHADO",
-    "500": "DESPACHADO", "600": "DESPACHADO", "700": "CONCLUIDO", "800": "CANCELADO",
+    "500": "DESPACHADO", "600": "CONCLUIDO", "700": "CONCLUIDO", "800": "CANCELADO",
     "900": "CANCELADO", "1000": "CANCELADO",
     # atalhos numéricos da simulação + textos
     "1": "NOVO", "2": "CONFIRMADO", "3": "DESPACHADO", "4": "CONCLUIDO", "5": "CANCELADO",
@@ -2310,6 +2361,30 @@ STATUS_99_KDS = {
     "completed": "CONCLUIDO", "finished": "CONCLUIDO", "concluded": "CONCLUIDO",
     "cancelled": "CANCELADO", "canceled": "CANCELADO",
 }
+
+
+def _status_99_kds(st, oi):
+    """Status do 99 → KDS. O 99 usa subcódigos dentro de cada faixa (ex: 922 = cancelado
+    automaticamente por falta de confirmação), então código exato que não está no mapa cai pela
+    FAIXA da centena, nunca direto em NOVO. `cancel_time` preenchido também é cancelamento."""
+    if isinstance(oi, dict) and (oi.get("cancel_time") or 0) > 0:
+        return "CANCELADO"
+    chave = str(st).lower()
+    if chave in STATUS_99_KDS:
+        return STATUS_99_KDS[chave]
+    if chave.isdigit() and int(chave) >= 100:
+        n = int(chave)
+        if n >= 800:
+            return "CANCELADO"
+        if n >= 600:
+            return "CONCLUIDO"
+        if n >= 400:
+            return "DESPACHADO"
+        if n >= 200:
+            return "CONFIRMADO"
+    return "NOVO"
+
+
 # delivery_type do 99: 1 = entrega; 2/3 = retirada. + textos da simulação.
 TIPO_99_KDS = {
     "1": "ENTREGA", "2": "RETIRADA", "3": "RETIRADA",
@@ -2342,7 +2417,7 @@ def _mapear_pedido_99(app_shop_id, data):
     if not order_id:
         return None
     st = oi.get("status", data.get("order_status", data.get("status")))
-    status = STATUS_99_KDS.get(str(st).lower(), "NOVO")
+    status = _status_99_kds(st, oi)
     dt = oi.get("delivery_type", data.get("order_type", data.get("type")))
     tipo = TIPO_99_KDS.get(str(dt).lower(), "RETIRADA" if str(dt) in ("2", "3") else "ENTREGA")
     price = oi.get("price") if isinstance(oi.get("price"), dict) else {}
@@ -2483,32 +2558,111 @@ def catalogo_99food():
     for c in m.get("categories", []):
         nomes_cat.append(c.get("category_name"))
         for iid in c.get("app_item_ids", []):
+            if not iid:  # categorias montadas no portal do 99 listam "" pros itens sem ID
+                continue
             cat_por_item[iid] = c.get("category_name")
             catid_por_item[iid] = c.get("app_category_id")
 
-    itens = []
+    cat_por_nome = _categorias_por_nome_99(app_shop_id) if any(not it.get("app_item_id") for it in m.get("items", [])) else {}
+
+    itens, vistos = [], {}
     for it in m.get("items", []):
-        iid = it.get("app_item_id")
+        iid = str(it.get("app_item_id") or "").strip()
+        sem_id = not iid
+        cat_nome, cat_id = cat_por_nome.get(it.get("item_name"), ("Sem categoria", "")) if sem_id else (None, None)
+        if sem_id:
+            # Item criado no portal do 99 sem "ID do item" (app_item_id): a API não consegue
+            # pausar/editar. Gera um ID só de exibição (estável pelo nome) pra tela não
+            # misturar esses itens entre si; as rotas de alteração recusam esse prefixo.
+            base = hashlib.md5(str(it.get("item_name") or "").encode("utf-8")).hexdigest()[:10]
+            vistos[base] = vistos.get(base, 0) + 1
+            iid = f"{PREFIXO_SEM_ID_99}{base}" + (f"-{vistos[base]}" if vistos[base] > 1 else "")
         itens.append(
             {
                 "itemId": iid,
                 "productId": iid,
-                "categoria": cat_por_item.get(iid, "Sem categoria"),
-                "categoryId": catid_por_item.get(iid, ""),
+                "categoria": cat_nome if sem_id else cat_por_item.get(iid, "Sem categoria"),
+                "categoryId": cat_id if sem_id else catid_por_item.get(iid, ""),
                 "nome": it.get("item_name"),
                 "descricao": it.get("short_desc") or it.get("description") or "",
-                "codigo_pdv": it.get("app_external_id") or "",
+                # No 99 o app_item_id é o "ID do item no PDV"; o app_external_id quase sempre
+                # vem vazio em cardápio montado no portal. Mostra um ou outro.
+                "codigo_pdv": it.get("app_external_id") or ("" if sem_id else iid),
                 "preco": (it.get("price") or 0) / 100.0,  # 99 manda o preço em centavos
                 "status": "AVAILABLE" if it.get("status") == 1 else "UNAVAILABLE",
-                "foto": it.get("head_img") or None,
+                "foto": _foto_99(it.get("head_img")),
+                "semIdIntegracao": sem_id,
             }
         )
     return jsonify({"itens": itens, "categorias": sorted(set(filter(None, nomes_cat)))})
 
 
+def _categorias_por_nome_99(app_shop_id):
+    """Categoria dos itens SEM app_item_id (cardápio montado no portal do 99: a categoria lista
+    "" no lugar do ID, então não dá pra ligar pelo ID).
+
+    No v3 a lista `items` vem na MESMA ordem da concatenação de `categories[].app_item_ids`
+    (conferido na loja Fosters Guará), então dá pra casar por posição. Só usa se a ordem se
+    confirmar — mesmo tamanho e todo ID não vazio na mesma posição — senão devolve {} e os
+    itens ficam "Sem categoria" em vez de cair numa categoria errada. Nome repetido em
+    categorias diferentes fica de fora pelo mesmo motivo."""
+    try:
+        v3 = food99.list_items_v3(app_shop_id)
+    except Exception as exc:
+        logger.warning("99Food: não consegui ler o v3 pra deduzir categorias: %s", exc)
+        return {}
+    cats = v3.get("categories", [])
+    seq = [(c.get("category_name"), c.get("app_category_id") or "", iid) for c in cats for iid in c.get("app_item_ids", [])]
+    its = v3.get("items", [])
+    if len(seq) != len(its) or any(s[2] and s[2] != (it.get("app_item_id") or "") for s, it in zip(seq, its)):
+        logger.info("99Food: ordem do v3 não confere com as categorias; itens sem ID ficam sem categoria.")
+        return {}
+    mapa, conflito = {}, set()
+    for (cat_nome, cat_id, _), it in zip(seq, its):
+        # O v1 (o que a tela lista) só traz o que é vendido sozinho. O mesmo nome costuma
+        # existir também como complemento (ex: "Burger Original" dentro de um combo) — esse
+        # não conta, senão o produto cai em conflito e fica sem categoria.
+        if not it.get("is_sold_separately"):
+            continue
+        nome = it.get("item_name")
+        if nome in mapa and mapa[nome][0] != cat_nome:
+            conflito.add(nome)
+        mapa.setdefault(nome, (cat_nome, cat_id))
+    for nome in conflito:
+        mapa.pop(nome, None)
+    return mapa
+
+
+PREFIXO_SEM_ID_99 = "sem-id-"
+HOST_IMAGENS_99 = "https://img0.didiglobal.com"
+
+
+def _foto_99(caminho):
+    """O 99 devolve a foto como caminho relativo (/static/soda_public/...) no v1 e como
+    http:// no v3. Completa com o host de imagens do DiDi e força https (senão o navegador
+    busca no domínio do painel e dá 404, ou bloqueia por conteúdo misto)."""
+    caminho = str(caminho or "").strip()
+    if not caminho:
+        return None
+    if caminho.startswith("/"):
+        return HOST_IMAGENS_99 + caminho
+    if caminho.startswith("http://"):
+        return "https://" + caminho[len("http://"):]
+    return caminho
+
+
+def _exigir_id_99(item_id):
+    if not item_id or item_id.startswith(PREFIXO_SEM_ID_99):
+        raise ValueError(
+            "Este item não tem \"ID do item\" (app_item_id) cadastrado no 99Food, então a API do 99 "
+            "não deixa pausar nem editar por aqui. Cadastre um ID para ele no portal do 99."
+        )
+
+
 @app.patch("/api/99food/itens/<item_id>/status")
 @requer_login
 def alterar_status_99food(item_id):
+    _exigir_id_99(item_id)
     dados = request.get_json(silent=True) or {}
     status = dados.get("status")
     nome = str(dados.get("nome", "")).strip()
@@ -2544,6 +2698,7 @@ def alterar_status_99food(item_id):
 @app.patch("/api/99food/itens/<item_id>/preco")
 @requer_login
 def alterar_preco_99food(item_id):
+    _exigir_id_99(item_id)
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get("nome", "")).strip()
     preco_anterior = str(dados.get("preco_anterior", "")).strip()
@@ -2579,6 +2734,7 @@ def alterar_preco_99food(item_id):
 def editar_item_99food(item_id):
     """Edição combinada (nome/descrição/preço/PDV) num ÚNICO updateItem v3 — evita várias
     leituras do cardápio (importante por causa do rate-limit do 99)."""
+    _exigir_id_99(item_id)
     dados = request.get_json(silent=True) or {}
     app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
     if not app_shop_id:
@@ -2613,6 +2769,7 @@ def editar_item_99food(item_id):
 @app.patch("/api/99food/itens/<item_id>/codigo-pdv")
 @requer_login
 def alterar_codigo_pdv_99food(item_id):
+    _exigir_id_99(item_id)
     dados = request.get_json(silent=True) or {}
     codigo = str(dados.get("codigo_pdv", "")).strip()
     nome = str(dados.get("nome", "")).strip()
@@ -2632,6 +2789,7 @@ def alterar_codigo_pdv_99food(item_id):
 @app.patch("/api/99food/itens/<item_id>/nome-descricao")
 @requer_login
 def alterar_nome_descricao_99food(item_id):
+    _exigir_id_99(item_id)
     dados = request.get_json(silent=True) or {}
     app_shop_id = str(request.args.get("loja", "") or dados.get("loja", "")).strip()
     campos = {}

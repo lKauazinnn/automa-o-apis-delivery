@@ -1,23 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Design system PausaFast — ver DESIGN_SYSTEM.md. Tema claro na raiz; `.tema-escuro` no <html>
-   redefine só os tokens. As variáveis --marca* são escritas em tempo de execução por
-   aplicarMarcaNoDocumento() (marca.js) com a cor da empresa cliente; os valores abaixo são o
-   padrão PausaFast, usados até a marca carregar. */
+/* Design system PausaFast "Vidro" — ver viewer/CLAUDE.md. Superfícies translúcidas (--card) com
+   desfoque sobre um fundo com luz ambiente (.app-fundo). Tema escuro é o padrão; o claro é vidro
+   fosco branco. `.tema-escuro` no <html> redefine só os tokens. As variáveis --marca* são escritas
+   em tempo de execução por aplicarMarcaNoDocumento() (marca.js) com a cor da empresa cliente; os
+   valores abaixo são o padrão PausaFast, usados até a marca carregar. */
 :root {
-  --fundo: #f4f5f7;
-  --texto: #12151b;
-  --borda-rolagem: #c9ced6;
-  --borda-rolagem-hover: #aeb4be;
-  --esqueleto: #e3e6eb;
-  --perigo: #c8322b;
+  --fundo: #eceff5;
+  --texto: #0b0f17;
+  --borda-rolagem: rgba(15, 23, 42, 0.18);
+  --borda-rolagem-hover: rgba(15, 23, 42, 0.3);
+  --esqueleto: rgba(15, 23, 42, 0.08);
+  --perigo: #bf311e;
   --perigo-texto: #ffffff;
-  --perigo-hover: #ab2a24;
-  --hover-fantasma: rgba(17, 20, 27, 0.06);
+  --perigo-hover: #a32a19;
+  --hover-fantasma: rgba(15, 23, 42, 0.06);
 
   --marca: #2b59c3;
   --marca-tinta: #2b59c3;
@@ -27,80 +28,93 @@
   --marca-borda: #2b59c347;
   --marca-anel: #2b59c340;
 
-  /* Tokens do redesign (mesmos valores de PALETAS em ui.jsx), pros componentes de ds.jsx
-     escreverem cor como var(--card), var(--t1)... em vez de receber `C` por prop. */
-  --bg: #f4f5f7;
-  --card: #ffffff;
-  --card2: #f7f8fa;
-  --input: #f1f3f5;
-  --borda: #dfe2e7;
-  --linha: #eceef1;
-  --t1: #12151b;
-  --t2: #4b5361;
-  --t3: #626a79;
-  --good: #1a7f4b;
-  --good-bg: #e7f3ec;
-  --good-bd: #bbdcc9;
-  --warn: #a35406;
-  --warn-bg: #fbf0e3;
-  --warn-bd: #eccca8;
-  --bad: #c8322b;
-  --bad-bg: #fbeae8;
-  --bad-bd: #f0c2be;
+  /* Tokens (mesmos valores de PALETAS em ui.jsx), pros componentes de ds.jsx escreverem cor
+     como var(--card), var(--t1)... em vez de receber `C` por prop. --card é TRANSLÚCIDO: toda
+     superfície com `background: var(--card)` ganha desfoque automático (ver .app-fundo abaixo). */
+  --bg: #eceff5;
+  --card: rgba(255, 255, 255, 0.66);
+  --card-forte: rgba(255, 255, 255, 0.92);
+  --card2: rgba(255, 255, 255, 0.5);
+  --input: rgba(255, 255, 255, 0.62);
+  --borda: rgba(15, 23, 42, 0.1);
+  --linha: rgba(15, 23, 42, 0.07);
+  --t1: #0b0f17;
+  --t2: #384152;
+  --t3: #566072;
+  --good: #0a7a4a;
+  --good-bg: rgba(10, 122, 74, 0.1);
+  --good-bd: rgba(10, 122, 74, 0.28);
+  --warn: #9a5600;
+  --warn-bg: rgba(217, 119, 6, 0.12);
+  --warn-bd: rgba(154, 86, 0, 0.3);
+  --bad: #bf311e;
+  --bad-bg: rgba(191, 49, 30, 0.09);
+  --bad-bd: rgba(191, 49, 30, 0.28);
   --info: #0b7285;
+  --brilho: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --luz: rgba(43, 89, 195, 0.1);
+  --aurora-1: rgba(99, 102, 241, 0.22);
+  --aurora-2: rgba(20, 184, 166, 0.16);
+  --aurora-3: rgba(245, 158, 11, 0.14);
   /* Séries de gráfico (categórico, ordem fixa) — paleta validada com o validador da skill dataviz
      contra --card nos dois temas. Texto nunca usa essas cores; elas só identificam a série. */
   --serie-1: #2a78d6;
   --serie-2: #eb6834;
   --serie-3: #1baf7a;
   --serie-4: #eda100;
-  --info-bg: #e4f1f3;
-  --info-bd: #b2d6dd;
-  --sh: 0 16px 40px -10px rgba(16, 24, 40, 0.22), 0 2px 6px rgba(16, 24, 40, 0.06);
-  --sh-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --veu: rgba(14, 17, 22, 0.44);
+  --info-bg: rgba(11, 114, 133, 0.1);
+  --info-bd: rgba(11, 114, 133, 0.28);
+  --sh: 0 24px 50px -28px rgba(15, 23, 42, 0.4), 0 2px 6px rgba(15, 23, 42, 0.05);
+  --sh-sm: 0 1px 2px rgba(15, 23, 42, 0.07);
+  --veu: rgba(15, 23, 42, 0.32);
 
   color-scheme: light;
 }
 
 :root.tema-escuro {
-  --bg: #0d0f13;
-  --card: #15181e;
-  --card2: #1b1f26;
-  --input: #111419;
-  --borda: #272c35;
-  --linha: #1e2229;
-  --t1: #f1f3f6;
-  --t2: #a7afbc;
-  --t3: #858e9c;
-  --good: #3dc981;
-  --good-bg: rgba(61, 201, 129, 0.11);
-  --good-bd: rgba(61, 201, 129, 0.3);
-  --warn: #f0a23b;
-  --warn-bg: rgba(240, 162, 59, 0.12);
-  --warn-bd: rgba(240, 162, 59, 0.32);
-  --bad: #f26a5f;
-  --bad-bg: rgba(242, 106, 95, 0.12);
-  --bad-bd: rgba(242, 106, 95, 0.34);
-  --info: #3bb6d4;
+  --bg: #06080c;
+  --card: rgba(22, 26, 34, 0.62);
+  --card-forte: rgba(20, 23, 30, 0.93);
+  --card2: rgba(255, 255, 255, 0.035);
+  --input: rgba(255, 255, 255, 0.055);
+  --borda: rgba(255, 255, 255, 0.09);
+  --linha: rgba(255, 255, 255, 0.065);
+  --t1: #f2f4f8;
+  --t2: #b9c0cc;
+  --t3: #8b94a4;
+  --good: #4ade9b;
+  --good-bg: rgba(74, 222, 155, 0.12);
+  --good-bd: rgba(74, 222, 155, 0.3);
+  --warn: #fbbf4d;
+  --warn-bg: rgba(251, 191, 77, 0.12);
+  --warn-bd: rgba(251, 191, 77, 0.32);
+  --bad: #ff7b6b;
+  --bad-bg: rgba(255, 123, 107, 0.12);
+  --bad-bd: rgba(255, 123, 107, 0.32);
+  --info: #5ccbe6;
   --serie-1: #3987e5;
   --serie-2: #d95926;
   --serie-3: #199e70;
   --serie-4: #c98500;
-  --info-bg: rgba(59, 182, 212, 0.11);
-  --info-bd: rgba(59, 182, 212, 0.3);
-  --sh: 0 18px 44px -10px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --info-bg: rgba(92, 203, 230, 0.12);
+  --info-bd: rgba(92, 203, 230, 0.3);
+  --sh: 0 24px 60px -24px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.35);
   --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --veu: rgba(0, 0, 0, 0.6);
+  --veu: rgba(3, 4, 7, 0.62);
+  --brilho: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --luz: rgba(139, 155, 255, 0.14);
+  --aurora-1: rgba(99, 102, 241, 0.34);
+  --aurora-2: rgba(20, 184, 166, 0.2);
+  --aurora-3: rgba(245, 158, 11, 0.13);
 
-  --fundo: #0d0f13;
-  --texto: #f1f3f6;
-  --borda-rolagem: #2e343e;
-  --borda-rolagem-hover: #434a56;
-  --esqueleto: #222731;
-  --perigo: #f26a5f;
+  --fundo: #06080c;
+  --texto: #f2f4f8;
+  --borda-rolagem: rgba(255, 255, 255, 0.14);
+  --borda-rolagem-hover: rgba(255, 255, 255, 0.24);
+  --esqueleto: rgba(255, 255, 255, 0.08);
+  --perigo: #ff7b6b;
   --perigo-texto: #0f1115;
-  --perigo-hover: #f5867d;
+  --perigo-hover: #ff9586;
   --hover-fantasma: rgba(255, 255, 255, 0.07);
   color-scheme: dark;
 }
@@ -178,7 +192,7 @@ html {
 
 body {
   margin: 0;
-  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
   background: var(--fundo);
   color: var(--texto);
   min-height: 100vh;
@@ -188,7 +202,149 @@ body {
 }
 
 .fonte-mono {
-  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ── Vidro ────────────────────────────────────────────────────────────────────────────────
+   .app-fundo vai na raiz de cada tela (painel, login): pinta três manchas de luz bem difusas
+   que derivam devagar atrás de tudo. São gradientes radiais (sem filter: blur), então custam
+   pouco até em TV de cozinha. A primeira mancha puxa a cor da marca do cliente. */
+.app-fundo {
+  position: relative;
+  isolation: isolate;
+}
+.app-fundo::before,
+.app-fundo::after {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+}
+.app-fundo::before {
+  width: 70vmax;
+  height: 70vmax;
+  left: -22vmax;
+  top: -30vmax;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--marca) 55%, var(--aurora-1)), transparent);
+  opacity: 0.55;
+  animation: aurora-deriva 30s ease-in-out infinite alternate;
+}
+.app-fundo::after {
+  width: 60vmax;
+  height: 60vmax;
+  right: -20vmax;
+  bottom: -28vmax;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--aurora-2) 70%, var(--aurora-3)), transparent);
+  animation: aurora-deriva 36s ease-in-out -12s infinite alternate-reverse;
+}
+@keyframes aurora-deriva {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(5vw, 4vh) scale(1.1);
+  }
+  100% {
+    transform: translate(-4vw, 7vh) scale(0.95);
+  }
+}
+
+/* Toda superfície que usa o token --card (cartões, diálogos, gavetas, menus, linhas fixas)
+   vira vidro fosco: desfoque + reflexo fino no topo. Pegar pelo estilo inline evita editar os
+   ~70 lugares que escrevem `background: 'var(--card)'`. Dentro do modo TV da cozinha
+   ([data-tema]) o fundo é liso e não precisa. */
+.app-fundo [style*='background: var(--card)']:not([data-tema] *) {
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+}
+.app-fundo [style*='background: var(--card)'][style*='border']:not([data-tema] *) {
+  box-shadow: var(--brilho);
+}
+/* O que FLUTUA por cima do conteúdo (menus, diálogos, gavetas, barra de seleção — todos usam
+   `boxShadow: 'var(--sh)'`) precisa de vidro mais denso: com o --card normal, foto e texto de
+   baixo vazavam e atrapalhavam a leitura. */
+.app-fundo [style*='background: var(--card)'][style*='box-shadow: var(--sh)'] {
+  background-color: var(--card-forte) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
+}
+/* Barra flutuante (seleção em massa): vidro denso + contorno na cor da marca, pra se destacar
+   até sobre cartões escuros parecidos com ela. */
+.barra-flutuante {
+  background: var(--card-forte);
+  border: 1px solid var(--marca-borda);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
+  box-shadow: var(--brilho), 0 0 0 4px var(--marca-suave), 0 28px 60px -12px rgba(0, 0, 0, 0.65);
+}
+.sem-barra {
+  scrollbar-width: none;
+}
+.sem-barra::-webkit-scrollbar {
+  display: none;
+}
+
+/* Cartão com luz que segue o mouse (Cartao em ds.jsx escreve --mx/--my). */
+.ds-cartao {
+  position: relative;
+  animation: cartao-entrar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.ds-cartao:hover {
+  background-image: radial-gradient(520px circle at var(--mx, 50%) var(--my, -40%), var(--luz), transparent 45%) !important;
+}
+@keyframes cartao-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Cardápio: linhas e cartões entram em cascata; foto do cartão dá um zoom leve no hover. */
+.linha-entra {
+  animation: cartao-entrar 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.cartao-item__foto {
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.5s;
+}
+.cartao-item:hover .cartao-item__foto {
+  transform: scale(1.06);
+}
+.selo-foto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: rgba(10, 12, 16, 0.6);
+  border: 1px solid rgba(251, 191, 77, 0.55);
+  color: #fbd38d;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.selo-foto--ruim {
+  border-color: rgba(255, 123, 107, 0.6);
+  color: #ffb4a8;
+}
+@keyframes interruptor-gira {
+  to {
+    rotate: 360deg;
+  }
+}
+.interruptor-girando {
+  animation: interruptor-gira 0.8s linear infinite;
+}
+.ergue {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s;
+}
+.ergue:hover {
+  transform: translateY(-3px);
 }
 
 * {
@@ -342,15 +498,25 @@ tr {
   background: var(--marca-hover);
 }
 .ds-btn--secundario {
-  background: var(--card);
+  background: var(--input);
   color: var(--t1);
   border-color: var(--borda);
+  box-shadow: var(--brilho);
 }
 .ds-btn--secundario:hover:not(:disabled) {
   border-color: var(--t3);
 }
+.ds-btn {
+  transition: transform 0.15s cubic-bezier(0.3, 1.4, 0.5, 1), background-color 0.2s, border-color 0.2s, color 0.2s, filter 0.2s;
+}
+.ds-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.ds-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
 .ds-btn--pausar {
-  background: var(--card);
+  background: var(--input);
   color: var(--t1);
   border-color: var(--borda);
 }
@@ -443,14 +609,16 @@ tr {
   gap: 10px;
   height: 40px;
   padding: 0 12px;
-  border-radius: 9px;
+  border-radius: 11px;
   background: var(--input);
   border: 1px solid var(--borda);
   color: var(--t1);
+  box-shadow: var(--brilho);
+  transition: border-color 0.2s, box-shadow 0.25s;
 }
 .ds-campo:focus-within {
   border-color: var(--marca-tinta);
-  box-shadow: 0 0 0 3px var(--marca-anel);
+  box-shadow: var(--brilho), 0 0 0 4px var(--marca-anel);
 }
 .ds-campo input,
 .ds-campo input:focus {
@@ -503,12 +671,17 @@ textarea.ds-input {
   flex-shrink: 0;
   text-align: left;
 }
+.ds-nav {
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
 .ds-nav:hover {
   background: var(--input);
+  color: var(--t1);
 }
 .ds-nav[aria-current='page'] {
-  background: var(--marca-suave);
-  border-color: var(--marca-borda);
+  background: var(--input);
+  border-color: var(--borda);
+  box-shadow: var(--brilho);
   color: var(--t1);
   font-weight: 600;
 }

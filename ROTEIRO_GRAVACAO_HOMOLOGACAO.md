@@ -123,7 +123,15 @@ cada cenário antes de gravar de verdade**.
 ## Antes de enviar ao suporte
 - [ ] 6 vídeos, um por cenário, mostrando o processo **completo dentro do sistema**.
 - [ ] Reflexo no **Portal do Parceiro** visível nos cenários de Interrupção e Horário.
-- [ ] Links dos vídeos prontos.
+- [ ] Links dos vídeos prontos (um link por cenário, Google Drive com acesso "qualquer pessoa com o link").
+- [ ] **Data e hora** de execução de cada vídeo + **client_id** do app de teste.
+- [ ] Logs baixados do Developer Portal (Logs da API → HTTP Requests → app de teste → Buscar → download), anexados no chamado.
+- [ ] Nos logs do Catalog Cenário 3 aparecem `PATCH items/price`, `PATCH items/status`,
+      `PATCH options/price` e `PATCH options/status` (exigência explícita do checklist).
+
+> **11/11/2026:** o Catalog Cenário 3 gravado em 10/11 alterava preço do item via `PUT items`
+> e preço do complemento via `PATCH products/price` — o checklist exige `PATCH items/price` e
+> `PATCH options/price`. Código corrigido; **regravar o vídeo 06** (C2 + C3 na mesma sessão).
 
 > Validado ao vivo contra o sandbox em 23/07: leituras de loja/disponibilidade/
 > interrupções/catálogo OK, e o Horário com Sábado + Domingo (3 faixas) faz round-trip

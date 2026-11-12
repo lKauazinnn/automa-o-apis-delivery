@@ -1,0 +1,28 @@
+# Serviço do monitor do PausaFast pra colar no docker-compose.yml do WAHA (em `services:`).
+# Ajuste PAUSAFAST_REPO se o repositório estiver em outro caminho (relativo a este compose).
+#
+# Ele fica na MESMA rede do serviço `waha`, então fala com o WhatsApp por http://waha:3000 —
+# o WAHA não precisa ser exposto na internet.
+
+  pausafast-monitor:
+    build:
+      context: ${PAUSAFAST_REPO:-../automa-o-apis-delivery}
+      dockerfile: Dockerfile.monitor
+    container_name: pausafast-monitor
+    restart: unless-stopped
+    env_file:
+      # .env do PausaFast (Supabase, iFood, 99Food, números dos avisos). Nunca vai pro git.
+      - ${PAUSAFAST_REPO:-../automa-o-apis-delivery}/.env
+    environment:
+      ALERTA_WHATSAPP_PROVEDOR: waha
+      WAHA_URL: http://waha:3000
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_SESSION: ${WAHA_SESSION:-PAUSAFAST}
+      TZ: America/Sao_Paulo
+    depends_on:
+      - waha
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

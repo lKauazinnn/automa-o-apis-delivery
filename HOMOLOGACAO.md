@@ -42,10 +42,10 @@ Legenda de confiança:
 | Upload de imagem (item ou complemento) | `POST /api/imagens` | `upload_image` | `POST catalog/v2.0/.../image/upload` | 🟢 |
 | Anexar foto ao criar/editar item | `POST /api/itens` (imagem_path) / `PATCH /api/itens/<id>` | `upsert_item(image_path=...)` | campo `imagePath` dentro de `products[]` no `PUT .../items` | 🟢 |
 | Anexar foto ao criar opção (complemento) | `POST /api/grupos-opcao/<id>/opcoes` (imagem_path) | `create_option(image_path=...)` | campo `imagePath` dentro de `product` no `POST .../options` | 🟢 |
-| Editar nome/preço/PDV/foto de item existente | `PATCH /api/itens/<id>` | `upsert_item` (reenvio completo) | `PUT .../items` | 🟢 |
+| Editar nome/preço/PDV/foto de item existente | `PATCH /api/itens/<id>` | `upsert_item` (PUT com o preço **atual**) + `update_item_price` se o preço mudou | `PUT .../items` + `PATCH .../items/price` | 🟡 (alterado 11/11/2026 — o checklist exige PATCH pra preço) |
 | Pausar/despausar opção (complemento) sem excluir | `PATCH /api/grupos-opcao/<id>/opcoes/<opId>/status` | `update_option_status` | `PATCH catalog/v2.0/.../options/status` | 🟢 |
 | Editar nome/foto de opção (complemento) existente | `PATCH /api/grupos-opcao/opcoes/<productId>` | `edit_option` | `PATCH catalog/v2.0/.../products/{productId}` | 🟢 |
-| Editar preço de opção (complemento) existente | `PATCH /api/grupos-opcao/opcoes/<productId>` | `update_option_price` | `PATCH catalog/v2.0/.../products/price` (lote, `resources:["OPTION"]`) | 🟢 |
+| Editar preço de opção (complemento) existente | `PATCH /api/grupos-opcao/opcoes/<productId>` (+ `option_id` no corpo) | `update_option_price` | `PATCH catalog/v2.0/.../options/price` `{optionId, price, parentCustomizationOptionId}` | 🟡 (trocado de `products/price` em 11/11/2026 por exigência do checklist; corpo espelha o de `options/status`, ainda não rodado no sandbox) |
 | Detalhes completos da loja | `GET /api/loja/detalhes` | `get_merchant_details` | `GET merchant/v1.0/merchants/{id}` | 🟢 |
 | Disponibilidade da loja (por operação/canal) | `GET /api/loja/disponibilidade` | `get_merchant_status` | `GET merchant/v1.0/merchants/{id}/status` | 🟢 |
 | **Promoção (desconto com data de início/fim)** | — | — | `POST promotion/v1.0/.../promotions` | 🔴 |

@@ -51,7 +51,16 @@ export function useMedirLargura() {
   return [ref, largura]
 }
 
-export const MONO ="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+export const MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+
+// Luz que segue o mouse nos cartões de vidro: grava a posição em --mx/--my e o CSS
+// (.ds-cartao:hover em index.css) desenha o brilho radial ali.
+export function seguirLuz(e) {
+  const el = e.currentTarget
+  const r = el.getBoundingClientRect()
+  el.style.setProperty('--mx', `${e.clientX - r.left}px`)
+  el.style.setProperty('--my', `${e.clientY - r.top}px`)
+}
 
 // Status → trio de cores (texto, fundo, borda). `neutro` é o cinza de "sem estado".
 export function tons(tipo) {
@@ -174,11 +183,15 @@ export function Etiqueta({ children, tipo = null, style }) {
   )
 }
 
-export function Cartao({ children, style, className = '', borda = 'var(--borda)', as: Tag = 'section', ...props }) {
+export function Cartao({ children, style, className = '', borda = 'var(--borda)', as: Tag = 'section', onMouseMove, ...props }) {
   return (
     <Tag
-      className={className}
-      style={{ background: 'var(--card)', border: `1px solid ${borda}`, borderRadius: 12, overflow: 'hidden', ...style }}
+      className={`ds-cartao ${className}`}
+      onMouseMove={(e) => {
+        seguirLuz(e)
+        onMouseMove?.(e)
+      }}
+      style={{ background: 'var(--card)', border: `1px solid ${borda}`, borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--brilho), var(--sh)', ...style }}
       {...props}
     >
       {children}
@@ -291,39 +304,48 @@ export function Marcador({ estado, tamanho = 20 }) {
   )
 }
 
-// Interruptor 40×24 (turno, dia aberto...).
-export function Interruptor({ ligado, onChange, rotulo, disabled = false }) {
+// Interruptor (turno, dia aberto, item no ar...). `ocupado` gira a bolinha enquanto a
+// plataforma confirma. `grande` = 46×28, usado na linha do cardápio.
+export function Interruptor({ ligado, onChange, rotulo, disabled = false, ocupado = false, grande = false }) {
+  const w = grande ? 46 : 40
+  const h = grande ? 28 : 24
+  const b = h - 6
   return (
     <button
       type="button"
       role="switch"
       aria-checked={ligado}
       aria-label={rotulo}
-      disabled={disabled}
+      aria-busy={ocupado || undefined}
+      disabled={disabled || ocupado}
       onClick={onChange}
       style={{
-        width: 40,
-        height: 24,
+        width: w,
+        height: h,
         borderRadius: 99,
         background: ligado ? 'var(--good)' : 'var(--borda)',
         position: 'relative',
         flexShrink: 0,
-        border: 0,
-        cursor: disabled ? 'not-allowed' : 'pointer',
+        border: '1px solid var(--borda)',
+        cursor: disabled ? 'not-allowed' : ocupado ? 'progress' : 'pointer',
         opacity: disabled ? 0.5 : 1,
+        transition: 'background-color .3s',
+        padding: 0,
       }}
     >
       <span
+        className={ocupado ? 'interruptor-girando' : undefined}
         style={{
           position: 'absolute',
-          top: 3,
-          left: ligado ? 19 : 3,
-          width: 18,
-          height: 18,
+          top: 2,
+          left: 2,
+          width: b,
+          height: b,
           borderRadius: 99,
-          background: '#fff',
-          boxShadow: '0 1px 2px rgba(0,0,0,.25)',
-          transition: 'left .15s',
+          background: ocupado ? 'conic-gradient(var(--marca) 0 28%, #fff 28% 100%)' : '#fff',
+          boxShadow: '0 2px 6px rgba(0,0,0,.3)',
+          transform: `translateX(${ligado ? w - b - 6 : 0}px)`,
+          transition: 'transform .4s cubic-bezier(.3,1.5,.45,1)',
         }}
       />
     </button>
