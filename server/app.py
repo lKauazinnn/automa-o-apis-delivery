@@ -429,6 +429,43 @@ def verificar_lojas_ifood():
         return jsonify({"disponivel": False, "merchant_ids": []})
 
 
+@app.get("/api/lojas-verificacao-99")
+@requer_login
+def verificar_lojas_99():
+    """Sessão (autorização) de cada loja 99Food cadastrada: se o 99 entrega o token da loja pro
+    app de produção, a sessão está ativa. Devolve {merchant_id: {ativa, validade, erro, status}}
+    pro selo da tela Lojas. Uma loja com problema nunca derruba as outras."""
+    if not (food99 and FOOD99_CONFIGURADO):
+        return jsonify({"disponivel": False, "lojas": {}})
+    from food99_automacao import auth as auth99
+
+    resultado = {}
+    for loja in _todas_lojas():
+        if (loja.get("plataforma") or "ifood") != "99food":
+            continue
+        mid = str(loja["merchant_id"])
+        try:
+            auth99.get_auth_token(mid)
+            exp = auth99._cache.get(mid, (None, 0))[1]
+            info = {"ativa": True, "validade": datetime.fromtimestamp(exp, timezone.utc).isoformat() if exp else None, "erro": None}
+            try:
+                sub = (food99.shop_detail(mid) or {}).get("sub_biz_status")
+                info["status"] = food99.SUB_STATUS_LOJA.get(sub, f"status {sub}") if sub is not None else None
+            except Exception as exc:  # noqa: BLE001 — status é extra; a sessão já está confirmada
+                logger.info("99Food: sessão ok mas shop/detail falhou pra %s: %s", mid, exc)
+                info["status"] = None
+        except Exception as exc:  # noqa: BLE001
+            texto = str(exc)
+            info = {
+                "ativa": False,
+                "validade": None,
+                "status": None,
+                "erro": "Loja sem autorização no app 99Food de produção" if "10101" in texto else texto[:200],
+            }
+        resultado[mid] = info
+    return jsonify({"disponivel": True, "lojas": resultado})
+
+
 @app.post("/api/lojas")
 @requer_papel("administrador")
 def criar_loja():

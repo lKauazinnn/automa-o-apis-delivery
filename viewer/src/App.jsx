@@ -187,6 +187,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   // Selo "verificada no iFood": ids que o GET /merchants do iFood reconhece. null = ainda não
   // consultado; { disponivel:false } = iFood não respondeu (não mostra selo).
   const [verificacaoIfood, setVerificacaoIfood] = useState(null)
+  const [verificacao99, setVerificacao99] = useState(null)
   const [modalDetalhesLoja, setModalDetalhesLoja] = useState(false)
   const [carregandoDetalhesLoja, setCarregandoDetalhesLoja] = useState(false)
   const [detalhesLoja, setDetalhesLoja] = useState(null)
@@ -396,6 +397,15 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       })
       .catch(() => {
         if (!cancelado) setVerificacaoIfood({ disponivel: false, ids: new Set() })
+      })
+    // Sessão de cada loja 99Food (token entregue pro app de produção) — vira o selo do cartão.
+    setVerificacao99((v) => ({ ...(v || {}), carregando: true }))
+    apiFetch('/lojas-verificacao-99')
+      .then((r) => {
+        if (!cancelado) setVerificacao99({ disponivel: !!r?.disponivel, lojas: r?.lojas || {}, carregando: false })
+      })
+      .catch(() => {
+        if (!cancelado) setVerificacao99({ disponivel: false, lojas: {}, carregando: false })
       })
     return () => {
       cancelado = true
@@ -2013,6 +2023,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   lojas={lojas}
                   lojaAtual={lojaAtual}
                   verificacaoIfood={verificacaoIfood}
+                  verificacao99={verificacao99}
                   lojaForm={lojaForm}
                   setLojaForm={setLojaForm}
                   criandoLoja={criandoLoja}

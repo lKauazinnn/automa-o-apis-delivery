@@ -11,7 +11,7 @@ const PAPEIS = [
   { valor: 'administrador', label: 'Administrador', desc: 'Tudo do gerente + usuários, lojas e marca.' },
 ]
 const PLATAFORMA_LABEL = { ifood: 'iFood', '99food': '99Food' }
-const cartao = { background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 12 }
+const cartao = { background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 16, boxShadow: 'var(--brilho), var(--sh)' }
 
 // ── Usuários ────────────────────────────────────────────────────────────────────────────────
 export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, convidando, onConvidar, onTrocarPapel, onDefinirSenha, resetandoSenha }) {
@@ -175,7 +175,36 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
 }
 
 // ── Lojas ───────────────────────────────────────────────────────────────────────────────────
-export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, lojaForm, setLojaForm, criandoLoja, onCriar, onAtivar, onRemover, onDetalhes }) {
+// Selo da sessão do 99Food num cartão de loja: ativa (com validade do token e o status atual),
+// sem autorização, ou conferindo.
+function SeloSessao99({ v, carregando }) {
+  if (!v) {
+    return carregando ? (
+      <Selo tipo="neutro" altura={22} icone={<Loader2 size={12} className="animate-spin" />} style={{ fontSize: 12 }}>
+        conferindo sessão…
+      </Selo>
+    ) : null
+  }
+  if (!v.ativa) {
+    return (
+      <span title={v.erro || ''} style={{ display: 'inline-flex' }}>
+        <Selo tipo="bad" altura={22} icone={<X size={12} />} style={{ fontSize: 12 }}>
+          sem sessão no 99
+        </Selo>
+      </span>
+    )
+  }
+  const validade = v.validade ? new Date(v.validade).toLocaleDateString('pt-BR') : null
+  return (
+    <span title={[v.status && `Agora: ${v.status}`, validade && `Token válido até ${validade}`].filter(Boolean).join(' · ')} style={{ display: 'inline-flex' }}>
+      <Selo tipo="good" altura={22} ponto style={{ fontSize: 12 }}>
+        sessão ativa{validade ? ` · até ${validade}` : ''}
+      </Selo>
+    </span>
+  )
+}
+
+export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, verificacao99, lojaForm, setLojaForm, criandoLoja, onCriar, onAtivar, onRemover, onDetalhes }) {
   const [formAberto, setFormAberto] = useState(false)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -236,7 +265,7 @@ export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, lojaForm, setLo
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.nome || 'Loja sem nome'}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
                       <Etiqueta>{PLATAFORMA_LABEL[l.plataforma] || 'iFood'}</Etiqueta>
                       {verificada === true && (
                         <Selo tipo="good" altura={22} icone={<Check size={12} />} style={{ fontSize: 12 }}>
@@ -248,6 +277,7 @@ export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, lojaForm, setLo
                           não encontrada no iFood
                         </Selo>
                       )}
+                      {l.plataforma === '99food' && <SeloSessao99 v={verificacao99?.lojas?.[String(l.merchant_id)]} carregando={verificacao99?.carregando} />}
                     </div>
                   </div>
                   {ativa ? (
@@ -264,6 +294,16 @@ export function LojasSecao({ lojas, lojaAtual, verificacaoIfood, lojaForm, setLo
                   <div style={{ flex: 1, minWidth: 0, fontFamily: MONO, fontSize: 13, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={l.merchant_id}>
                     {l.merchant_id}
                   </div>
+                  {l.plataforma === '99food' && verificacao99?.lojas?.[String(l.merchant_id)]?.status && (() => {
+                    const st = verificacao99.lojas[String(l.merchant_id)].status
+                    const aberta = st === 'Loja aberta'
+                    return (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600, color: aberta ? 'var(--good)' : 'var(--bad)', whiteSpace: 'nowrap' }}>
+                        <span className={aberta ? 'pulso-vivo' : undefined} style={{ width: 8, height: 8, borderRadius: 99, background: 'currentColor' }} />
+                        {st}
+                      </span>
+                    )
+                  })()}
                   {ativa && l.plataforma !== '99food' && (
                     <Botao variante="secundario" tamanho="xs" onClick={onDetalhes}>
                       Detalhes
