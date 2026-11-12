@@ -86,6 +86,12 @@ na internet** por causa disso.
 
 ## Comportamento esperado (avisar o usuário)
 
-Lojas do **99Food** que fecham no fim do expediente vão gerar "Loja FECHADA" à noite e
-"Loja REABERTA" de manhã: o 99 não diz se o fechamento foi por horário. Se isso incomodar, a
-sessão do Claude no projeto do PausaFast pode adicionar um horário de silêncio.
+Fechamento **normal de fim de expediente não avisa**: no 99Food é o status 3 ("Loja fechada"),
+e a reabertura de manhã depois dele também fica em silêncio; no iFood, o fechamento por horário.
+Avisa quando a loja sai do ar por outro motivo: pausada no app (2), desconectada (4), fechada
+pelo resto do dia (5), bloqueada (6), sem entregador (7) ou, no iFood, PDV desconectado e
+afins, e quando ela volta desses casos. Para avisar também o fechamento por horário, defina
+`ALERTA_IGNORAR_FORA_DO_HORARIO=0` no `.env` do PausaFast.
+
+O volume na sessão `PAUSAFAST` é baixo: só nas viradas aberta↔fechada, mais uma consulta
+`check-exists` por número quando o container sobe.

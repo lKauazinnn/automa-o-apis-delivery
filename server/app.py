@@ -3005,7 +3005,7 @@ def registrar_status_loja(status):
     anterior = requests.get(
         f"{SUPABASE_URL}/rest/v1/status_lojas",
         headers=_supabase_headers(),
-        params={"select": "aberta,motivo,mudou_em", "merchant_id": f"eq.{status['merchant_id']}"},
+        params={"select": "aberta,estado,motivo,mudou_em", "merchant_id": f"eq.{status['merchant_id']}"},
         timeout=10,
     )
     anterior.raise_for_status()
@@ -3036,7 +3036,11 @@ def registrar_status_loja(status):
             timeout=10,
         ).raise_for_status()
         # WhatsApp só na virada aberta ↔ fechada (troca de motivo com a loja já fechada não avisa).
-        alertas.avisar_mudanca_loja(status, linha_anterior.get("aberta") if linha_anterior else None)
+        alertas.avisar_mudanca_loja(
+            status,
+            linha_anterior.get("aberta") if linha_anterior else None,
+            linha_anterior.get("estado") if linha_anterior else None,
+        )
     return mudou
 
 

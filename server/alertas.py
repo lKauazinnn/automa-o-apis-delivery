@@ -35,9 +35,17 @@ def _numeros():
     return [n.strip().replace("+", "").replace(" ", "").replace("-", "") for n in os.environ.get("ALERTA_WHATSAPP_NUMEROS", "").split(",") if n.strip()]
 
 
+# 99Food: sub_biz_status "3" = Loja fechada — o fechamento normal fora do expediente. Os
+# fechamentos que importam têm código próprio (2 operação pausada, 4 desconectada, 5 fechada
+# pelo resto do dia, 6 bloqueada, 7 sem entregador) e continuam avisando.
+ESTADOS_99_POR_HORARIO = {"3"}
+
+
 def _so_horario(status):
     """True se a loja fechou só porque está fora do horário de funcionamento (fechamento
     esperado, todo dia — não vale acordar ninguém)."""
+    if (status.get("plataforma") or "ifood") == "99food":
+        return str(status.get("estado")) in ESTADOS_99_POR_HORARIO
     problemas = [p for p in status.get("problemas") or [] if p.get("estado") not in ("OK", None)]
     return bool(problemas) and all(str(p.get("id") or "").lower() in ("opening-hours", "during-opening-hours") for p in problemas)
 
@@ -121,15 +129,21 @@ def _enviar(numero, mensagem, contexto):
     return True
 
 
-def avisar_mudanca_loja(status, aberta_antes):
-    """Dispara o aviso se a loja passou de aberta → fechada (ou fechada → aberta). Nunca levanta."""
+def avisar_mudanca_loja(status, aberta_antes, estado_antes=None):
+    """Dispara o aviso se a loja passou de aberta → fechada (ou fechada → aberta). Nunca levanta.
+    `estado_antes` é o código de estado da verificação anterior: no 99Food, a reabertura depois
+    de um fechamento por horário (código 3) também fica em silêncio — é a abertura normal do dia."""
     try:
         agora = status.get("aberta")
         if aberta_antes is None or agora is None or aberta_antes == agora:
             return
         abriu = bool(agora)
-        if not abriu and os.environ.get("ALERTA_IGNORAR_FORA_DO_HORARIO", "1") == "1" and _so_horario(status):
+        ignorar_horario = os.environ.get("ALERTA_IGNORAR_FORA_DO_HORARIO", "1") == "1"
+        if not abriu and ignorar_horario and _so_horario(status):
             logger.info("Loja %s fechou por horário — sem aviso.", status.get("merchant_id"))
+            return
+        if abriu and ignorar_horario and status.get("plataforma") == "99food" and str(estado_antes) in ESTADOS_99_POR_HORARIO:
+            logger.info("Loja %s abriu no horário normal — sem aviso.", status.get("merchant_id"))
             return
         numeros = _numeros()
         if not numeros:
