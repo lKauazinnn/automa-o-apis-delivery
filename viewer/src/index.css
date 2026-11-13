@@ -253,18 +253,23 @@ body {
 /* Toda superfície que usa o token --card (cartões, diálogos, gavetas, menus, linhas fixas)
    vira vidro fosco: desfoque + reflexo fino no topo. Pegar pelo estilo inline evita editar os
    ~70 lugares que escrevem `background: 'var(--card)'`. Dentro do modo TV da cozinha
-   ([data-tema]) o fundo é liso e não precisa. */
-.app-fundo [style*='background: var(--card)']:not([data-tema] *) {
+   ([data-tema]) o fundo é liso e não precisa.
+   Sem o prefixo .app-fundo de propósito: diálogos e gavetas são renderizados FORA do
+   contêiner .app-fundo (irmãos dele no App), e com o prefixo ficavam translúcidos sem
+   desfoque — o conteúdo de trás vazava (ex.: seletor de lojas).
+   Item de lista DENTRO de uma superfície de vidro não deve usar --card (blur sobre blur
+   embaça): use fundo transparente e .ds-opcao para o hover. */
+[style*='background: var(--card)']:not([data-tema] *) {
   -webkit-backdrop-filter: blur(22px) saturate(160%);
   backdrop-filter: blur(22px) saturate(160%);
 }
-.app-fundo [style*='background: var(--card)'][style*='border']:not([data-tema] *) {
+[style*='background: var(--card)'][style*='border']:not([data-tema] *) {
   box-shadow: var(--brilho);
 }
 /* O que FLUTUA por cima do conteúdo (menus, diálogos, gavetas, barra de seleção — todos usam
    `boxShadow: 'var(--sh)'`) precisa de vidro mais denso: com o --card normal, foto e texto de
    baixo vazavam e atrapalhavam a leitura. */
-.app-fundo [style*='background: var(--card)'][style*='box-shadow: var(--sh)'] {
+[style*='background: var(--card)'][style*='box-shadow: var(--sh)'] {
   background-color: var(--card-forte) !important;
   -webkit-backdrop-filter: blur(28px) saturate(170%);
   backdrop-filter: blur(28px) saturate(170%);

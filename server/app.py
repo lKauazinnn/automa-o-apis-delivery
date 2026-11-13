@@ -3164,6 +3164,79 @@ def get_status_lojas():
     })
 
 
+@app.get("/api/visao-geral")
+@requer_login
+def get_visao_geral():
+    """Resumo de TODAS as lojas pro Painel, só com o que já está no Supabase (não consulta o
+    iFood nem o 99, que têm limite de chamadas): último status aberta/fechada gravado, pausas
+    abertas feitas pelo painel e pedidos de hoje (fuso de Brasília). O valor faturado só vai
+    para quem pode ver o financeiro."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    hoje = (datetime.now(timezone.utc) - timedelta(hours=3)).date()
+    pode_ver_valor = g.usuario.get("papel") in ("administrador", "gerente")
+
+    def ler(tabela, params):
+        try:
+            r = requests.get(f"{SUPABASE_URL}/rest/v1/{tabela}", headers=_supabase_headers(), params=params, timeout=10)
+            r.raise_for_status()
+            return r.json()
+        except requests.exceptions.RequestException as exc:
+            logger.warning("visão geral: não consegui ler %s: %s", tabela, exc)
+            return None
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        f_lojas = pool.submit(_todas_lojas)
+        f_status = pool.submit(ler, "status_lojas", {"select": "merchant_id,aberta,estado,motivo,verificado_em,mudou_em"})
+        f_pausas = pool.submit(ler, "pausas", {"select": "merchant_id,tipo", "encerrada_em": "is.null", "limit": 5000})
+        f_pedidos = pool.submit(ler, "pedidos", {
+            "select": "merchant_id,status,total",
+            "recebido_em": f"gte.{hoje.isoformat()}T00:00:00-03:00",
+            "limit": 10000,
+        })
+        lojas = f_lojas.result()
+        status = {s["merchant_id"]: s for s in (f_status.result() or [])}
+        pausas, pedidos = f_pausas.result(), f_pedidos.result()
+
+    pausas_por_loja = {}
+    for p in pausas or []:
+        pausas_por_loja[p["merchant_id"]] = pausas_por_loja.get(p["merchant_id"], 0) + 1
+    pedidos_por_loja = {}
+    for p in pedidos or []:
+        linha = pedidos_por_loja.setdefault(p["merchant_id"], {"pedidos": 0, "cancelados": 0, "faturamento": 0.0})
+        if p.get("status") == "CANCELADO":
+            linha["cancelados"] += 1
+        else:
+            linha["pedidos"] += 1
+            linha["faturamento"] += _num(p.get("total"))
+
+    resultado = []
+    for loja in lojas:
+        mid = loja["merchant_id"]
+        s = status.get(mid) or {}
+        ped = pedidos_por_loja.get(mid) or {"pedidos": 0, "cancelados": 0, "faturamento": 0.0}
+        resultado.append({
+            "merchant_id": mid,
+            "nome": loja.get("nome"),
+            "plataforma": loja.get("plataforma") or "ifood",
+            "aberta": s.get("aberta"),
+            "estado": s.get("estado"),
+            "motivo": s.get("motivo"),
+            "verificado_em": s.get("verificado_em"),
+            "mudou_em": s.get("mudou_em"),
+            "pausas_abertas": pausas_por_loja.get(mid, 0) if pausas is not None else None,
+            "pedidos_hoje": ped["pedidos"] if pedidos is not None else None,
+            "cancelados_hoje": ped["cancelados"] if pedidos is not None else None,
+            "faturamento_hoje": round(ped["faturamento"], 2) if (pedidos is not None and pode_ver_valor) else None,
+        })
+    ativo, heartbeat = _monitor_ativo()
+    return jsonify({
+        "hoje": hoje.isoformat(),
+        "monitor": {"ativo": ativo, "ultimo_ping": (heartbeat or {}).get("ultimo_ping")},
+        "lojas": resultado,
+    })
+
+
 @app.get("/api/lojas/status/historico")
 @requer_login
 def get_historico_status_lojas():

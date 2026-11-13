@@ -14,6 +14,12 @@ Aprovado pelo dono do produto a partir do protótipo no canvas de design.
   `background: 'var(--card)'` ganha desfoque automaticamente (regra
   `.app-fundo [style*='background: var(--card)']` em `index.css`). Continue escrevendo
   `background: 'var(--card)'` — não crie fundo opaco novo nem `backdrop-filter` inline.
+- **Vale fora do `.app-fundo` também**: diálogos e gavetas são irmãos do contêiner
+  `.app-fundo` no App, por isso as regras de vidro não têm esse prefixo.
+- **Nada de vidro sobre vidro**: item de lista dentro de diálogo/cartão NÃO usa
+  `background: 'var(--card)'` (ganharia um segundo desfoque e embaça). Fundo transparente
+  (sem `background` inline, senão o hover não aparece) + `className="ds-opcao"`; selecionado
+  usa `--marca-suave`. Exemplo: `components/SeletorLojas.jsx`.
 - **O que flutua** (menu, diálogo, gaveta, barra de seleção) usa `boxShadow: 'var(--sh)'`
   e por isso recebe `--card-forte` (vidro denso). Barra flutuante nova: classe
   `.barra-flutuante`.

@@ -32,6 +32,8 @@ import { AuditoriaView } from './views/AuditoriaView'
 import { LojasSecao, MarcaSecao, UsuariosSecao } from './views/AdminView'
 import { CatalogoCelular, CatalogoView } from './views/CatalogoView'
 import { DashboardView } from './views/DashboardView'
+import { VisaoGeralLojas } from './views/VisaoGeralLojas'
+import { SeletorLojas } from './components/SeletorLojas'
 import { FinanceiroView } from './views/FinanceiroView'
 import { DesempenhoView } from './views/DesempenhoView'
 import { StatusLojasView } from './views/StatusLojasView'
@@ -239,6 +241,9 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [toasts, setToasts] = useState([])
   const [confirmacao, setConfirmacao] = useState(null)
   const [levantandoTodas, setLevantandoTodas] = useState(null) // null | { feitas, total }
+  const [visaoGeral, setVisaoGeral] = useState({ dados: null, carregando: false, erro: '' })
+  const [verificandoLojas, setVerificandoLojas] = useState(false)
+  const [rupturasLidas, setRupturasLidas] = useState(null) // { em, porLoja: { merchant_id: { n, erro } } }
 
   const [sidebarAberta, setSidebarAberta] = useState(() => {
     try {
@@ -391,7 +396,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   // quais lojas o iFood reconhece como vinculadas. Não bloqueia nada: se falhar, só não mostra
   // o selo (o endpoint volta disponivel=false).
   useEffect(() => {
-    if (!modalLojas && view !== 'lojas-admin') return
+    if (view !== 'lojas-admin') return
     let cancelado = false
     apiFetch('/lojas-verificacao-ifood')
       .then((r) => {
@@ -426,7 +431,42 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       cancelado = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modalLojas, view])
+  }, [view])
+
+  // Visão geral de todas as lojas (Painel e seletor de lojas): só lê o Supabase, então dá pra
+  // recarregar a cada minuto sem gastar o limite de consultas do iFood/99.
+  async function carregarVisaoGeral() {
+    setVisaoGeral((v) => ({ ...v, carregando: true }))
+    try {
+      const dados = await apiFetch('/visao-geral')
+      setVisaoGeral({ dados, carregando: false, erro: '' })
+    } catch (e) {
+      setVisaoGeral((v) => ({ ...v, carregando: false, erro: e.message }))
+    }
+  }
+
+  useEffect(() => {
+    if (lojas.length < 2 || (view !== 'dashboard' && !modalLojas)) return
+    carregarVisaoGeral()
+    if (view !== 'dashboard') return
+    const id = setInterval(carregarVisaoGeral, 60000)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, modalLojas, lojas.length])
+
+  // "Verificar agora": consulta o iFood e o 99 (grava em status_lojas) e relê a visão geral.
+  async function verificarLojasAgora() {
+    setVerificandoLojas(true)
+    try {
+      await apiFetch('/lojas/status?ao_vivo=1')
+      await carregarVisaoGeral()
+      notificar('sucesso', 'Status das lojas atualizado.')
+    } catch (e) {
+      notificar('erro', `Não consegui verificar as lojas: ${e.message}`)
+    } finally {
+      setVerificandoLojas(false)
+    }
+  }
 
   async function abrirDetalhesLoja() {
     setModalDetalhesLoja(true)
@@ -818,8 +858,10 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   // fila do lote (com barra de progresso). No 99 usa a leitura leve (1 chamada; o 99 aceita só 2
   // por loja a cada 2 min). Item do 99 sem ID não tem como ser reativado pela API — entra só no
   // aviso. Tarefas da loja atual vão sem `loja` pra que a lista na tela já atualize sozinha.
-  async function prepararReativarTodasLojas() {
-    if (!lojas.length || levantandoTodas) return
+  // Lê as rupturas de todas as lojas (4 por vez) e guarda a contagem por loja pra visão geral.
+  // Devolve [{ loja, tarefas, semId, erro? }] na ordem de `lojas`, ou null se já estiver lendo.
+  async function lerRupturasTodasLojas() {
+    if (!lojas.length || levantandoTodas) return null
     const total = lojas.length
     let feitas = 0
     setLevantandoTodas({ feitas, total })
@@ -859,49 +901,66 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
           }
         }),
       )
-      const tarefas = porLoja.flatMap((r) => r.tarefas)
-      const comFalha = porLoja.filter((r) => r.erro)
-      const semId = porLoja.reduce((s, r) => s + r.semId, 0)
-      const avisoSemId = semId ? `${semId} ${semId === 1 ? 'item do 99 sem ID fica' : 'itens do 99 sem ID ficam'} de fora (só dá pelo portal).` : ''
-      const porMotivo = {}
-      comFalha.forEach((r) => (porMotivo[r.erro] = [...(porMotivo[r.erro] || []), r.loja.nome]))
-      const avisoFalha = Object.entries(porMotivo)
-        .map(([motivo, nomes]) => `Não li ${nomes.join(', ')} (${motivo}).`)
-        .join(' ')
-      if (!tarefas.length) {
-        notificar(comFalha.length ? 'aviso' : 'sucesso', [`Nenhuma ruptura${comFalha.length ? ' nas lojas que consegui ler' : ' nas lojas'}.`, avisoSemId, avisoFalha].filter(Boolean).join(' '))
-        return
-      }
-      const n = tarefas.length
-      setConfirmacao({
-        titulo: `Reativar ${n} ${n === 1 ? 'item' : 'itens'} em todas as lojas?`,
-        mensagem: (
-          <>
-            Tudo que está pausado volta pro cardápio agora, no iFood e no 99.
-            <span style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '10px 0 0', maxHeight: 260, overflowY: 'auto' }}>
-              {porLoja
-                .filter((r) => r.tarefas.length || r.erro)
-                .map((r) => (
-                  <span key={r.loja.merchant_id} style={{ display: 'flex', gap: 8, fontSize: 13 }}>
-                    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--t1)' }}>{r.loja.nome}</span>
-                    <span className={r.erro ? undefined : 'fonte-mono'} style={{ color: r.erro ? 'var(--bad)' : 'var(--t2)', flexShrink: 0 }}>
-                      {r.erro ? `não li · ${r.erro}` : r.tarefas.length}
-                    </span>
-                  </span>
-                ))}
-            </span>
-            {avisoSemId && <span style={{ display: 'block', marginTop: 10, fontSize: 13 }}>{avisoSemId}</span>}
-          </>
-        ),
-        textoConfirmar: `Reativar ${n}`,
-        aoConfirmar: () => {
-          setModalRupturas(false)
-          executarStatusEmLote(tarefas, 'AVAILABLE')
-        },
-      })
+      setRupturasLidas({ em: new Date().toISOString(), porLoja: Object.fromEntries(porLoja.map((r) => [r.loja.merchant_id, r.erro ? { erro: r.erro } : { n: r.tarefas.length + r.semId }])) })
+      return porLoja
     } finally {
       setLevantandoTodas(null)
     }
+  }
+
+  async function contarRupturasTodasLojas() {
+    const porLoja = await lerRupturasTodasLojas()
+    if (!porLoja) return
+    const total = porLoja.reduce((s, r) => s + r.tarefas.length + r.semId, 0)
+    const falhas = porLoja.filter((r) => r.erro).length
+    notificar(falhas ? 'aviso' : 'sucesso', `${total} ${total === 1 ? 'item pausado' : 'itens pausados'} nas lojas${falhas ? ` · não consegui ler ${falhas} ${falhas === 1 ? 'loja' : 'lojas'} (passe o mouse no cartão pra ver o motivo)` : ''}.`)
+  }
+
+  // "Reativar em todas as lojas": usa a leitura acima, mostra o resumo por loja pra confirmar e
+  // reativa pela fila do lote.
+  async function prepararReativarTodasLojas() {
+    const porLoja = await lerRupturasTodasLojas()
+    if (!porLoja) return
+    const tarefas = porLoja.flatMap((r) => r.tarefas)
+    const comFalha = porLoja.filter((r) => r.erro)
+    const semId = porLoja.reduce((s, r) => s + r.semId, 0)
+    const avisoSemId = semId ? `${semId} ${semId === 1 ? 'item do 99 sem ID fica' : 'itens do 99 sem ID ficam'} de fora (só dá pelo portal).` : ''
+    const porMotivo = {}
+    comFalha.forEach((r) => (porMotivo[r.erro] = [...(porMotivo[r.erro] || []), r.loja.nome]))
+    const avisoFalha = Object.entries(porMotivo)
+      .map(([motivo, nomes]) => `Não li ${nomes.join(', ')} (${motivo}).`)
+      .join(' ')
+    if (!tarefas.length) {
+      notificar(comFalha.length ? 'aviso' : 'sucesso', [`Nenhuma ruptura${comFalha.length ? ' nas lojas que consegui ler' : ' nas lojas'}.`, avisoSemId, avisoFalha].filter(Boolean).join(' '))
+      return
+    }
+    const n = tarefas.length
+    setConfirmacao({
+      titulo: `Reativar ${n} ${n === 1 ? 'item' : 'itens'} em todas as lojas?`,
+      mensagem: (
+        <>
+          Tudo que está pausado volta pro cardápio agora, no iFood e no 99.
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '10px 0 0', maxHeight: 260, overflowY: 'auto' }}>
+            {porLoja
+              .filter((r) => r.tarefas.length || r.erro)
+              .map((r) => (
+                <span key={r.loja.merchant_id} style={{ display: 'flex', gap: 8, fontSize: 13 }}>
+                  <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--t1)' }}>{r.loja.nome}</span>
+                  <span className={r.erro ? undefined : 'fonte-mono'} style={{ color: r.erro ? 'var(--bad)' : 'var(--t2)', flexShrink: 0 }}>
+                    {r.erro ? `não li · ${r.erro}` : r.tarefas.length}
+                  </span>
+                </span>
+              ))}
+          </span>
+          {avisoSemId && <span style={{ display: 'block', marginTop: 10, fontSize: 13 }}>{avisoSemId}</span>}
+        </>
+      ),
+      textoConfirmar: `Reativar ${n}`,
+      aoConfirmar: () => {
+        setModalRupturas(false)
+        executarStatusEmLote(tarefas, 'AVAILABLE')
+      },
+    })
   }
 
   // Pausa multicanal: acha o mesmo item nas outras lojas pelo código PDV (é o único identificador
@@ -1377,67 +1436,21 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         )}
 
         {modalLojas && (
-          <Dialogo
-            largura={520}
-            eyebrow="Loja ativa"
-            titulo="Trocar de loja"
-            descricao="O painel inteiro — cardápio, pedidos e cozinha — passa a mostrar a loja escolhida."
+          <SeletorLojas
+            lojas={lojas}
+            lojaAtualId={lojaAtual?.merchant_id}
+            statusPorLoja={Object.fromEntries((visaoGeral.dados?.lojas || []).map((l) => [l.merchant_id, l]))}
+            podeGerenciar={sessao.usuario.papel === 'administrador'}
+            onEscolher={(l) => {
+              setLojaId(l.merchant_id)
+              setModalLojas(false)
+            }}
+            onGerenciar={() => {
+              setModalLojas(false)
+              mudarView('lojas-admin')
+            }}
             onClose={() => setModalLojas(false)}
-            rodape={
-              <>
-                {sessao.usuario.papel === 'administrador' && (
-                  <Botao
-                    variante="link"
-                    onClick={() => {
-                      setModalLojas(false)
-                      mudarView('lojas-admin')
-                    }}
-                  >
-                    Gerenciar lojas
-                  </Botao>
-                )}
-                <span style={{ flex: 1 }} />
-                <Botao variante="secundario" tamanho="lg" onClick={() => setModalLojas(false)}>
-                  Fechar
-                </Botao>
-              </>
-            }
-          >
-            {lojas.length === 0 ? (
-              <div style={{ fontSize: 13.5, color: 'var(--t2)' }}>Nenhuma loja cadastrada ainda.</div>
-            ) : (
-              <div style={{ border: '1px solid var(--borda)', borderRadius: 9, overflow: 'hidden' }}>
-                {lojas.map((l) => {
-                  const ativa = l.merchant_id === lojaAtual?.merchant_id
-                  return (
-                    <button
-                      key={l.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={ativa}
-                      onClick={() => {
-                        setLojaId(l.merchant_id)
-                        setModalLojas(false)
-                      }}
-                      className="ds-opcao"
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '8px 14px', border: 0, borderBottom: '1px solid var(--linha)', background: ativa ? 'var(--marca-suave)' : 'var(--card)', color: 'var(--t1)', textAlign: 'left', cursor: 'pointer' }}
-                    >
-                      <span style={{ width: 18, height: 18, borderRadius: 99, border: `1.5px solid ${ativa ? 'var(--marca-tinta)' : 'var(--borda)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: 99, background: ativa ? 'var(--marca-tinta)' : 'transparent' }} />
-                      </span>
-                      <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{l.nome || 'Loja sem nome'}</span>
-                        <span style={{ display: 'block', fontFamily: MONO, fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.merchant_id}</span>
-                      </span>
-                      <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 5, background: 'var(--input)', border: '1px solid var(--borda)', color: 'var(--t2)' }}>
-                        {l.plataforma === '99food' ? '99Food' : 'iFood'}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </Dialogo>
+          />
         )}
 
         {modalDetalhesLoja && (
@@ -1875,6 +1888,38 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               )}
 
               {view === 'dashboard' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: celular ? 14 : 20, minWidth: 0 }}>
+                {lojas.length > 1 && (
+                  <>
+                    <VisaoGeralLojas
+                      dados={visaoGeral.dados}
+                      carregando={visaoGeral.carregando}
+                      erro={visaoGeral.erro}
+                      verificando={verificandoLojas}
+                      onVerificarAgora={verificarLojasAgora}
+                      onRecarregar={carregarVisaoGeral}
+                      lojaAtualId={lojaAtual?.merchant_id}
+                      onAbrirLoja={(l) => {
+                        if (l.merchant_id === lojaAtual?.merchant_id) return
+                        setLojaId(l.merchant_id)
+                        notificar('info', `Painel agora mostra ${l.nome}.`)
+                      }}
+                      rupturas={rupturasLidas}
+                      lendoRupturas={levantandoTodas}
+                      onLerRupturas={contarRupturasTodasLojas}
+                      podeVerValor={podeCriarItem}
+                      celular={celular}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: celular ? 4 : 8 }}>
+                      <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t3)' }}>Loja ativa</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lojaAtual?.nome}</span>
+                      <span style={{ flex: 1, height: 1, background: 'var(--linha)' }} />
+                      <Botao variante="link" onClick={() => setModalLojas(true)}>
+                        Trocar
+                      </Botao>
+                    </div>
+                  </>
+                )}
                 <DashboardView
                   itens={itens}
                   categorias={categorias}
@@ -1898,6 +1943,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   celular={celular}
                   onPausarItem={() => setModalPausar({ alvos: [] })}
                 />
+                </div>
               )}
 
               {view === 'pedidos' && (

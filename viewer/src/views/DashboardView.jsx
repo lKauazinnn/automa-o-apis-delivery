@@ -282,7 +282,7 @@ export function DashboardView({
                 title={`Reativa tudo que está pausado nas ${totalLojas} lojas`}
               >
                 {levantandoTodas ? <RefreshCw size={16} className="animate-spin" /> : <Play size={16} />}
-                {levantandoTodas ? `Lendo ${levantandoTodas.feitas}/${levantandoTodas.total}…` : 'Reativar todas as lojas'}
+                {levantandoTodas ? `Lendo ${levantandoTodas.feitas}/${levantandoTodas.total}…` : 'Reativar todas'}
               </Botao>
             )}
             <Botao variante="link" onClick={onAbrirRupturas}>
