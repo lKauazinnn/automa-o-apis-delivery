@@ -24,7 +24,7 @@ import { Botao, Dialogo, EstadoVazio, LarguraContext, MONO, OpcaoMarcavel, Segme
 import { SimboloPausaFast } from './Logo'
 import { MaisView } from './views/MaisView'
 import { ItemEditarGaveta, ItemNovoGaveta } from './modals/ItemGaveta'
-import { bateBusca, bateNoNome, emCategoriaIgnorada, sugestoesParecidas, termosBusca } from './pausas'
+import { bateBusca, bateNoNome, corpoSincronizarPausas, emCategoriaIgnorada, sugestoesParecidas, termosBusca } from './pausas'
 import { TelaCarregando, TelaDefinirSenha, TelaLogin } from './TelasAuth'
 import { CoresContext, iniciaisDe, lerImagemComoDataUrl, ModalEmbutidoContext, PALETAS, Pill } from './ui'
 import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
@@ -342,7 +342,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       const data = await apiFetch(lojaAtual?.plataforma === '99food' ? '/99food/catalogo' : '/catalogo')
       setItens(data.itens)
       setCategorias(data.categorias)
-      carregarPausas()
+      carregarPausas(data.itens)
     } catch (e) {
       setErroCarregamento(e.message || 'Não consegui falar com o servidor local. Ele está rodando? (python server/app.py)')
     } finally {
@@ -352,11 +352,15 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
   // Pausas registradas pelo painel (motivo/prazo). O backend aproveita a chamada pra reativar o
   // que já venceu, então se ele devolver `reativadas > 0` o catálogo na tela está velho.
-  async function carregarPausas() {
+  // Com `itensLidos` (o cardápio que acabou de chegar), o backend também registra o que foi pausado
+  // ou reativado direto no portal da plataforma — é o que dá "quem/quando" pra essas pausas.
+  async function carregarPausas(itensLidos) {
     setCarregandoPausas(true)
     setErroPausas('')
     try {
-      const r = await apiFetch('/pausas')
+      const r = Array.isArray(itensLidos)
+        ? await apiFetch('/pausas/sincronizar', corpoSincronizarPausas(itensLidos, lojaAtual?.plataforma))
+        : await apiFetch('/pausas')
       setPausasAtivas(r.pausas || [])
       setRegistroPausas(!!r.disponivel)
       if (r.reativadas > 0) {
@@ -369,6 +373,23 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       setErroPausas(e.message)
     } finally {
       setCarregandoPausas(false)
+    }
+  }
+
+  async function informarMotivoPausa(pausa, motivo) {
+    try {
+      const atualizada = await apiFetch(`/pausas/${pausa.id}/motivo`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo }),
+      })
+      setPausasAtivas((prev) => prev.map((p) => (p.id === pausa.id ? { ...p, ...atualizada } : p)))
+      notificar('sucesso', `Motivo registrado em ${pausa.nome || 'item'}.`)
+      carregarAuditoria()
+      return true
+    } catch (e) {
+      notificar('erro', e.message || 'Não consegui registrar o motivo.')
+      return false
     }
   }
 
@@ -871,7 +892,10 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
       const ehAtual = loja.merchant_id === lojaAtual?.merchant_id
       try {
         const caminho = loja.plataforma === '99food' ? `/99food/catalogo${q}&leve=1` : `/catalogo${q}`
-        const [cat, pz] = await Promise.all([apiFetch(caminho), apiFetch(`/pausas${q}`).catch(() => ({ pausas: [] }))])
+        const cat = await apiFetch(caminho)
+        // Sincroniza (não só lê) as pausas: assim "Contar rupturas" também registra o que foi
+        // pausado no portal de cada loja, com a hora em que foi visto.
+        const pz = await apiFetch(`/pausas/sincronizar${q}`, corpoSincronizarPausas(cat.itens || [], loja.plataforma)).catch(() => ({ pausas: [] }))
         const pausadosLoja = (cat.itens || []).filter((i) => i.status === 'UNAVAILABLE' && !emCategoriaIgnorada(i))
         const semId = pausadosLoja.filter((i) => i.semIdIntegracao).length
         const tarefas = pausadosLoja.filter((i) => !i.semIdIntegracao).map((i) => ({ ...alvoDoItem(i), loja: ehAtual ? undefined : loja }))
@@ -1766,6 +1790,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         {modalRupturas && (
           <RupturasModal
             pausas={pausasAtivas}
+            onInformarMotivo={informarMotivoPausa}
             itens={itens}
             carregando={carregandoPausas}
             erro={erroPausas}

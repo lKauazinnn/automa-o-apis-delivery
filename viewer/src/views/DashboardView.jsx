@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Check, CheckCircle2, ChevronRight, ClipboardList, Clock, Pause, Play, RefreshCw, Tag, Zap } from 'lucide-react'
 import { Botao, Cartao, CabecalhoCartao, Contador, EstadoVazio, Esqueleto, MONO, tons } from '../ds'
-import { palavrasChave, tempoDesde, tempoRestante } from '../pausas'
+import { palavrasChave, tempoRestante } from '../pausas'
 import { descreverAuditoria, iniciaisDe } from '../ui'
+import { ChipMotivo, QuemPausou, textoQuemPausou } from '../components/MotivoPausa'
 
-const ACOES_PAUSA = new Set(['pausar', 'pausar_em_massa', 'pausar_opcao'])
-const ACOES_REATIVA = new Set(['despausar', 'despausar_em_massa', 'despausar_opcao', 'reativar_automatico', 'reativar_opcao_automatico'])
+const ACOES_PAUSA = new Set(['pausar', 'pausar_em_massa', 'pausar_opcao', 'pausar_portal'])
+const ACOES_REATIVA = new Set(['despausar', 'despausar_em_massa', 'despausar_opcao', 'reativar_automatico', 'reativar_opcao_automatico', 'despausar_portal'])
 
 // Tons terrosos pros quadradinhos de iniciais de item sem foto — branco passa de 4,5:1 em todos.
 const TONS_ITEM = ['#7E3F2A', '#8A5A2E', '#7A5A1E', '#2E5A5E', '#74485A', '#4F4136', '#3F4F6E']
@@ -81,9 +82,6 @@ function LinhaPausado({ item, pausa, borda, executando, onReativar }) {
   const prazo = restante
     ? { texto: restante.startsWith('em ') ? `volta ${restante}` : restante, ...tons('info') }
     : { texto: pausa ? 'Até reativar' : 'Sem prazo', fg: 'var(--t2)', bg: 'var(--input)', bd: 'var(--borda)' }
-  const linhaSub = pausa
-    ? [pausa.motivo, (pausa.pausado_por || 'alguém').split(' ')[0], tempoDesde(pausa.pausado_em)].filter(Boolean).join(' · ')
-    : 'pausado no portal ou antes do registro de motivo'
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 14px', padding: '10px 12px', borderTop: borda ? '1px solid var(--linha)' : 0 }}>
       <MiniaturaItem item={item} />
@@ -91,7 +89,10 @@ function LinhaPausado({ item, pausa, borda, executando, onReativar }) {
         <div title={item.nome} style={{ fontSize: 14.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--t1)' }}>
           {item.nome}
         </div>
-        <div style={{ fontSize: 12.5, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{linhaSub}</div>
+        <div title={textoQuemPausou(pausa)} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 10px', marginTop: 4, minWidth: 0 }}>
+          <ChipMotivo motivo={pausa?.motivo} compacto />
+          <QuemPausou pausa={pausa} tamanho="sm" />
+        </div>
       </div>
       <span
         style={{

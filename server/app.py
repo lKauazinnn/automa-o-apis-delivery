@@ -1255,6 +1255,158 @@ def get_pausas():
     return jsonify({"pausas": pausas, "reativadas": reativadas, "disponivel": True})
 
 
+# Quem pausa direto no portal/app do parceiro não passa pelo painel, e nem o iFood nem o 99 contam
+# pela API quem foi nem quando (o item vem só com status=pausado). O máximo honesto é: na primeira
+# vez que o painel lê o cardápio e vê o item pausado sem registro, abre uma pausa em nome do
+# "Portal do 99/iFood" com `pausado_em` = hora da detecção; quando o item reaparece disponível sem
+# ninguém ter reativado pelo painel, fecha em nome do portal. O front mostra "detectado" em vez de
+# "pausou" pra essas linhas.
+AUTOR_PORTAL = {"99food": "Portal do 99", "ifood": "Portal do iFood"}
+# O catálogo lido pode estar até ~1 min atrasado (cache do 99): uma pausa aberta/fechada pelo
+# painel há menos que isso não é contrariada pelo que o catálogo diz.
+JANELA_CATALOGO_VELHO = timedelta(minutes=3)
+
+
+def _iso_para_dt(valor):
+    try:
+        return datetime.fromisoformat(str(valor).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+
+
+@app.post("/api/pausas/sincronizar")
+@requer_login
+def sincronizar_pausas():
+    """Recebe o status do cardápio que o painel acabou de ler e registra o que mudou fora dele."""
+    merchant_id = _merchant_id()
+    dados = request.get_json(silent=True) or {}
+    plataforma = "99food" if dados.get("plataforma") == "99food" else "ifood"
+    autor = AUTOR_PORTAL[plataforma]
+    pausados = [p for p in (dados.get("pausados") or [])[:500] if isinstance(p, dict) and p.get("id")]
+    disponiveis = {str(i) for i in (dados.get("disponiveis") or [])[:2000] if i}
+    if not SUPABASE_CONFIGURADO:
+        return get_pausas.__wrapped__()
+
+    agora = datetime.now(timezone.utc)
+    try:
+        abertas = _pausas_rest(
+            "GET",
+            {"select": "id,alvo_id,pausado_em", "merchant_id": f"eq.{merchant_id}", "tipo": "eq.item", "encerrada_em": "is.null"},
+        )
+        recentes = _pausas_rest(
+            "GET",
+            {
+                "select": "alvo_id",
+                "merchant_id": f"eq.{merchant_id}",
+                "tipo": "eq.item",
+                "encerrada_em": f"gte.{(agora - JANELA_CATALOGO_VELHO).isoformat()}",
+            },
+        )
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Sincronizar pausas: não consegui ler a tabela pausas: %s", exc)
+        return get_pausas.__wrapped__()
+
+    abertas_por_alvo = {str(p["alvo_id"]): p for p in abertas}
+    fechadas_agora = {str(p["alvo_id"]) for p in recentes}
+
+    novas = []
+    for p in pausados:
+        alvo = str(p["id"])
+        if alvo in abertas_por_alvo or alvo in fechadas_agora:
+            continue
+        novas.append(
+            {
+                "merchant_id": merchant_id,
+                "plataforma": plataforma,
+                "tipo": "item",
+                "alvo_id": alvo,
+                "nome": str(p.get("nome") or "")[:200],
+                "codigo_pdv": str(p.get("codigo_pdv") or "")[:60],
+                "motivo": "",
+                "pausado_por": autor,
+            }
+        )
+
+    voltaram = []
+    for alvo, p in abertas_por_alvo.items():
+        if alvo not in disponiveis:
+            continue
+        aberta_em = _iso_para_dt(p.get("pausado_em"))
+        if aberta_em and agora - aberta_em < JANELA_CATALOGO_VELHO:
+            continue
+        voltaram.append(p)
+
+    try:
+        if novas:
+            _pausas_rest("POST", None, novas)
+        for p in voltaram:
+            fechou = _pausas_rest(
+                "PATCH",
+                {"id": f"eq.{p['id']}", "encerrada_em": "is.null"},
+                {"encerrada_em": _agora_iso(), "encerrada_por": autor},
+                prefer="return=representation",
+            )
+            if fechou:
+                f = fechou[0]
+                registrar_auditoria(
+                    autor,
+                    "despausar_portal",
+                    item_id=f["alvo_id"],
+                    nome=f.get("nome") or "",
+                    codigo_pdv=f.get("codigo_pdv") or "",
+                    detalhe=f"reativado fora do painel · estava pausado por {f.get('pausado_por') or '?'}",
+                    merchant_id=merchant_id,
+                )
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Sincronizar pausas falhou: %s", exc)
+
+    for n in novas:
+        registrar_auditoria(
+            autor,
+            "pausar_portal",
+            item_id=n["alvo_id"],
+            nome=n["nome"],
+            codigo_pdv=n["codigo_pdv"],
+            detalhe="pausado fora do painel (a plataforma não informa quem foi) · detectado agora",
+            merchant_id=merchant_id,
+        )
+    return get_pausas.__wrapped__()
+
+
+@app.patch("/api/pausas/<pausa_id>/motivo")
+@requer_login
+def informar_motivo_pausa(pausa_id):
+    """Completa o "o que rolou" de uma pausa aberta — útil nas que vieram do portal sem motivo."""
+    try:
+        pausa_id = str(uuid.UUID(pausa_id))
+    except ValueError:
+        raise ValueError("Pausa inválida")
+    dados = request.get_json(silent=True) or {}
+    motivo = str(dados.get("motivo", "")).strip()[:MOTIVO_MAX]
+    if not motivo:
+        raise ValueError("Informe o motivo")
+    if not SUPABASE_CONFIGURADO:
+        raise RuntimeError("Registro de pausas não configurado no servidor")
+    atualizadas = _pausas_rest(
+        "PATCH",
+        {"id": f"eq.{pausa_id}", "merchant_id": f"eq.{_merchant_id()}", "encerrada_em": "is.null"},
+        {"motivo": motivo},
+        prefer="return=representation",
+    )
+    if not atualizadas:
+        raise ValueError("Essa pausa já foi encerrada")
+    p = atualizadas[0]
+    registrar_auditoria(
+        g.usuario["nome"],
+        "informar_motivo_pausa",
+        item_id=p["alvo_id"],
+        nome=p.get("nome") or "",
+        codigo_pdv=p.get("codigo_pdv") or "",
+        detalhe=f"motivo: {motivo} · pausado por {p.get('pausado_por') or '?'}",
+    )
+    return jsonify(p)
+
+
 @app.patch("/api/itens/<item_id>/status")
 @requer_login
 def alterar_status(item_id):

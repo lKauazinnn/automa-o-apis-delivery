@@ -133,3 +133,33 @@ export function emCategoriaIgnorada(item) {
   const cat = normalizar(item?.categoria).replace(/\s+/g, ' ').trim()
   return CATEGORIAS_IGNORADAS.includes(cat)
 }
+
+// Corpo do POST /pausas/sincronizar: o status de cada item do cardápio recém-lido. Fica de fora o
+// que não é ruptura (categoria ignorada) e item do 99 sem ID (não dá pra casar com nada).
+export function corpoSincronizarPausas(itens, plataforma) {
+  const validos = (itens || []).filter((i) => i.itemId && !i.semIdIntegracao)
+  return {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      plataforma: plataforma === '99food' ? '99food' : 'ifood',
+      pausados: validos
+        .filter((i) => i.status === 'UNAVAILABLE' && !emCategoriaIgnorada(i))
+        .map((i) => ({ id: i.itemId, nome: i.nome, codigo_pdv: i.codigo_pdv || '' })),
+      disponiveis: validos.filter((i) => i.status === 'AVAILABLE').map((i) => i.itemId),
+    }),
+  }
+}
+
+// Pausa aberta automaticamente porque o item apareceu pausado no portal (ver backend
+// /api/pausas/sincronizar): o "pausado_em" é a hora em que o painel VIU, não a hora da pausa.
+export function pausaDoPortal(pausa) {
+  return /^portal do /i.test(pausa?.pausado_por || '')
+}
+
+// "14:02" se for hoje, "12/11 14:02" se não.
+export function dataHoraCurta(iso) {
+  const d = new Date(iso)
+  if (d.toDateString() === new Date().toDateString()) return horaCurta(iso)
+  return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${horaCurta(iso)}`
+}

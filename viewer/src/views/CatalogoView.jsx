@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Check, ImageOff, LayoutGrid, List, Lock, MoreHorizontal, Pause, Pencil, Play, RefreshCw, Search, Tag, Trash2, Zap } from 'lucide-react'
+import { AlertTriangle, Check, Globe, ImageOff, LayoutGrid, List, Lock, MoreHorizontal, Pause, Pencil, Play, RefreshCw, Search, Tag, Trash2, UserRound, Zap } from 'lucide-react'
 import { Botao, CampoBusca, EstadoVazio, Esqueleto, Interruptor, Marcador, MONO, Segmentado, Selo, seguirLuz, useLarguraConteudo } from '../ds'
-import { bateBusca, normalizar, tempoDesde, tempoRestante, termosBusca } from '../pausas'
+import { bateBusca, normalizar, pausaDoPortal, tempoRestante, termosBusca } from '../pausas'
+import { iconeDoMotivo, textoQuemPausou } from '../components/MotivoPausa'
 import { MiniaturaItem } from './DashboardView'
 
 // Mesma grade no cabeçalho e nas linhas. Larguras mínimas somam ~900px: cabe a partir de ~1180px
@@ -267,13 +268,25 @@ function CelulaEditavel({ tipo, texto, editando, valor, salvando, salvo, onAbrir
   )
 }
 
+// Ao lado de "Pausado": ícone do motivo + quem pausou (ou o portal) + motivo. O texto completo
+// (com hora e prazo) fica no title.
 function SubStatus({ pausa }) {
-  if (!pausa) return <span style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap' }}>pelo portal ou sem motivo</span>
-  const r = pausa.volta_em ? tempoRestante(pausa.volta_em) : null
-  const prazo = r ? (r.startsWith('em ') ? `volta ${r}` : r) : 'até reativar'
+  const r = pausa?.volta_em ? tempoRestante(pausa.volta_em) : null
+  const prazo = r ? (r.startsWith('em ') ? `volta ${r}` : r) : ''
+  const motivo = (pausa?.motivo || '').trim()
+  const Icone = motivo ? iconeDoMotivo(motivo) : pausa && !pausaDoPortal(pausa) ? UserRound : Globe
+  const quem = !pausa ? 'Portal' : pausaDoPortal(pausa) ? pausa.pausado_por : (pausa.pausado_por || 'alguém').split(' ')[0]
+  const titulo = [textoQuemPausou(pausa), motivo ? `motivo: ${motivo}` : 'sem motivo informado', prazo].filter(Boolean).join(' · ')
   return (
-    <span title={[pausa.motivo, pausa.pausado_por, tempoDesde(pausa.pausado_em)].filter(Boolean).join(' · ')} style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
-      {[prazo, pausa.motivo].filter(Boolean).join(' · ')}
+    <span title={titulo} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0, maxWidth: '100%', fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap' }}>
+      <span style={{ display: 'flex', flexShrink: 0, color: motivo ? 'var(--warn)' : 'var(--t3)' }}>
+        <Icone size={13} />
+      </span>
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span style={{ color: 'var(--t2)', fontWeight: 600 }}>{quem}</span>
+        {` · ${motivo || 'sem motivo'}`}
+        {prazo ? ` · ${prazo}` : ''}
+      </span>
     </span>
   )
 }
@@ -726,7 +739,11 @@ export function CatalogoView({
                             </Selo>
                           </div>
                         )}
-                        {descricao ? (
+                        {pausado && alterandoStatus !== item.itemId ? (
+                          <div style={{ marginTop: 2, minWidth: 0, display: 'flex' }}>
+                            <SubStatus pausa={pausasPorItem[item.itemId]} />
+                          </div>
+                        ) : descricao ? (
                           <div style={{ fontSize: 12.5, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{descricao}</div>
                         ) : (
                           !item.foto && (
@@ -781,7 +798,6 @@ export function CatalogoView({
                         <span style={{ fontSize: 13, fontWeight: 600, color: alterandoStatus === item.itemId ? 'var(--t2)' : pausado ? 'var(--warn)' : 'var(--good)', whiteSpace: 'nowrap' }}>
                           {alterandoStatus === item.itemId ? 'Enviando…' : pausado ? 'Pausado' : 'No ar'}
                         </span>
-                        {pausado && alterandoStatus !== item.itemId && <SubStatus pausa={pausasPorItem[item.itemId]} />}
                       </div>
                     </div>
 

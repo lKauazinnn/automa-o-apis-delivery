@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Clock, Play, RefreshCw, Store } from 'lucide-react'
 import { Botao, BotaoIcone, EstadoVazio, Esqueleto, Etiqueta, Gaveta, tons } from '../ds'
-import { emCategoriaIgnorada, rotuloVolta, tempoDesde, tempoRestante } from '../pausas'
+import { emCategoriaIgnorada, pausaDoPortal, rotuloVolta, tempoRestante } from '../pausas'
+import { ChipMotivo, InformarMotivo, QuemPausou } from '../components/MotivoPausa'
 
 function SeloPrazo({ pausa }) {
   if (!pausa?.volta_em) {
@@ -23,9 +24,9 @@ function SeloPrazo({ pausa }) {
 }
 
 // Tudo que está fora do cardápio agora, numa lista só: as pausas feitas pelo painel (com motivo,
-// quem pausou e quando volta) e os itens pausados sem registro (direto no portal do iFood/99 ou
-// antes da tabela `pausas` existir). Reativar daqui é o "reposição chegou" da cozinha.
-export function RupturasModal({ pausas, itens, carregando, erro, registroDisponivel, executando, onRecarregar, onReativar, totalLojas = 0, levantandoTodas = null, onReativarTodasLojas, onClose }) {
+// quem pausou e quando volta), as que o painel detectou pausadas no portal (autor "Portal do 99/
+// iFood", com a hora em que foram vistas) e o que sobrar sem registro (item do 99 sem ID). Reativar daqui é o "reposição chegou" da cozinha.
+export function RupturasModal({ pausas, itens, carregando, erro, registroDisponivel, executando, onRecarregar, onReativar, onInformarMotivo, totalLojas = 0, levantandoTodas = null, onReativarTodasLojas, onClose }) {
   const [, setTique] = useState(0)
 
   // Re-renderiza a cada 30s pra contagem regressiva ("volta em 12 min") não congelar.
@@ -46,7 +47,7 @@ export function RupturasModal({ pausas, itens, carregando, erro, registroDisponi
 
   const linha = (chave, nome, conteudo, alvo, comp = false) => (
     <div key={chave} style={{ display: 'flex', gap: 12, padding: '14px 24px', borderBottom: '1px solid var(--linha)' }}>
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
           <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</span>
           {comp && <Etiqueta tipo="info">Complemento</Etiqueta>}
@@ -128,13 +129,14 @@ export function RupturasModal({ pausas, itens, carregando, erro, registroDisponi
             p.id,
             p.nome || p.alvo_id,
             <>
+              <QuemPausou pausa={p} />
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                <ChipMotivo motivo={p.motivo} />
                 <SeloPrazo pausa={p} />
+                {pausaDoPortal(p) && <Etiqueta>Portal</Etiqueta>}
                 {p.erro_reativacao && <Etiqueta tipo="bad">Falhou ao reativar sozinho</Etiqueta>}
               </div>
-              <div style={{ fontSize: 12.5, color: 'var(--t3)' }}>
-                {[p.motivo, p.pausado_por || 'alguém', tempoDesde(p.pausado_em)].filter(Boolean).join(' · ')}
-              </div>
+              {!(p.motivo || '').trim() && onInformarMotivo && <InformarMotivo pausa={p} onInformar={onInformarMotivo} />}
             </>,
             tarefaDe(p),
             p.tipo === 'opcao',
@@ -146,11 +148,13 @@ export function RupturasModal({ pausas, itens, carregando, erro, registroDisponi
             i.itemId,
             i.nome,
             <>
+              <QuemPausou pausa={null} />
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                <ChipMotivo motivo="" />
                 <SeloPrazo pausa={null} />
-                <Etiqueta>Pausado no portal</Etiqueta>
+                <Etiqueta>{i.semIdIntegracao ? 'Sem ID no 99' : 'Portal'}</Etiqueta>
               </div>
-              <div style={{ fontSize: 12.5, color: 'var(--t3)' }}>{i.categoria} · pausado no portal da plataforma ou antes do registro</div>
+              <div style={{ fontSize: 12, color: 'var(--t3)' }}>{i.categoria}{i.semIdIntegracao ? ' · sem ID de integração, o painel não consegue registrar' : ''}</div>
             </>,
             { tipo: 'item', id: i.itemId, nome: i.nome, codigo_pdv: i.codigo_pdv || '' },
           ),
