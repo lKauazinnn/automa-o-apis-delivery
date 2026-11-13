@@ -117,16 +117,29 @@ _v1_cache: dict[str, tuple[float, dict]] = {}
 _V1_TTL = 60  # segundos — o 99 limita item/list a 2 req/120s também em PRODUÇÃO
 
 
-def list_items(app_shop_id: str, usar_cache: bool = True) -> dict:
+_v1_reserva: dict[str, tuple[float, dict]] = {}
+_V1_RESERVA = 600  # com aceitar_reserva, vale a última lista de até 10 min se o 99 bloquear
+
+
+def list_items(app_shop_id: str, usar_cache: bool = True, aceitar_reserva: bool = False) -> dict:
     """Cardápio da loja (v1): {menus, categories, items} — bom pra EXIBIR o catálogo.
-    Cacheado por ~60s: recarregar a tela seguidas vezes estourava o rate-limit (erro 10005)."""
+    Cacheado por ~60s: recarregar a tela seguidas vezes estourava o rate-limit (erro 10005).
+    `aceitar_reserva`: se o 99 bloquear (10005), devolve a última lista lida nesta instância
+    (até 10 min) em vez de falhar — usado na varredura de rupturas de todas as lojas."""
     agora = time.time()
     if usar_cache and app_shop_id in _v1_cache:
         ts, dados = _v1_cache[app_shop_id]
         if agora - ts < _V1_TTL:
             return dados
-    dados = _get("/v1/item/item/list", {"auth_token": get_auth_token(app_shop_id)})
+    try:
+        dados = _get("/v1/item/item/list", {"auth_token": get_auth_token(app_shop_id)})
+    except Exception as exc:
+        guardado = _v1_reserva.get(app_shop_id)
+        if aceitar_reserva and "10005" in str(exc) and guardado and agora - guardado[0] < _V1_RESERVA:
+            return guardado[1]
+        raise
     _v1_cache[app_shop_id] = (agora, dados)
+    _v1_reserva[app_shop_id] = (agora, dados)
     return dados
 
 
@@ -276,7 +289,7 @@ def update_item_status(app_shop_id: str, item_id: str, disponivel: bool):
         )
     # Atualiza o status nos caches em vez de descartá-los: recarregar a tela logo após pausar
     # mostra o estado novo sem gastar outra leitura (rate-limit).
-    for cache in (_v1_cache, _v3_cache):
+    for cache in (_v1_cache, _v1_reserva, _v3_cache):
         if app_shop_id in cache:
             for it in cache[app_shop_id][1].get("items", []):
                 if it.get("app_item_id") == item_id:

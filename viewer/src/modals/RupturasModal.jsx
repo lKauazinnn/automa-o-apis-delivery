@@ -25,7 +25,7 @@ function SeloPrazo({ pausa }) {
 // Tudo que está fora do cardápio agora, numa lista só: as pausas feitas pelo painel (com motivo,
 // quem pausou e quando volta) e os itens pausados sem registro (direto no portal do iFood/99 ou
 // antes da tabela `pausas` existir). Reativar daqui é o "reposição chegou" da cozinha.
-export function RupturasModal({ pausas, itens, carregando, erro, registroDisponivel, executando, onRecarregar, onReativar, totalLojas = 0, levantandoTodas = false, onReativarTodasLojas, onClose }) {
+export function RupturasModal({ pausas, itens, carregando, erro, registroDisponivel, executando, onRecarregar, onReativar, totalLojas = 0, levantandoTodas = null, onReativarTodasLojas, onClose }) {
   const [, setTique] = useState(0)
 
   // Re-renderiza a cada 30s pra contagem regressiva ("volta em 12 min") não congelar.
@@ -95,7 +95,7 @@ export function RupturasModal({ pausas, itens, carregando, erro, registroDisponi
             </div>
             <Botao variante="reativar" tamanho="sm" disabled={executando || levantandoTodas} onClick={onReativarTodasLojas} style={{ flexShrink: 0 }}>
               {levantandoTodas ? <RefreshCw size={16} className="animate-spin" /> : <Play size={16} />}
-              {levantandoTodas ? 'Procurando…' : 'Reativar todas'}
+              {levantandoTodas ? `Lendo ${levantandoTodas.feitas}/${levantandoTodas.total}…` : 'Reativar todas'}
             </Botao>
           </div>
         )}

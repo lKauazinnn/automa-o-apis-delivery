@@ -238,7 +238,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [auditoria, setAuditoria] = useState([])
   const [toasts, setToasts] = useState([])
   const [confirmacao, setConfirmacao] = useState(null)
-  const [levantandoTodas, setLevantandoTodas] = useState(false)
+  const [levantandoTodas, setLevantandoTodas] = useState(null) // null | { feitas, total }
 
   const [sidebarAberta, setSidebarAberta] = useState(() => {
     try {
@@ -813,42 +813,63 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     }
   }
 
-  // "Reativar em todas as lojas": lê o cardápio (e as pausas de complemento) de cada loja ao mesmo
-  // tempo, junta tudo que está pausado, mostra o resumo por loja pra confirmar e reativa pela
-  // mesma fila do lote (com barra de progresso). Item do 99 sem ID de integração não tem como
-  // ser reativado pela API — entra só na contagem do aviso. Tarefas da loja atual vão sem `loja`
-  // pra que a lista na tela já atualize sozinha.
+  // "Reativar em todas as lojas": lê o cardápio (e as pausas de complemento) de cada loja, 4 por
+  // vez, junta tudo que está pausado, mostra o resumo por loja pra confirmar e reativa pela mesma
+  // fila do lote (com barra de progresso). No 99 usa a leitura leve (1 chamada; o 99 aceita só 2
+  // por loja a cada 2 min). Item do 99 sem ID não tem como ser reativado pela API — entra só no
+  // aviso. Tarefas da loja atual vão sem `loja` pra que a lista na tela já atualize sozinha.
   async function prepararReativarTodasLojas() {
     if (!lojas.length || levantandoTodas) return
-    setLevantandoTodas(true)
+    const total = lojas.length
+    let feitas = 0
+    setLevantandoTodas({ feitas, total })
+
+    async function lerLoja(loja) {
+      const q = `?loja=${encodeURIComponent(loja.merchant_id)}`
+      const ehAtual = loja.merchant_id === lojaAtual?.merchant_id
+      try {
+        const caminho = loja.plataforma === '99food' ? `/99food/catalogo${q}&leve=1` : `/catalogo${q}`
+        const [cat, pz] = await Promise.all([apiFetch(caminho), apiFetch(`/pausas${q}`).catch(() => ({ pausas: [] }))])
+        const pausadosLoja = (cat.itens || []).filter((i) => i.status === 'UNAVAILABLE' && !emCategoriaIgnorada(i))
+        const semId = pausadosLoja.filter((i) => i.semIdIntegracao).length
+        const tarefas = pausadosLoja.filter((i) => !i.semIdIntegracao).map((i) => ({ ...alvoDoItem(i), loja: ehAtual ? undefined : loja }))
+        for (const p of pz.pausas || []) {
+          if (p.tipo !== 'opcao') continue
+          tarefas.push({ tipo: 'opcao', id: p.alvo_id, grupoId: p.grupo_id, nome: p.nome || p.alvo_id, codigo_pdv: p.codigo_pdv || '', loja: ehAtual ? undefined : loja })
+        }
+        return { loja, tarefas, semId }
+      } catch (e) {
+        const msg = e.message || ''
+        const motivo = /limite de leituras|10005/i.test(msg) ? 'limite do 99, tente em 2 min' : /sem autoriza|10101/i.test(msg) ? 'sem autorização no 99' : msg.replace(/^99Food:\s*/, '').slice(0, 90)
+        return { loja, tarefas: [], semId: 0, erro: motivo }
+      } finally {
+        feitas += 1
+        setLevantandoTodas({ feitas, total })
+      }
+    }
+
     try {
-      const porLoja = await Promise.all(
-        lojas.map(async (loja) => {
-          const q = `?loja=${encodeURIComponent(loja.merchant_id)}`
-          const ehAtual = loja.merchant_id === lojaAtual?.merchant_id
-          try {
-            const base = loja.plataforma === '99food' ? '/99food/catalogo' : '/catalogo'
-            const [cat, pz] = await Promise.all([apiFetch(`${base}${q}`), apiFetch(`/pausas${q}`).catch(() => ({ pausas: [] }))])
-            const pausadosLoja = (cat.itens || []).filter((i) => i.status === 'UNAVAILABLE' && !emCategoriaIgnorada(i))
-            const semId = pausadosLoja.filter((i) => i.semIdIntegracao).length
-            const tarefas = pausadosLoja.filter((i) => !i.semIdIntegracao).map((i) => ({ ...alvoDoItem(i), loja: ehAtual ? undefined : loja }))
-            for (const p of pz.pausas || []) {
-              if (p.tipo !== 'opcao') continue
-              tarefas.push({ tipo: 'opcao', id: p.alvo_id, grupoId: p.grupo_id, nome: p.nome || p.alvo_id, codigo_pdv: p.codigo_pdv || '', loja: ehAtual ? undefined : loja })
-            }
-            return { loja, tarefas, semId }
-          } catch (e) {
-            return { loja, tarefas: [], semId: 0, erro: e.message }
+      const porLoja = new Array(total)
+      let proxima = 0
+      await Promise.all(
+        Array.from({ length: Math.min(4, total) }, async () => {
+          while (proxima < total) {
+            const k = proxima++
+            porLoja[k] = await lerLoja(lojas[k])
           }
         }),
       )
       const tarefas = porLoja.flatMap((r) => r.tarefas)
       const comFalha = porLoja.filter((r) => r.erro)
       const semId = porLoja.reduce((s, r) => s + r.semId, 0)
-      const avisoSemId = semId ? ` ${semId} ${semId === 1 ? 'item do 99 sem ID fica' : 'itens do 99 sem ID ficam'} de fora (só dá pelo portal).` : ''
-      const avisoFalha = comFalha.length ? ` Não consegui ler: ${comFalha.map((r) => r.loja.nome).join(', ')}.` : ''
+      const avisoSemId = semId ? `${semId} ${semId === 1 ? 'item do 99 sem ID fica' : 'itens do 99 sem ID ficam'} de fora (só dá pelo portal).` : ''
+      const porMotivo = {}
+      comFalha.forEach((r) => (porMotivo[r.erro] = [...(porMotivo[r.erro] || []), r.loja.nome]))
+      const avisoFalha = Object.entries(porMotivo)
+        .map(([motivo, nomes]) => `Não li ${nomes.join(', ')} (${motivo}).`)
+        .join(' ')
       if (!tarefas.length) {
-        notificar(comFalha.length ? 'aviso' : 'sucesso', `Nenhuma ruptura nas lojas.${avisoSemId}${avisoFalha}`)
+        notificar(comFalha.length ? 'aviso' : 'sucesso', [`Nenhuma ruptura${comFalha.length ? ' nas lojas que consegui ler' : ' nas lojas'}.`, avisoSemId, avisoFalha].filter(Boolean).join(' '))
         return
       }
       const n = tarefas.length
@@ -857,19 +878,19 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         mensagem: (
           <>
             Tudo que está pausado volta pro cardápio agora, no iFood e no 99.
-            <span style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '10px 0 0' }}>
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '10px 0 0', maxHeight: 260, overflowY: 'auto' }}>
               {porLoja
                 .filter((r) => r.tarefas.length || r.erro)
                 .map((r) => (
                   <span key={r.loja.merchant_id} style={{ display: 'flex', gap: 8, fontSize: 13 }}>
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--t1)' }}>{r.loja.nome}</span>
-                    <span className="fonte-mono" style={{ color: r.erro ? 'var(--bad)' : 'var(--t2)' }}>
-                      {r.erro ? 'não li' : r.tarefas.length}
+                    <span className={r.erro ? undefined : 'fonte-mono'} style={{ color: r.erro ? 'var(--bad)' : 'var(--t2)', flexShrink: 0 }}>
+                      {r.erro ? `não li · ${r.erro}` : r.tarefas.length}
                     </span>
                   </span>
                 ))}
             </span>
-            {(avisoSemId || avisoFalha) && <span style={{ display: 'block', marginTop: 10, fontSize: 13 }}>{`${avisoSemId}${avisoFalha}`.trim()}</span>}
+            {avisoSemId && <span style={{ display: 'block', marginTop: 10, fontSize: 13 }}>{avisoSemId}</span>}
           </>
         ),
         textoConfirmar: `Reativar ${n}`,
@@ -879,7 +900,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
         },
       })
     } finally {
-      setLevantandoTodas(false)
+      setLevantandoTodas(null)
     }
   }
 

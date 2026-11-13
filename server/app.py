@@ -2582,21 +2582,25 @@ def catalogo_99food():
         raise ValueError("Informe a loja (app_shop_id do 99Food).")
     if not (food99 and FOOD99_CONFIGURADO):
         return jsonify({"erro": "99Food não configurado no servidor (FOOD99_APP_ID/SECRET)."}), 503
+    # leve=1: só a leitura v1 (o 99 aceita 2 por loja a cada 2 min), sem o v3 que acha a
+    # categoria dos itens sem ID, e aceitando a última lista guardada se o 99 bloquear. É o
+    # que a varredura de rupturas de todas as lojas usa.
+    leve = request.args.get("leve") == "1"
     try:
-        m = food99.list_items(app_shop_id)
+        m = food99.list_items(app_shop_id, aceitar_reserva=leve)
     except Exception as exc:
-        return jsonify({"erro": f"99Food: {exc}"}), 502
+        return jsonify({"erro": _mensagem_erro_99(exc)}), 502
 
     cat_por_item, catid_por_item, nomes_cat = {}, {}, []
     for c in m.get("categories", []):
         nomes_cat.append(c.get("category_name"))
-        for iid in c.get("app_item_ids", []):
+        for iid in (c.get("app_item_ids") or []):
             if not iid:  # categorias montadas no portal do 99 listam "" pros itens sem ID
                 continue
             cat_por_item[iid] = c.get("category_name")
             catid_por_item[iid] = c.get("app_category_id")
 
-    cat_por_nome = _categorias_por_nome_99(app_shop_id) if any(not it.get("app_item_id") for it in m.get("items", [])) else {}
+    cat_por_nome = {} if leve else _categorias_por_nome_99(app_shop_id) if any(not it.get("app_item_id") for it in m.get("items", [])) else {}
 
     itens, vistos = [], {}
     for it in m.get("items", []):
@@ -2630,6 +2634,15 @@ def catalogo_99food():
     return jsonify({"itens": itens, "categorias": sorted(set(filter(None, nomes_cat)))})
 
 
+def _mensagem_erro_99(exc):
+    texto = str(exc)
+    if "10005" in texto:
+        return "99Food: limite de leituras do cardápio (2 a cada 2 min por loja). Tente de novo em 2 minutos."
+    if "10101" in texto:
+        return "99Food: loja sem autorização no 99 (vincule a loja ao app no portal do 99)."
+    return f"99Food: {texto}"
+
+
 def _categorias_por_nome_99(app_shop_id):
     """Categoria dos itens SEM app_item_id (cardápio montado no portal do 99: a categoria lista
     "" no lugar do ID, então não dá pra ligar pelo ID).
@@ -2645,7 +2658,7 @@ def _categorias_por_nome_99(app_shop_id):
         logger.warning("99Food: não consegui ler o v3 pra deduzir categorias: %s", exc)
         return {}
     cats = v3.get("categories", [])
-    seq = [(c.get("category_name"), c.get("app_category_id") or "", iid) for c in cats for iid in c.get("app_item_ids", [])]
+    seq = [(c.get("category_name"), c.get("app_category_id") or "", iid) for c in cats for iid in (c.get("app_item_ids") or [])]
     its = v3.get("items", [])
     if len(seq) != len(its) or any(s[2] and s[2] != (it.get("app_item_id") or "") for s, it in zip(seq, its)):
         logger.info("99Food: ordem do v3 não confere com as categorias; itens sem ID ficam sem categoria.")

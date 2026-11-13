@@ -137,7 +137,7 @@ export function DashboardView({
   onAbrirRupturas,
   onReativar,
   totalLojas = 0,
-  levantandoTodas = false,
+  levantandoTodas = null,
   onReativarTodasLojas,
   celular = false,
   onPausarItem,
@@ -282,7 +282,7 @@ export function DashboardView({
                 title={`Reativa tudo que está pausado nas ${totalLojas} lojas`}
               >
                 {levantandoTodas ? <RefreshCw size={16} className="animate-spin" /> : <Play size={16} />}
-                {levantandoTodas ? 'Procurando…' : 'Reativar todas as lojas'}
+                {levantandoTodas ? `Lendo ${levantandoTodas.feitas}/${levantandoTodas.total}…` : 'Reativar todas as lojas'}
               </Botao>
             )}
             <Botao variante="link" onClick={onAbrirRupturas}>
