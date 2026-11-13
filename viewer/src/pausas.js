@@ -125,3 +125,11 @@ export function tempoDesde(iso) {
   if (min < 1440) return `há ${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}`
   return `há ${Math.floor(min / 1440)} dia(s)`
 }
+
+// Categorias que a loja usa pra guardar item desligado de propósito (ex: "Agrupados e desativados"
+// no 99). O que está nelas não é ruptura: fica fora da lista de Rupturas e nunca é reativado em massa.
+const CATEGORIAS_IGNORADAS = ['agrupados e desativados']
+export function emCategoriaIgnorada(item) {
+  const cat = normalizar(item?.categoria).replace(/\s+/g, ' ').trim()
+  return CATEGORIAS_IGNORADAS.includes(cat)
+}

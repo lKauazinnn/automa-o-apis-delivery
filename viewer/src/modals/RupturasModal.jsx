@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Clock, Play, RefreshCw } from 'lucide-react'
+import { Clock, Play, RefreshCw, Store } from 'lucide-react'
 import { Botao, BotaoIcone, EstadoVazio, Esqueleto, Etiqueta, Gaveta, tons } from '../ds'
-import { rotuloVolta, tempoDesde, tempoRestante } from '../pausas'
+import { emCategoriaIgnorada, rotuloVolta, tempoDesde, tempoRestante } from '../pausas'
 
 function SeloPrazo({ pausa }) {
   if (!pausa?.volta_em) {
@@ -25,7 +25,7 @@ function SeloPrazo({ pausa }) {
 // Tudo que está fora do cardápio agora, numa lista só: as pausas feitas pelo painel (com motivo,
 // quem pausou e quando volta) e os itens pausados sem registro (direto no portal do iFood/99 ou
 // antes da tabela `pausas` existir). Reativar daqui é o "reposição chegou" da cozinha.
-export function RupturasModal({ pausas, itens, carregando, erro, registroDisponivel, executando, onRecarregar, onReativar, onClose }) {
+export function RupturasModal({ pausas, itens, carregando, erro, registroDisponivel, executando, onRecarregar, onReativar, totalLojas = 0, levantandoTodas = false, onReativarTodasLojas, onClose }) {
   const [, setTique] = useState(0)
 
   // Re-renderiza a cada 30s pra contagem regressiva ("volta em 12 min") não congelar.
@@ -35,7 +35,7 @@ export function RupturasModal({ pausas, itens, carregando, erro, registroDisponi
   }, [])
 
   const registrados = new Set(pausas.filter((p) => p.tipo === 'item').map((p) => p.alvo_id))
-  const semRegistro = itens.filter((i) => i.status === 'UNAVAILABLE' && !registrados.has(i.itemId))
+  const semRegistro = itens.filter((i) => i.status === 'UNAVAILABLE' && !registrados.has(i.itemId) && !emCategoriaIgnorada(i))
 
   const tarefaDe = (p) => ({ tipo: p.tipo, id: p.alvo_id, grupoId: p.grupo_id, nome: p.nome, codigo_pdv: p.codigo_pdv || '' })
   const todas = [
@@ -84,6 +84,21 @@ export function RupturasModal({ pausas, itens, carregando, erro, registroDisponi
       }
     >
       <div style={{ margin: '-20px -24px', display: 'flex', flexDirection: 'column' }}>
+        {totalLojas > 1 && onReativarTodasLojas && (
+          <div style={{ margin: '16px 24px 4px', padding: '12px 14px', borderRadius: 12, background: 'var(--input)', border: '1px solid var(--borda)', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ color: 'var(--t2)', display: 'flex', flexShrink: 0 }}>
+              <Store size={18} />
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--t1)' }}>Todas as lojas</div>
+              <div style={{ fontSize: 12.5, color: 'var(--t3)' }}>Reativa as rupturas das {totalLojas} lojas de uma vez</div>
+            </div>
+            <Botao variante="reativar" tamanho="sm" disabled={executando || levantandoTodas} onClick={onReativarTodasLojas} style={{ flexShrink: 0 }}>
+              {levantandoTodas ? <RefreshCw size={16} className="animate-spin" /> : <Play size={16} />}
+              {levantandoTodas ? 'Procurando…' : 'Reativar todas'}
+            </Botao>
+          </div>
+        )}
         {!registroDisponivel && !carregando && !erro && (
           <div style={{ margin: '16px 24px 4px', padding: '10px 12px', borderRadius: 9, background: 'var(--input)', fontSize: 13, color: 'var(--t2)', lineHeight: 1.45 }}>
             O registro de motivo e prazo não está ativo no servidor. A lista mostra só os itens pausados.

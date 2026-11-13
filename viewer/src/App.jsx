@@ -24,7 +24,7 @@ import { Botao, Dialogo, EstadoVazio, LarguraContext, MONO, OpcaoMarcavel, Segme
 import { SimboloPausaFast } from './Logo'
 import { MaisView } from './views/MaisView'
 import { ItemEditarGaveta, ItemNovoGaveta } from './modals/ItemGaveta'
-import { bateBusca, bateNoNome, sugestoesParecidas, termosBusca } from './pausas'
+import { bateBusca, bateNoNome, emCategoriaIgnorada, sugestoesParecidas, termosBusca } from './pausas'
 import { TelaCarregando, TelaDefinirSenha, TelaLogin } from './TelasAuth'
 import { CoresContext, iniciaisDe, lerImagemComoDataUrl, ModalEmbutidoContext, PALETAS, Pill } from './ui'
 import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
@@ -238,6 +238,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [auditoria, setAuditoria] = useState([])
   const [toasts, setToasts] = useState([])
   const [confirmacao, setConfirmacao] = useState(null)
+  const [levantandoTodas, setLevantandoTodas] = useState(false)
 
   const [sidebarAberta, setSidebarAberta] = useState(() => {
     try {
@@ -812,6 +813,76 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     }
   }
 
+  // "Reativar em todas as lojas": lê o cardápio (e as pausas de complemento) de cada loja ao mesmo
+  // tempo, junta tudo que está pausado, mostra o resumo por loja pra confirmar e reativa pela
+  // mesma fila do lote (com barra de progresso). Item do 99 sem ID de integração não tem como
+  // ser reativado pela API — entra só na contagem do aviso. Tarefas da loja atual vão sem `loja`
+  // pra que a lista na tela já atualize sozinha.
+  async function prepararReativarTodasLojas() {
+    if (!lojas.length || levantandoTodas) return
+    setLevantandoTodas(true)
+    try {
+      const porLoja = await Promise.all(
+        lojas.map(async (loja) => {
+          const q = `?loja=${encodeURIComponent(loja.merchant_id)}`
+          const ehAtual = loja.merchant_id === lojaAtual?.merchant_id
+          try {
+            const base = loja.plataforma === '99food' ? '/99food/catalogo' : '/catalogo'
+            const [cat, pz] = await Promise.all([apiFetch(`${base}${q}`), apiFetch(`/pausas${q}`).catch(() => ({ pausas: [] }))])
+            const pausadosLoja = (cat.itens || []).filter((i) => i.status === 'UNAVAILABLE' && !emCategoriaIgnorada(i))
+            const semId = pausadosLoja.filter((i) => i.semIdIntegracao).length
+            const tarefas = pausadosLoja.filter((i) => !i.semIdIntegracao).map((i) => ({ ...alvoDoItem(i), loja: ehAtual ? undefined : loja }))
+            for (const p of pz.pausas || []) {
+              if (p.tipo !== 'opcao') continue
+              tarefas.push({ tipo: 'opcao', id: p.alvo_id, grupoId: p.grupo_id, nome: p.nome || p.alvo_id, codigo_pdv: p.codigo_pdv || '', loja: ehAtual ? undefined : loja })
+            }
+            return { loja, tarefas, semId }
+          } catch (e) {
+            return { loja, tarefas: [], semId: 0, erro: e.message }
+          }
+        }),
+      )
+      const tarefas = porLoja.flatMap((r) => r.tarefas)
+      const comFalha = porLoja.filter((r) => r.erro)
+      const semId = porLoja.reduce((s, r) => s + r.semId, 0)
+      const avisoSemId = semId ? ` ${semId} ${semId === 1 ? 'item do 99 sem ID fica' : 'itens do 99 sem ID ficam'} de fora (só dá pelo portal).` : ''
+      const avisoFalha = comFalha.length ? ` Não consegui ler: ${comFalha.map((r) => r.loja.nome).join(', ')}.` : ''
+      if (!tarefas.length) {
+        notificar(comFalha.length ? 'aviso' : 'sucesso', `Nenhuma ruptura nas lojas.${avisoSemId}${avisoFalha}`)
+        return
+      }
+      const n = tarefas.length
+      setConfirmacao({
+        titulo: `Reativar ${n} ${n === 1 ? 'item' : 'itens'} em todas as lojas?`,
+        mensagem: (
+          <>
+            Tudo que está pausado volta pro cardápio agora, no iFood e no 99.
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: '10px 0 0' }}>
+              {porLoja
+                .filter((r) => r.tarefas.length || r.erro)
+                .map((r) => (
+                  <span key={r.loja.merchant_id} style={{ display: 'flex', gap: 8, fontSize: 13 }}>
+                    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--t1)' }}>{r.loja.nome}</span>
+                    <span className="fonte-mono" style={{ color: r.erro ? 'var(--bad)' : 'var(--t2)' }}>
+                      {r.erro ? 'não li' : r.tarefas.length}
+                    </span>
+                  </span>
+                ))}
+            </span>
+            {(avisoSemId || avisoFalha) && <span style={{ display: 'block', marginTop: 10, fontSize: 13 }}>{`${avisoSemId}${avisoFalha}`.trim()}</span>}
+          </>
+        ),
+        textoConfirmar: `Reativar ${n}`,
+        aoConfirmar: () => {
+          setModalRupturas(false)
+          executarStatusEmLote(tarefas, 'AVAILABLE')
+        },
+      })
+    } finally {
+      setLevantandoTodas(false)
+    }
+  }
+
   // Pausa multicanal: acha o mesmo item nas outras lojas pelo código PDV (é o único identificador
   // que o iFood e o 99 compartilham) e devolve as tarefas extras. Loja que falhar ao carregar
   // vira aviso, não bloqueia a pausa na loja atual.
@@ -1196,7 +1267,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     [pausasAtivas],
   )
   // Badge de Rupturas: itens pausados + complementos pausados pelo painel (esses não estão em `itens`).
-  const totalRupturas = totalPausados + pausasAtivas.filter((p) => p.tipo === 'opcao').length
+  const totalRupturas = itens.filter((i) => i.status === 'UNAVAILABLE' && !emCategoriaIgnorada(i)).length + pausasAtivas.filter((p) => p.tipo === 'opcao').length
 
   const inputCls = 'w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all'
   const inputStyle = { background: C.inputBg, color: C.text1, border: `1px solid ${C.cardBorder}` }
@@ -1279,7 +1350,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
               >
                 {confirmacao.perigo ? <Trash2 size={22} /> : <AlertTriangle size={22} />}
               </div>
-              <p style={{ margin: 0, fontSize: 14, color: 'var(--t2)', lineHeight: 1.5, textWrap: 'pretty' }}>{confirmacao.mensagem}</p>
+              <div style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 14, color: 'var(--t2)', lineHeight: 1.5, textWrap: 'pretty' }}>{confirmacao.mensagem}</div>
             </div>
           </Dialogo>
         )}
@@ -1668,6 +1739,9 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             executando={executandoMassa}
             onRecarregar={carregarPausas}
             onReativar={(alvos) => executarStatusEmLote(alvos, 'AVAILABLE')}
+            totalLojas={lojas.length}
+            levantandoTodas={levantandoTodas}
+            onReativarTodasLojas={prepararReativarTodasLojas}
             onClose={() => setModalRupturas(false)}
             C={C}
           />
@@ -1797,6 +1871,9 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                     carregarPausas()
                   }}
                   onReativar={(alvos) => executarStatusEmLote(alvos, 'AVAILABLE')}
+                  totalLojas={lojas.length}
+                  levantandoTodas={levantandoTodas}
+                  onReativarTodasLojas={prepararReativarTodasLojas}
                   celular={celular}
                   onPausarItem={() => setModalPausar({ alvos: [] })}
                 />

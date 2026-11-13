@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, Check, CheckCircle2, ChevronRight, ClipboardList, Clock, Pause, Play, Tag, Zap } from 'lucide-react'
+import { ArrowRight, Check, CheckCircle2, ChevronRight, ClipboardList, Clock, Pause, Play, RefreshCw, Tag, Zap } from 'lucide-react'
 import { Botao, Cartao, CabecalhoCartao, Contador, EstadoVazio, Esqueleto, MONO, tons } from '../ds'
 import { palavrasChave, tempoDesde, tempoRestante } from '../pausas'
 import { descreverAuditoria, iniciaisDe } from '../ui'
@@ -136,6 +136,9 @@ export function DashboardView({
   onIrAuditoria,
   onAbrirRupturas,
   onReativar,
+  totalLojas = 0,
+  levantandoTodas = false,
+  onReativarTodasLojas,
   celular = false,
   onPausarItem,
 }) {
@@ -269,6 +272,19 @@ export function DashboardView({
             extra={<Contador tipo="warn">{totalPausados}</Contador>}
             style={{ padding: '18px 24px' }}
           >
+            {totalLojas > 1 && onReativarTodasLojas && (
+              <Botao
+                variante="secundario"
+                tamanho="sm"
+                disabled={executando || levantandoTodas}
+                onClick={onReativarTodasLojas}
+                className="ds-btn--reativar-hover"
+                title={`Reativa tudo que está pausado nas ${totalLojas} lojas`}
+              >
+                {levantandoTodas ? <RefreshCw size={16} className="animate-spin" /> : <Play size={16} />}
+                {levantandoTodas ? 'Procurando…' : 'Reativar todas as lojas'}
+              </Botao>
+            )}
             <Botao variante="link" onClick={onAbrirRupturas}>
               Ver rupturas <ArrowRight size={16} />
             </Botao>
