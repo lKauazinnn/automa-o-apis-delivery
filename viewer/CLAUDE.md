@@ -12,7 +12,7 @@ Aprovado pelo dono do produto a partir do protótipo no canvas de design.
 
 - **Superfícies de vidro fosco.** `--card` é translúcido; toda superfície escrita como
   `background: 'var(--card)'` ganha desfoque automaticamente (regra
-  `.app-fundo [style*='background: var(--card)']` em `index.css`). Continue escrevendo
+  `[style*='background: var(--card)']` em `index.css`). Continue escrevendo
   `background: 'var(--card)'` — não crie fundo opaco novo nem `backdrop-filter` inline.
 - **Vale fora do `.app-fundo` também**: diálogos e gavetas são irmãos do contêiner
   `.app-fundo` no App, por isso as regras de vidro não têm esse prefixo.
