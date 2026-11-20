@@ -30,6 +30,7 @@ import { CoresContext, iniciaisDe, lerImagemComoDataUrl, ModalEmbutidoContext, P
 import { aplicarMarcaNoDocumento, guardarMarcaEmCache, lerMarcaEmCache, MARCA_PADRAO, MarcaContext, tokensDaMarca } from './marca'
 import { AuditoriaView } from './views/AuditoriaView'
 import { LojasSecao, MarcaSecao, UsuariosSecao } from './views/AdminView'
+import { AcessosDialogo, ClientesSecao } from './views/ClientesView'
 import { CatalogoCelular, CatalogoView } from './views/CatalogoView'
 import { DashboardView } from './views/DashboardView'
 import { VisaoGeralLojas } from './views/VisaoGeralLojas'
@@ -51,7 +52,8 @@ const TITULOS_VIEW = {
   financeiro: { t: 'Financeiro', sub: 'Faturamento, ticket médio e repasses' },
   desempenho: { t: 'Desempenho', sub: 'Vendas, promoções, tempos, cancelamentos, clientes e avaliações do iFood' },
   auditoria: { t: 'Histórico', sub: 'Tudo que a equipe alterou, em ordem' },
-  usuarios: { t: 'Usuários', sub: 'Quem tem acesso ao painel' },
+  clientes: { t: 'Clientes', sub: 'Empresas e as lojas de cada uma' },
+  usuarios: { t: 'Usuários', sub: 'Quem tem acesso a quais lojas' },
   'lojas-admin': { t: 'Lojas', sub: 'Lojas e plataformas conectadas' },
   marca: { t: 'Marca', sub: 'Nome, cor e logo da empresa' },
   mais: { t: 'Mais', sub: '' },
@@ -200,6 +202,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [resetandoSenha, setResetandoSenha] = useState(null)
   const [senhaResetada, setSenhaResetada] = useState(null)
   const [modalDefinirSenha, setModalDefinirSenha] = useState(null)
+  const [editandoAcessos, setEditandoAcessos] = useState(null)
 
   const [modalMinhaSenha, setModalMinhaSenha] = useState(false)
   const [minhaSenhaForm, setMinhaSenhaForm] = useState({ senha: '', confirmacao: '' })
@@ -553,20 +556,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
     }
   }
 
-
-  async function trocarPapelUsuario(id, papel, nome) {
-    try {
-      await apiFetch(`/usuarios/${id}/papel`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ papel, nome }),
-      })
-      setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, papel } : u)))
-      notificar('sucesso', 'Papel atualizado.')
-    } catch (e) {
-      notificar('erro', e.message)
-    }
-  }
 
   async function handleConvidar(e) {
     e.preventDefault()
@@ -1587,6 +1576,19 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
           </Dialogo>
         )}
 
+        {editandoAcessos && (
+          <AcessosDialogo
+            usuario={editandoAcessos}
+            apiFetch={apiFetch}
+            notificar={notificar}
+            onClose={() => setEditandoAcessos(null)}
+            onSalvo={() => {
+              carregarUsuarios()
+              carregarLojas()
+            }}
+          />
+        )}
+
         {modalDefinirSenha && (
           <Dialogo largura={460} eyebrow="Redefinir senha" titulo={modalDefinirSenha.nome} descricao={modalDefinirSenha.email} onClose={() => setModalDefinirSenha(null)}>
             <FormDefinirSenha
@@ -2216,7 +2218,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   setConviteForm={setConviteForm}
                   convidando={convidando}
                   onConvidar={handleConvidar}
-                  onTrocarPapel={trocarPapelUsuario}
+                  clienteNome={lojaAtual?.cliente?.nome}
+                  onEditarAcessos={(u) => setEditandoAcessos(u)}
                   onDefinirSenha={(u) => setModalDefinirSenha(u)}
                   resetandoSenha={resetandoSenha}
                 />
@@ -2241,6 +2244,8 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                   onDetalhes={abrirDetalhesLoja}
                 />
               )}
+
+              {view === 'clientes' && souSuperAdmin && <ClientesSecao apiFetch={apiFetch} notificar={notificar} onMudou={carregarLojas} />}
 
               {view === 'marca' && souSuperAdmin && <MarcaSecao apiFetch={apiFetch} notificar={notificar} tema={tema} />}
             </main>

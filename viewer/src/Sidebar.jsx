@@ -3,6 +3,7 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardList,
+  Building2,
   Droplet,
   History,
   KeyRound,
@@ -37,6 +38,7 @@ export const VIEWS = [
 ]
 
 export const VIEWS_ADMIN = [
+  { chave: 'clientes', label: 'Clientes', Icon: Building2 },
   { chave: 'usuarios', label: 'Usuários', Icon: Users },
   { chave: 'lojas-admin', label: 'Lojas', Icon: Store },
   { chave: 'marca', label: 'Marca', Icon: Droplet },

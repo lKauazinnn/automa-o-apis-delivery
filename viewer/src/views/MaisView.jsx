@@ -1,4 +1,4 @@
-import { Activity, ChevronRight, Droplet, History, KeyRound, LogOut, Moon, PackageX, Store, Sun, TrendingUp, Users, Wallet, Zap } from 'lucide-react'
+import { Activity, Building2, ChevronRight, Droplet, History, KeyRound, LogOut, Moon, PackageX, Store, Sun, TrendingUp, Users, Wallet, Zap } from 'lucide-react'
 import { Botao, Contador, Rotulo } from '../ds'
 import { iniciaisDe } from '../ui'
 
@@ -46,6 +46,7 @@ export function MaisView({ usuario, lojaNome, totalRupturas, podeVerFinanceiro, 
     { l: 'Histórico', Icon: History, go: () => onIr('auditoria') },
   ]
   const admin = [
+    { l: 'Clientes', Icon: Building2, go: () => onIr('clientes') },
     { l: 'Usuários', Icon: Users, go: () => onIr('usuarios') },
     { l: 'Lojas', Icon: Store, go: () => onIr('lojas-admin') },
     { l: 'Marca', Icon: Droplet, go: () => onIr('marca') },

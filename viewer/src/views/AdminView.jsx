@@ -8,19 +8,20 @@ import { iniciaisDe } from '../ui'
 const PAPEIS = [
   { valor: 'operador', label: 'Operador', desc: 'Vê tudo, pausa e reativa, edita preço e PDV, move pedidos na cozinha.' },
   { valor: 'gerente', label: 'Gerente', desc: 'Tudo do operador + cria itens, categorias, complementos, horário e interrupções.' },
-  { valor: 'administrador', label: 'Administrador', desc: 'Tudo do gerente + usuários, lojas e marca.' },
+  { valor: 'administrador', label: 'Administrador', desc: 'Tudo do gerente + excluir categorias e complementos.' },
 ]
 const PLATAFORMA_LABEL = { ifood: 'iFood', '99food': '99Food' }
+const PAPEL_LABEL = Object.fromEntries(PAPEIS.map((p) => [p.valor, p.label]))
 const cartao = { background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 16, boxShadow: 'var(--brilho), var(--sh)' }
 
 // ── Usuários ────────────────────────────────────────────────────────────────────────────────
-export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, convidando, onConvidar, onTrocarPapel, onDefinirSenha, resetandoSenha }) {
+export function UsuariosSecao({ usuarios, meuId, clienteNome, conviteForm, setConviteForm, convidando, onConvidar, onEditarAcessos, onDefinirSenha, resetandoSenha }) {
   const [busca, setBusca] = useState('')
   const [novoAberto, setNovoAberto] = useState(false)
   const termo = busca.trim().toLowerCase()
   const lista = usuarios.filter((u) => !termo || `${u.nome} ${u.email}`.toLowerCase().includes(termo))
   const pendentes = usuarios.filter((u) => u.senha_temporaria).length
-  const grade = 'minmax(200px,1.6fr) 160px minmax(170px,1fr) 170px'
+  const grade = 'minmax(200px,1.5fr) minmax(190px,1.2fr) minmax(170px,1fr) 250px'
   // abaixo disso a tabela vira linhas empilhadas (pessoa em cima, papel/situação/ação embaixo)
   const empilhado = useLarguraConteudo() < (novoAberto ? 1120 : 760)
   const podeCriar = conviteForm.nome.trim().length > 1 && /.+@.+\..+/.test(conviteForm.email)
@@ -46,7 +47,7 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
             {!empilhado && (
             <div style={{ display: 'grid', gridTemplateColumns: grade, alignItems: 'center', height: 40, padding: '0 20px', background: 'var(--card2)', borderBottom: '1px solid var(--linha)', fontSize: 11.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--t3)' }}>
               <div>Pessoa</div>
-              <div>Papel</div>
+              <div>Acesso</div>
               <div>Situação</div>
               <div />
             </div>
@@ -77,22 +78,19 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
                       <div style={{ fontSize: 12.5, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.email}</div>
                     </div>
                   </div>
-                  <div>
-                    <select
-                      value={u.papel}
-                      disabled={voce}
-                      title={voce ? 'Você não pode trocar o próprio papel' : undefined}
-                      onChange={(e) => onTrocarPapel(u.id, e.target.value, u.nome)}
-                      className="ds-input"
-                      style={{ height: 36, width: 150, background: 'var(--card)', cursor: voce ? 'not-allowed' : 'pointer' }}
-                      aria-label={`Papel de ${u.nome}`}
-                    >
-                      {PAPEIS.map((p) => (
-                        <option key={p.valor} value={p.valor}>
-                          {p.label}
-                        </option>
-                      ))}
-                    </select>
+                  <div style={{ minWidth: 0 }}>
+                    {u.super_admin ? (
+                      <Selo tipo="good">Super admin · todas as lojas</Selo>
+                    ) : u.lojas ? (
+                      <>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--t1)' }}>
+                          {PAPEL_LABEL[u.papel] || u.papel} · {u.lojas} {u.lojas === 1 ? 'loja' : 'lojas'}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(u.clientes || []).join(', ')}</div>
+                      </>
+                    ) : (
+                      <Selo tipo="warn">Sem acesso a nenhuma loja</Selo>
+                    )}
                   </div>
                   <div>
                     {u.senha_temporaria ? (
@@ -105,7 +103,10 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
                       </Selo>
                     )}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: empilhado ? 'auto' : undefined }}>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginLeft: empilhado ? 'auto' : undefined }}>
+                    <Botao variante="secundario" tamanho="sm" disabled={voce && u.super_admin} title={voce && u.super_admin ? 'Super admin já vê todas as lojas' : undefined} onClick={() => onEditarAcessos(u)}>
+                      <Store size={14} /> Acessos
+                    </Botao>
                     <Botao variante="secundario" tamanho="sm" disabled={resetandoSenha === u.id} onClick={() => onDefinirSenha(u)}>
                       {resetandoSenha === u.id ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
                       Redefinir senha
@@ -166,7 +167,9 @@ export function UsuariosSecao({ usuarios, meuId, conviteForm, setConviteForm, co
               {convidando && <Loader2 size={16} className="animate-spin" />}
               {convidando ? 'Criando…' : 'Criar e gerar senha'}
             </Botao>
-            <div style={{ fontSize: 12.5, color: 'var(--t3)', lineHeight: 1.45 }}>A pessoa entra com a senha gerada e é obrigada a trocar no primeiro acesso.</div>
+            <div style={{ fontSize: 12.5, color: 'var(--t3)', lineHeight: 1.45 }}>
+              A pessoa ganha esse papel em todas as lojas de <b>{clienteNome || 'cliente da loja ativa'}</b> (ajuste depois em Acessos), entra com a senha gerada e é obrigada a trocar no primeiro acesso.
+            </div>
           </form>
         </section>
       )}

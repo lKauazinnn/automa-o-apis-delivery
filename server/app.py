@@ -1711,9 +1711,10 @@ def get_auditoria():
     return jsonify(linhas)
 
 
-# Usuários no painel: só super admin, e sempre no escopo do CLIENTE da loja ativa (lista quem tem
-# acesso a alguma loja dele; convite e troca de papel valem pras lojas desse cliente). Acesso fino
-# loja a loja: scripts/gerenciar.py.
+# Usuários, clientes e acessos no painel: só super admin. A lista de usuários mostra todo mundo
+# (com os clientes e quantas lojas cada um acessa); convite e troca de papel em massa valem pras
+# lojas do cliente da loja ativa; o acesso fino loja a loja é PUT /api/usuarios/<id>/acessos (ou
+# scripts/gerenciar.py).
 
 def _lojas_do_cliente(cliente_id):
     resp = requests.get(
@@ -1729,30 +1730,146 @@ def _lojas_do_cliente(cliente_id):
 @app.get("/api/usuarios")
 @requer_super_admin
 def listar_usuarios():
-    lojas = _lojas_do_cliente(_cliente_da_loja(_merchant_id()))
-    if not lojas:
-        return jsonify([])
+    resp_perfis = requests.get(
+        f"{SUPABASE_URL}/rest/v1/perfis",
+        headers=_supabase_headers(),
+        params={"select": "id,email,nome,criado_em,senha_temporaria,super_admin", "order": "criado_em.asc"},
+        timeout=10,
+    )
+    resp_perfis.raise_for_status()
+    resp_acessos = requests.get(
+        f"{SUPABASE_URL}/rest/v1/acessos",
+        headers=_supabase_headers(),
+        params={"select": "usuario_id,papel,lojas(merchant_id,cliente:clientes(nome))", "limit": 10000},
+        timeout=10,
+    )
+    resp_acessos.raise_for_status()
+    papeis, clientes = {}, {}
+    for a in resp_acessos.json():
+        if not a.get("lojas"):
+            continue
+        papeis.setdefault(a["usuario_id"], {})[a["lojas"]["merchant_id"]] = a["papel"]
+        clientes.setdefault(a["usuario_id"], set()).add((a["lojas"].get("cliente") or {}).get("nome") or "?")
+    loja_ativa = _loja_da_requisicao()
+    usuarios = []
+    for p in resp_perfis.json():
+        meus = papeis.get(p["id"], {})
+        # Papel mostrado: o da loja ativa; sem acesso nela, o maior que a pessoa tem.
+        papel = meus.get(loja_ativa) or max(meus.values(), key=ORDEM_PAPEIS.get, default=None)
+        usuarios.append({**p, "papel": papel, "lojas": len(meus), "clientes": sorted(clientes.get(p["id"], ()))})
+    return jsonify(usuarios)
+
+
+@app.get("/api/usuarios/<usuario_id>/acessos")
+@requer_super_admin
+def get_acessos_usuario(usuario_id):
     resp = requests.get(
         f"{SUPABASE_URL}/rest/v1/acessos",
         headers=_supabase_headers(),
-        params={
-            "select": "papel,loja_id,perfis(id,email,nome,criado_em,senha_temporaria)",
-            "loja_id": _filtro_in(l["id"] for l in lojas),
-        },
+        params={"select": "loja_id,papel", "usuario_id": f"eq.{usuario_id}"},
         timeout=10,
     )
     resp.raise_for_status()
-    loja_ativa = next((l["id"] for l in lojas if l["merchant_id"] == _merchant_id()), None)
-    perfis, papeis = {}, {}
-    for a in resp.json():
-        perfis[a["perfis"]["id"]] = a["perfis"]
-        papeis.setdefault(a["perfis"]["id"], {})[a["loja_id"]] = a["papel"]
-    # Papel mostrado: o da loja ativa; sem acesso nela, o maior entre as lojas do cliente.
-    usuarios = [
-        {**p, "papel": papeis[uid].get(loja_ativa) or max(papeis[uid].values(), key=ORDEM_PAPEIS.get), "lojas": len(papeis[uid])}
-        for uid, p in perfis.items()
-    ]
-    return jsonify(sorted(usuarios, key=lambda u: u.get("criado_em") or ""))
+    return jsonify(resp.json())
+
+
+@app.put("/api/usuarios/<usuario_id>/acessos")
+@requer_super_admin
+def definir_acessos_usuario(usuario_id):
+    """Substitui os acessos da pessoa: {acessos: [{loja_id, papel}]}. Loja fora da lista = sem
+    acesso. Grava primeiro (upsert) e só depois apaga as que saíram, pra uma falha no meio nunca
+    deixar a pessoa sem acesso nenhum."""
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    acessos = dados.get("acessos")
+    if not isinstance(acessos, list):
+        raise ValueError("Envie a lista de acessos.")
+    linhas = {}
+    for a in acessos:
+        loja_id, papel = str((a or {}).get("loja_id") or "").strip(), str((a or {}).get("papel") or "").strip().lower()
+        if not loja_id or papel not in PAPEIS_VALIDOS:
+            raise ValueError("Acesso inválido: cada item precisa de loja_id e papel.")
+        linhas[loja_id] = papel
+
+    if linhas:
+        resp = requests.post(
+            f"{SUPABASE_URL}/rest/v1/acessos",
+            headers={**_supabase_headers(), "Prefer": "resolution=merge-duplicates"},
+            json=[{"usuario_id": usuario_id, "loja_id": l, "papel": p} for l, p in linhas.items()],
+            timeout=10,
+        )
+        resp.raise_for_status()
+    params = {"usuario_id": f"eq.{usuario_id}"}
+    if linhas:
+        params["loja_id"] = "not." + _filtro_in(linhas)
+    resp = requests.delete(f"{SUPABASE_URL}/rest/v1/acessos", headers=_supabase_headers(), params=params, timeout=10)
+    resp.raise_for_status()
+    registrar_auditoria(g.usuario["nome"], "definir_acessos_usuario", item_id=usuario_id, nome=nome, detalhe=f"{len(linhas)} loja(s)")
+    return jsonify({"id": usuario_id, "lojas": len(linhas)})
+
+
+@app.get("/api/clientes")
+@requer_super_admin
+def listar_clientes():
+    """Clientes (empresas) com as lojas de cada um."""
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/clientes",
+        headers=_supabase_headers(),
+        params={"select": "id,nome,slug,criado_em", "order": "criado_em.asc"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    lojas = _todas_lojas()
+    return jsonify([
+        {**c, "lojas": [{k: l.get(k) for k in ("id", "nome", "merchant_id", "plataforma")} for l in lojas if l.get("cliente_id") == c["id"]]}
+        for c in resp.json()
+    ])
+
+
+@app.post("/api/clientes")
+@requer_super_admin
+def criar_cliente():
+    dados = request.get_json(silent=True) or {}
+    nome = str(dados.get("nome", "")).strip()
+    slug = str(dados.get("slug", "")).strip().lower() or re.sub(r"[^a-z0-9]+", "-", nome.lower()).strip("-")
+    if not nome or len(nome) > 60:
+        raise ValueError("Informe o nome do cliente (até 60 caracteres).")
+    if not re.fullmatch(r"[a-z0-9-]{2,40}", slug):
+        raise ValueError("O identificador do link deve ter só letras minúsculas, números e hífen (sem acento).")
+    resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/clientes",
+        headers={**_supabase_headers(), "Prefer": "return=representation"},
+        json={"nome": nome, "slug": slug, "marca_nome": nome},
+        timeout=10,
+    )
+    if resp.status_code == 409:
+        raise ValueError(f"Já existe um cliente com o identificador '{slug}'.")
+    resp.raise_for_status()
+    registrar_auditoria(g.usuario["nome"], "criar_cliente", nome=nome, detalhe=slug)
+    return jsonify({**resp.json()[0], "lojas": []}), 201
+
+
+@app.patch("/api/lojas/<loja_id>/cliente")
+@requer_super_admin
+def mover_loja_de_cliente(loja_id):
+    """Passa a loja pra outro cliente. Os acessos das pessoas a ela continuam — revise em Usuários."""
+    dados = request.get_json(silent=True) or {}
+    cliente_id = str(dados.get("cliente_id", "")).strip()
+    if not cliente_id:
+        raise ValueError("Escolha o cliente de destino.")
+    resp = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/lojas",
+        headers={**_supabase_headers(), "Prefer": "return=representation"},
+        params={"id": f"eq.{loja_id}"},
+        json={"cliente_id": cliente_id},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    if not resp.json():
+        raise ValueError("Loja não encontrada.")
+    loja = resp.json()[0]
+    registrar_auditoria(g.usuario["nome"], "mover_loja_cliente", item_id=loja_id, nome=loja.get("nome") or "", merchant_id=loja.get("merchant_id"))
+    return jsonify(loja)
 
 
 def _gerar_senha_aleatoria():
