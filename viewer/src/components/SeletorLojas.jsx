@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { Fragment, useMemo, useRef, useState } from 'react'
 import { Check, Search } from 'lucide-react'
 import { Botao, CampoBusca, Dialogo, EstadoVazio, MONO } from '../ds'
 import { normalizar } from '../pausas'
@@ -7,15 +7,18 @@ import { tomDaLoja } from './statusLoja'
 // "Trocar de loja". As linhas ficam com fundo transparente de propósito: o diálogo já é vidro
 // denso (--card-forte) e cada linha com `background: var(--card)` ganhava um segundo desfoque
 // por cima — o conteúdo embaçava e a lista parecia suja. Hover vem de .ds-opcao.
+// Com lojas de mais de um cliente (multi-cliente), a lista ganha um cabeçalho por cliente — a
+// API já devolve as lojas ordenadas por cliente.
 export function SeletorLojas({ lojas, lojaAtualId, statusPorLoja = {}, podeGerenciar, onEscolher, onGerenciar, onClose }) {
   const [busca, setBusca] = useState('')
   const inputRef = useRef(null)
   const comBusca = lojas.length > 6
+  const variosClientes = new Set(lojas.map((l) => l.cliente?.id)).size > 1
 
   const filtradas = useMemo(() => {
     const termo = normalizar(busca).trim()
     if (!termo) return lojas
-    return lojas.filter((l) => normalizar(`${l.nome} ${l.merchant_id} ${l.plataforma === '99food' ? '99food' : 'ifood'}`).includes(termo))
+    return lojas.filter((l) => normalizar(`${l.nome} ${l.merchant_id} ${l.plataforma === '99food' ? '99food' : 'ifood'} ${l.cliente?.nome || ''}`).includes(termo))
   }, [lojas, busca])
 
   return (
@@ -68,47 +71,64 @@ export function SeletorLojas({ lojas, lojaAtualId, statusPorLoja = {}, podeGeren
               {filtradas.map((l, k) => {
                 const ativa = l.merchant_id === lojaAtualId
                 const st = tomDaLoja(statusPorLoja[l.merchant_id])
+                const novoCliente = variosClientes && l.cliente?.id !== filtradas[k - 1]?.cliente?.id
                 return (
-                  <button
-                    key={l.id || l.merchant_id}
-                    type="button"
-                    role="radio"
-                    aria-checked={ativa}
-                    onClick={() => onEscolher(l)}
-                    className={ativa ? undefined : 'ds-opcao'}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      width: '100%',
-                      minHeight: 56,
-                      padding: '8px 14px',
-                      border: 0,
-                      borderTop: k ? '1px solid var(--linha)' : 0,
-                      background: ativa ? 'var(--marca-suave)' : undefined,
-                      boxShadow: ativa ? 'inset 3px 0 0 var(--marca)' : undefined,
-                      color: 'var(--t1)',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span
-                      title={st.titulo}
-                      aria-label={st.titulo}
-                      style={{ width: 9, height: 9, borderRadius: 99, background: st.cor, flexShrink: 0 }}
-                    />
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ display: 'block', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.nome || 'Loja sem nome'}</span>
-                      <span style={{ display: 'block', fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        <span style={{ color: st.corTexto }}>{st.rotulo}</span>
-                        <span style={{ fontFamily: MONO }}> · {l.merchant_id}</span>
+                  <Fragment key={l.id || l.merchant_id}>
+                    {novoCliente && (
+                      <div
+                        style={{
+                          padding: '10px 14px 6px',
+                          borderTop: k ? '1px solid var(--linha)' : 0,
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          letterSpacing: '.06em',
+                          textTransform: 'uppercase',
+                          color: 'var(--t3)',
+                        }}
+                      >
+                        {l.cliente?.nome || 'Sem cliente'}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={ativa}
+                      onClick={() => onEscolher(l)}
+                      className={ativa ? undefined : 'ds-opcao'}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        width: '100%',
+                        minHeight: 56,
+                        padding: '8px 14px',
+                        border: 0,
+                        borderTop: k && !novoCliente ? '1px solid var(--linha)' : 0,
+                        background: ativa ? 'var(--marca-suave)' : undefined,
+                        boxShadow: ativa ? 'inset 3px 0 0 var(--marca)' : undefined,
+                        color: 'var(--t1)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span
+                        title={st.titulo}
+                        aria-label={st.titulo}
+                        style={{ width: 9, height: 9, borderRadius: 99, background: st.cor, flexShrink: 0 }}
+                      />
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.nome || 'Loja sem nome'}</span>
+                        <span style={{ display: 'block', fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <span style={{ color: st.corTexto }}>{st.rotulo}</span>
+                          <span style={{ fontFamily: MONO }}> · {l.merchant_id}</span>
+                        </span>
                       </span>
-                    </span>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, background: 'var(--input)', border: '1px solid var(--borda)', color: 'var(--t2)', flexShrink: 0 }}>
-                      {l.plataforma === '99food' ? '99Food' : 'iFood'}
-                    </span>
-                    <span style={{ width: 18, display: 'flex', justifyContent: 'center', color: 'var(--marca-tinta)', flexShrink: 0 }}>{ativa && <Check size={18} strokeWidth={2.5} />}</span>
-                  </button>
+                      <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, background: 'var(--input)', border: '1px solid var(--borda)', color: 'var(--t2)', flexShrink: 0 }}>
+                        {l.plataforma === '99food' ? '99Food' : 'iFood'}
+                      </span>
+                      <span style={{ width: 18, display: 'flex', justifyContent: 'center', color: 'var(--marca-tinta)', flexShrink: 0 }}>{ativa && <Check size={18} strokeWidth={2.5} />}</span>
+                    </button>
+                  </Fragment>
                 )
               })}
             </div>

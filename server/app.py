@@ -180,10 +180,14 @@ def usuario_atual():
     usuario_auth = resp.json()
 
     try:
+        # Os acessos (papel por loja, sql/012) vêm na mesma consulta do perfil.
         resp_perfil = requests.get(
             f"{SUPABASE_URL}/rest/v1/perfis",
             headers=_supabase_headers(),
-            params={"select": "id,email,nome,papel,senha_temporaria", "id": f"eq.{usuario_auth.get('id')}"},
+            params={
+                "select": "id,email,nome,senha_temporaria,super_admin,acessos(papel,lojas(merchant_id))",
+                "id": f"eq.{usuario_auth.get('id')}",
+            },
             timeout=10,
         )
         resp_perfil.raise_for_status()
@@ -193,13 +197,59 @@ def usuario_atual():
 
     if not perfis:
         raise ErroAutenticacao("Login válido, mas sem perfil cadastrado. Fale com um administrador.", 403)
-    return perfis[0]
+    perfil = perfis[0]
+    perfil["super_admin"] = bool(perfil.get("super_admin"))
+    perfil["acessos"] = {
+        a["lojas"]["merchant_id"]: a["papel"] for a in perfil.get("acessos") or [] if a.get("lojas")
+    }
+    return perfil
+
+
+# Multi-cliente (sql/012): o papel é POR LOJA (tabela `acessos`). Super admin é administrador em
+# todas. `g.usuario["papel"]` vira o papel na loja da requisição (?loja= ou "loja" no corpo); sem
+# loja, o maior papel que a pessoa tem em alguma loja — rotas que somam várias lojas filtram com
+# _lojas_do_usuario().
+ORDEM_PAPEIS = {"operador": 1, "gerente": 2, "administrador": 3}
+
+
+def _papel_na_loja(usuario, merchant_id):
+    if usuario.get("super_admin"):
+        return "administrador"
+    return usuario.get("acessos", {}).get(str(merchant_id))
+
+
+def _loja_da_requisicao():
+    loja = request.args.get("loja")
+    if not loja and request.is_json:
+        loja = (request.get_json(silent=True) or {}).get("loja")
+    return str(loja).strip() if loja else None
+
+
+def _exigir_loja(merchant_id):
+    """403 se o usuário logado não tem acesso a essa loja."""
+    if not _papel_na_loja(g.usuario, merchant_id):
+        raise ErroAutenticacao("Você não tem acesso a esta loja.", 403)
+
+
+def _carregar_usuario():
+    usuario = usuario_atual()
+    loja = _loja_da_requisicao()
+    if loja:
+        papel = _papel_na_loja(usuario, loja)
+        if not papel:
+            raise ErroAutenticacao("Você não tem acesso a esta loja.", 403)
+    elif usuario["super_admin"]:
+        papel = "administrador"
+    else:
+        papel = max(usuario["acessos"].values(), key=ORDEM_PAPEIS.get, default=None)
+    usuario["papel"] = papel
+    g.usuario = usuario
 
 
 def requer_login(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        g.usuario = usuario_atual()
+        _carregar_usuario()
         return func(*args, **kwargs)
 
     return wrapper
@@ -209,7 +259,7 @@ def requer_papel(*papeis_permitidos):
     def decorador(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            g.usuario = usuario_atual()
+            _carregar_usuario()
             if g.usuario["papel"] not in papeis_permitidos:
                 raise ErroAutenticacao("Você não tem permissão pra fazer isso.", 403)
             return func(*args, **kwargs)
@@ -219,9 +269,33 @@ def requer_papel(*papeis_permitidos):
     return decorador
 
 
+def requer_super_admin(func):
+    """Criar/remover loja, usuários e marca: só o dono da plataforma."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        _carregar_usuario()
+        if not g.usuario["super_admin"]:
+            raise ErroAutenticacao("Só o administrador da plataforma pode fazer isso.", 403)
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 def _merchant_id() -> str:
-    """Loja alvo da requisição: vem de ?loja=<id> na query string, ou a padrão do .env."""
-    return request.args.get("loja") or MERCHANT_ID_PADRAO
+    """Loja alvo da requisição: vem de ?loja=<id> na query string (já validada contra os acessos
+    pelo requer_login/requer_papel). Sem loja, só o super admin cai na padrão do .env."""
+    loja = _loja_da_requisicao()
+    if loja:
+        return loja
+    if g.get("usuario", {}).get("super_admin"):
+        return MERCHANT_ID_PADRAO
+    raise ValueError("Escolha uma loja (?loja=<merchant_id>).")
+
+
+def _filtro_in(valores):
+    """Filtro `in.(...)` do PostgREST com cada valor entre aspas. Lista vazia não casa com nada."""
+    return "in.(" + (",".join(f'"{v}"' for v in valores) or '""') + ")"
 
 
 def _catalog_id(merchant_id):
@@ -334,27 +408,48 @@ LOGO_MAX_BYTES = 300_000
 TIPOS_LOGO = ("data:image/png;", "data:image/svg+xml;", "data:image/jpeg;", "data:image/webp;")
 
 
+def _cliente_da_loja(merchant_id):
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/lojas",
+        headers=_supabase_headers(),
+        params={"select": "cliente_id", "merchant_id": f"eq.{merchant_id}"},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    linhas = resp.json()
+    if not linhas or not linhas[0].get("cliente_id"):
+        raise ValueError("Loja não cadastrada (ou sem cliente).")
+    return linhas[0]["cliente_id"]
+
+
 @app.get("/api/marca")
 def get_marca():
-    if not SUPABASE_CONFIGURADO:
+    """Marca do cliente: ?cliente=<slug> (tela de login, link por cliente) ou ?loja=<merchant_id>
+    (painel, loja ativa). Sem nenhum dos dois, a marca padrão — nunca a de um cliente qualquer."""
+    slug = (request.args.get("cliente") or "").strip().lower()
+    loja = (request.args.get("loja") or "").strip()
+    if not SUPABASE_CONFIGURADO or not (slug or loja):
         return jsonify(MARCA_PADRAO)
     try:
-        resp = requests.get(
-            f"{SUPABASE_URL}/rest/v1/marca",
-            headers=_supabase_headers(),
-            params={"select": "nome,cor,logo", "id": "eq.1"},
-            timeout=10,
-        )
+        if slug:
+            params = {"select": "slug,marca_nome,marca_cor,marca_logo", "slug": f"eq.{slug}"}
+        else:
+            params = {"select": "slug,marca_nome,marca_cor,marca_logo", "id": f"eq.{_cliente_da_loja(loja)}"}
+        resp = requests.get(f"{SUPABASE_URL}/rest/v1/clientes", headers=_supabase_headers(), params=params, timeout=10)
         resp.raise_for_status()
         linhas = resp.json()
-    except requests.exceptions.RequestException as exc:
-        logger.warning("Não consegui ler a marca (rodou a migration 011?): %s", exc)
+    except (requests.exceptions.RequestException, ValueError) as exc:
+        logger.warning("Não consegui ler a marca (rodou a migration 012?): %s", exc)
         return jsonify(MARCA_PADRAO)
-    return jsonify({**MARCA_PADRAO, **{k: v for k, v in (linhas[0] if linhas else {}).items() if v}})
+    if not linhas:
+        return jsonify(MARCA_PADRAO)
+    c = linhas[0]
+    marca = {"nome": c.get("marca_nome"), "cor": c.get("marca_cor"), "logo": c.get("marca_logo")}
+    return jsonify({**MARCA_PADRAO, **{k: v for k, v in marca.items() if v}, "cliente": c["slug"]})
 
 
 @app.put("/api/marca")
-@requer_papel("administrador")
+@requer_super_admin
 def definir_marca():
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get("nome", "")).strip()
@@ -371,41 +466,35 @@ def definir_marca():
         if len(logo) > LOGO_MAX_BYTES:
             raise ValueError("A logo passou de 300 KB. Exporte numa resolução menor.")
 
-    resp = requests.post(
-        f"{SUPABASE_URL}/rest/v1/marca",
-        headers={**_supabase_headers(), "Prefer": "resolution=merge-duplicates,return=representation"},
-        json={"id": 1, "nome": nome, "cor": cor.upper(), "logo": logo, "atualizado_por": g.usuario["nome"], "atualizado_em": _agora_iso()},
+    # A marca é do cliente dono da loja ativa.
+    resp = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/clientes",
+        headers={**_supabase_headers(), "Prefer": "return=representation"},
+        params={"id": f"eq.{_cliente_da_loja(_merchant_id())}"},
+        json={"marca_nome": nome, "marca_cor": cor.upper(), "marca_logo": logo},
         timeout=10,
     )
     resp.raise_for_status()
     registrar_auditoria(g.usuario["nome"], "definir_marca", nome=nome, detalhe=f"cor {cor.upper()}" + (" · com logo" if logo else ""))
-    return jsonify({"nome": nome, "cor": cor.upper(), "logo": logo})
+    return jsonify({"nome": nome, "cor": cor.upper(), "logo": logo, "cliente": resp.json()[0]["slug"]})
 
 
 @app.get("/api/eu")
 @requer_login
 def eu():
-    """Devolve quem é o usuário logado (id, email, nome, papel) — o front usa isso depois do
-    login pra saber o nome/papel de verdade, sem precisar falar direto com a tabela perfis."""
+    """Devolve quem é o usuário logado (id, email, nome, papel, super_admin, acessos) — o front
+    usa isso depois do login pra saber o nome/papel de verdade, sem falar direto com a tabela
+    perfis. `papel` aqui é o maior papel que a pessoa tem; o papel em cada loja vem em /api/lojas."""
     return jsonify(g.usuario)
 
 
 @app.get("/api/lojas")
 @requer_login
 def get_lojas():
-    """Lojas cadastradas em `public.lojas` no Supabase (não é mais list_merchants() do iFood
-    ao vivo — assim dá pra cadastrar uma loja nova sem depender do que a API do iFood já
-    reconhece pras credenciais atuais)."""
-    # select=* pra trazer `plataforma` quando a migration 007 já rodou, sem quebrar antes dela.
-    resp = requests.get(
-        f"{SUPABASE_URL}/rest/v1/lojas",
-        headers=_supabase_headers(),
-        params={"select": "*", "order": "criado_em.asc"},
-        timeout=10,
-    )
-    resp.raise_for_status()
-    # Garante o campo plataforma no retorno (default ifood) mesmo antes da migration.
-    lojas = [{**loja, "plataforma": loja.get("plataforma") or "ifood"} for loja in resp.json()]
+    """Lojas a que o usuário tem acesso (`acessos`; super admin vê todas), cada uma com o papel
+    dele nela e o cliente dono. Ordenadas por cliente, pro seletor agrupar."""
+    lojas = [{**loja, "plataforma": loja.get("plataforma") or "ifood"} for loja in _lojas_do_usuario()]
+    lojas.sort(key=lambda l: ((l.get("cliente") or {}).get("nome") or "").lower())
     return jsonify(lojas)
 
 
@@ -423,7 +512,8 @@ def verificar_lojas_ifood():
             for m in (merchants or [])
             if isinstance(m, dict)
         }
-        return jsonify({"disponivel": True, "merchant_ids": sorted(i for i in ids if i)})
+        # O app é um só pra todos os clientes: nunca devolve merchant de quem o usuário não acessa.
+        return jsonify({"disponivel": True, "merchant_ids": sorted(i for i in ids if i and _papel_na_loja(g.usuario, i))})
     except Exception as exc:
         logger.warning("Não consegui verificar lojas no iFood (GET /merchants): %s", exc)
         return jsonify({"disponivel": False, "merchant_ids": []})
@@ -440,7 +530,7 @@ def verificar_lojas_99():
     from food99_automacao import auth as auth99
 
     resultado = {}
-    for loja in _todas_lojas():
+    for loja in _lojas_do_usuario():
         if (loja.get("plataforma") or "ifood") != "99food":
             continue
         mid = str(loja["merchant_id"])
@@ -463,8 +553,9 @@ def verificar_lojas_99():
 
 
 @app.post("/api/lojas")
-@requer_papel("administrador")
+@requer_super_admin
 def criar_loja():
+    """Cadastra a loja no cliente informado (`cliente_id`) ou, sem ele, no cliente da loja ativa."""
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get("nome", "")).strip()
     merchant_id = str(dados.get("merchant_id", "")).strip()
@@ -474,11 +565,12 @@ def criar_loja():
     if not nome or not merchant_id:
         # merchant_id = merchant UUID (iFood) OU app_shop_id (99Food)
         raise ValueError("Informe o nome e o identificador da loja.")
+    cliente_id = str(dados.get("cliente_id") or "").strip() or _cliente_da_loja(_merchant_id())
 
     resp = requests.post(
         f"{SUPABASE_URL}/rest/v1/lojas",
         headers={**_supabase_headers(), "Prefer": "return=representation"},
-        json={"nome": nome, "merchant_id": merchant_id, "plataforma": plataforma},
+        json={"nome": nome, "merchant_id": merchant_id, "plataforma": plataforma, "cliente_id": cliente_id},
         timeout=10,
     )
     resp.raise_for_status()
@@ -487,7 +579,7 @@ def criar_loja():
 
 
 @app.delete("/api/lojas/<loja_id>")
-@requer_papel("administrador")
+@requer_super_admin
 def remover_loja(loja_id):
     dados = request.get_json(silent=True) or {}
     nome = str(dados.get("nome", "")).strip()
@@ -1580,11 +1672,15 @@ def get_auditoria():
         return jsonify([])
 
     # Filtra por loja (o front manda ?loja=<merchant_id>), pra o dashboard não misturar
-    # o histórico de lojas/plataformas diferentes. Sem loja, traz tudo.
+    # o histórico de lojas/plataformas diferentes. Sem loja, traz tudo o que o usuário acessa.
     loja = request.args.get("loja")
     params = {"select": "*", "order": "criado_em.desc", "limit": limite}
     if loja:
         params["merchant_id"] = f"eq.{loja}"
+    elif not g.usuario["super_admin"]:
+        if not g.usuario["acessos"]:
+            return jsonify([])
+        params["merchant_id"] = _filtro_in(g.usuario["acessos"])
 
     try:
         resp = requests.get(
@@ -1615,17 +1711,48 @@ def get_auditoria():
     return jsonify(linhas)
 
 
-@app.get("/api/usuarios")
-@requer_papel("administrador")
-def listar_usuarios():
+# Usuários no painel: só super admin, e sempre no escopo do CLIENTE da loja ativa (lista quem tem
+# acesso a alguma loja dele; convite e troca de papel valem pras lojas desse cliente). Acesso fino
+# loja a loja: scripts/gerenciar.py.
+
+def _lojas_do_cliente(cliente_id):
     resp = requests.get(
-        f"{SUPABASE_URL}/rest/v1/perfis",
+        f"{SUPABASE_URL}/rest/v1/lojas",
         headers=_supabase_headers(),
-        params={"select": "id,email,nome,papel,criado_em,senha_temporaria", "order": "criado_em.asc"},
+        params={"select": "id,merchant_id,nome", "cliente_id": f"eq.{cliente_id}"},
         timeout=10,
     )
     resp.raise_for_status()
-    return jsonify(resp.json())
+    return resp.json()
+
+
+@app.get("/api/usuarios")
+@requer_super_admin
+def listar_usuarios():
+    lojas = _lojas_do_cliente(_cliente_da_loja(_merchant_id()))
+    if not lojas:
+        return jsonify([])
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/acessos",
+        headers=_supabase_headers(),
+        params={
+            "select": "papel,loja_id,perfis(id,email,nome,criado_em,senha_temporaria)",
+            "loja_id": _filtro_in(l["id"] for l in lojas),
+        },
+        timeout=10,
+    )
+    resp.raise_for_status()
+    loja_ativa = next((l["id"] for l in lojas if l["merchant_id"] == _merchant_id()), None)
+    perfis, papeis = {}, {}
+    for a in resp.json():
+        perfis[a["perfis"]["id"]] = a["perfis"]
+        papeis.setdefault(a["perfis"]["id"], {})[a["loja_id"]] = a["papel"]
+    # Papel mostrado: o da loja ativa; sem acesso nela, o maior entre as lojas do cliente.
+    usuarios = [
+        {**p, "papel": papeis[uid].get(loja_ativa) or max(papeis[uid].values(), key=ORDEM_PAPEIS.get), "lojas": len(papeis[uid])}
+        for uid, p in perfis.items()
+    ]
+    return jsonify(sorted(usuarios, key=lambda u: u.get("criado_em") or ""))
 
 
 def _gerar_senha_aleatoria():
@@ -1647,8 +1774,21 @@ def _marcar_senha_temporaria(usuario_id, valor):
     resp.raise_for_status()
 
 
+def _dar_acesso(usuario_id, lojas, papel):
+    """Upsert de `acessos`: o usuário passa a ter `papel` em cada uma dessas lojas."""
+    if not lojas:
+        return
+    resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/acessos",
+        headers={**_supabase_headers(), "Prefer": "resolution=merge-duplicates"},
+        json=[{"usuario_id": usuario_id, "loja_id": l["id"], "papel": papel} for l in lojas],
+        timeout=10,
+    )
+    resp.raise_for_status()
+
+
 @app.post("/api/usuarios/convidar")
-@requer_papel("administrador")
+@requer_super_admin
 def convidar_usuario():
     """Cria a conta do usuário direto pela Admin API do Supabase, já com senha definida, e
     devolve essa senha pro administrador repassar por fora (WhatsApp, presencial, etc).
@@ -1658,7 +1798,8 @@ def convidar_usuario():
     (scanner de segurança de e-mail corporativo costuma pré-visitar links e queima o token de
     um só uso). Criar a conta com senha já definida não depende de e-mail nenhum — sempre
     funciona, e o administrador já sabe a senha na hora, sem precisar torcer pro e-mail chegar.
-    O perfil (nome + papel) é criado sozinho pelo trigger no banco (sql/002_*)."""
+    O perfil (nome + papel) é criado sozinho pelo trigger no banco (sql/002_*). A pessoa ganha
+    `papel` em todas as lojas do cliente da loja ativa."""
     dados = request.get_json(silent=True) or {}
     email = str(dados.get("email", "")).strip().lower()
     nome = str(dados.get("nome", "")).strip()
@@ -1668,6 +1809,7 @@ def convidar_usuario():
         raise ValueError("Informe nome e e-mail.")
     if papel not in PAPEIS_VALIDOS:
         raise ValueError("Papel inválido.")
+    lojas_cliente = _lojas_do_cliente(_cliente_da_loja(_merchant_id()))
 
     senha_nova = _gerar_senha_aleatoria()
     resp = requests.post(
@@ -1685,12 +1827,13 @@ def convidar_usuario():
     novo_id = resp.json().get("id")
     if novo_id:
         _marcar_senha_temporaria(novo_id, True)
-    registrar_auditoria(g.usuario["nome"], "convidar_usuario", nome=nome, detalhe=f"{email} como {papel}")
+        _dar_acesso(novo_id, lojas_cliente, papel)
+    registrar_auditoria(g.usuario["nome"], "convidar_usuario", nome=nome, detalhe=f"{email} como {papel} em {len(lojas_cliente)} loja(s)")
     return jsonify({"email": email, "nome": nome, "senha": senha_nova}), 201
 
 
 @app.post("/api/usuarios/<usuario_id>/resetar-senha")
-@requer_papel("administrador")
+@requer_super_admin
 def resetar_senha_usuario(usuario_id):
     """Define uma senha nova pra alguém direto pela Admin API do Supabase e devolve ela pro
     administrador repassar por fora (WhatsApp, presencial, etc). Se o corpo do pedido trouxer
@@ -1725,18 +1868,23 @@ def senha_trocada():
 
 
 @app.patch("/api/usuarios/<usuario_id>/papel")
-@requer_papel("administrador")
+@requer_super_admin
 def alterar_papel_usuario(usuario_id):
+    """Troca o papel em todas as lojas do cliente da loja ativa a que a pessoa JÁ tem acesso
+    (não dá acesso a loja nova — isso é pela CLI)."""
     dados = request.get_json(silent=True) or {}
     papel = str(dados.get("papel", "")).strip().lower()
     nome = str(dados.get("nome", "")).strip()
     if papel not in PAPEIS_VALIDOS:
         raise ValueError("Papel inválido.")
+    lojas_cliente = _lojas_do_cliente(_cliente_da_loja(_merchant_id()))
+    if not lojas_cliente:
+        raise ValueError("Este cliente não tem lojas.")
 
     resp = requests.patch(
-        f"{SUPABASE_URL}/rest/v1/perfis",
+        f"{SUPABASE_URL}/rest/v1/acessos",
         headers=_supabase_headers(),
-        params={"id": f"eq.{usuario_id}"},
+        params={"usuario_id": f"eq.{usuario_id}", "loja_id": _filtro_in(l["id"] for l in lojas_cliente)},
         json={"papel": papel},
         timeout=10,
     )
@@ -2190,6 +2338,7 @@ def get_pedido_detalhe(pedido_id):
     if not pedidos:
         return jsonify({"erro": "Pedido não encontrado."}), 404
     pedido = pedidos[0]
+    _exigir_loja(pedido["merchant_id"])
 
     resp_itens = requests.get(
         f"{SUPABASE_URL}/rest/v1/itens_pedido",
@@ -2299,6 +2448,8 @@ def _buscar_pedido(pedido_id):
     )
     resp.raise_for_status()
     pedidos = resp.json()
+    if pedidos:
+        _exigir_loja(pedidos[0]["merchant_id"])
     return pedidos[0] if pedidos else None
 
 
@@ -2369,6 +2520,8 @@ def recusar_disputa(pedido_id):
 @requer_login
 def ocultar_pedido_kds(pedido_id):
     """"Limpar" no KDS: some do quadro sem apagar o pedido (continua em Pedidos/Auditoria)."""
+    if not _buscar_pedido(pedido_id):
+        return jsonify({"erro": "Pedido não encontrado."}), 404
     resp = requests.patch(
         f"{SUPABASE_URL}/rest/v1/pedidos",
         headers={**_supabase_headers(), "Prefer": "return=representation"},
@@ -3248,19 +3401,37 @@ def registrar_status_loja(status):
 
 
 def _todas_lojas():
-    resp = requests.get(f"{SUPABASE_URL}/rest/v1/lojas", headers=_supabase_headers(), params={"select": "*", "order": "criado_em.asc"}, timeout=10)
+    """TODAS as lojas, de todos os clientes — só pra uso interno (worker, nomes). Em rota de
+    usuário, use _lojas_do_usuario()."""
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/lojas",
+        headers=_supabase_headers(),
+        params={"select": "*,cliente:clientes(id,nome,slug)", "order": "criado_em.asc"},
+        timeout=10,
+    )
     resp.raise_for_status()
     return resp.json()
+
+
+def _lojas_do_usuario(papeis=None):
+    """Lojas que o usuário logado acessa (super admin: todas), cada uma com o `papel` dele nela.
+    `papeis` restringe às lojas onde ele tem um desses papéis (ex.: financeiro)."""
+    lojas = []
+    for loja in _todas_lojas():
+        papel = _papel_na_loja(g.usuario, loja["merchant_id"])
+        if papel and (papeis is None or papel in papeis):
+            lojas.append({**loja, "papel": papel})
+    return lojas
 
 
 @app.get("/api/lojas/status")
 @requer_login
 def get_status_lojas():
-    """Estado aberta/fechada de TODAS as lojas cadastradas (iFood e 99). Com o monitor ativo, lê
+    """Estado aberta/fechada das lojas do usuário (iFood e 99). Com o monitor ativo, lê
     o que ele gravou (atualizado a cada minuto); sem monitor, ou com ?ao_vivo=1, consulta as
     plataformas agora e grava."""
     ativo, heartbeat = _monitor_ativo()
-    lojas = _todas_lojas()
+    lojas = _lojas_do_usuario()
     if ativo and request.args.get("ao_vivo") != "1":
         resp = requests.get(f"{SUPABASE_URL}/rest/v1/status_lojas", headers=_supabase_headers(), params={"select": "*"}, timeout=10)
         resp.raise_for_status()
@@ -3326,7 +3497,6 @@ def get_visao_geral():
     from concurrent.futures import ThreadPoolExecutor
 
     hoje = (datetime.now(timezone.utc) - timedelta(hours=3)).date()
-    pode_ver_valor = g.usuario.get("papel") in ("administrador", "gerente")
 
     def ler(tabela, params):
         try:
@@ -3337,16 +3507,19 @@ def get_visao_geral():
             logger.warning("visão geral: não consegui ler %s: %s", tabela, exc)
             return None
 
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        f_lojas = pool.submit(_todas_lojas)
-        f_status = pool.submit(ler, "status_lojas", {"select": "merchant_id,aberta,estado,motivo,verificado_em,mudou_em"})
-        f_pausas = pool.submit(ler, "pausas", {"select": "merchant_id,tipo", "encerrada_em": "is.null", "limit": 5000})
+    lojas = _lojas_do_usuario()
+    if not lojas:
+        return jsonify({"hoje": hoje.isoformat(), "monitor": {"ativo": False, "ultimo_ping": None}, "lojas": []})
+    so_minhas = _filtro_in(l["merchant_id"] for l in lojas)
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        f_status = pool.submit(ler, "status_lojas", {"select": "merchant_id,aberta,estado,motivo,verificado_em,mudou_em", "merchant_id": so_minhas})
+        f_pausas = pool.submit(ler, "pausas", {"select": "merchant_id,tipo", "encerrada_em": "is.null", "merchant_id": so_minhas, "limit": 5000})
         f_pedidos = pool.submit(ler, "pedidos", {
             "select": "merchant_id,status,total",
             "recebido_em": f"gte.{hoje.isoformat()}T00:00:00-03:00",
+            "merchant_id": so_minhas,
             "limit": 10000,
         })
-        lojas = f_lojas.result()
         status = {s["merchant_id"]: s for s in (f_status.result() or [])}
         pausas, pedidos = f_pausas.result(), f_pedidos.result()
 
@@ -3379,7 +3552,7 @@ def get_visao_geral():
             "pausas_abertas": pausas_por_loja.get(mid, 0) if pausas is not None else None,
             "pedidos_hoje": ped["pedidos"] if pedidos is not None else None,
             "cancelados_hoje": ped["cancelados"] if pedidos is not None else None,
-            "faturamento_hoje": round(ped["faturamento"], 2) if (pedidos is not None and pode_ver_valor) else None,
+            "faturamento_hoje": round(ped["faturamento"], 2) if (pedidos is not None and loja["papel"] in ("administrador", "gerente")) else None,
         })
     ativo, heartbeat = _monitor_ativo()
     return jsonify({
@@ -3395,7 +3568,12 @@ def get_historico_status_lojas():
     params = {"select": "*", "order": "em.desc", "limit": min(int(request.args.get("limite", 100)), 500)}
     merchant = request.args.get("merchant")
     if merchant:
+        _exigir_loja(merchant)
         params["merchant_id"] = f"eq.{merchant}"
+    elif not g.usuario["super_admin"]:
+        if not g.usuario["acessos"]:
+            return jsonify([])
+        params["merchant_id"] = _filtro_in(g.usuario["acessos"])
     resp = requests.get(f"{SUPABASE_URL}/rest/v1/status_lojas_historico", headers=_supabase_headers(), params=params, timeout=10)
     resp.raise_for_status()
     return jsonify(resp.json())
@@ -3435,7 +3613,8 @@ def get_resumo_financeiro():
     """Resumo a partir dos pedidos que entraram no painel (iFood + 99), por dia, plataforma,
     loja, forma de pagamento e tipo. É o "faturamento bruto operacional" — o valor que o cliente
     pagou. O que a plataforma de fato repassa (descontadas comissão/taxas) está em
-    /api/financeiro/ifood. `?todas=1` soma todas as lojas; sem isso, só a loja atual."""
+    /api/financeiro/ifood. `?todas=1` soma todas as lojas em que o usuário é administrador ou
+    gerente; sem isso, só a loja atual."""
     inicio, fim = _periodo()
     params = {
         "select": "id,ifood_order_id,merchant_id,status,tipo,pagamento,total,recebido_em",
@@ -3443,13 +3622,16 @@ def get_resumo_financeiro():
         "order": "recebido_em.asc",
         "limit": 10000,
     }
-    if request.args.get("todas") != "1":
+    lojas_financeiro = _lojas_do_usuario(("administrador", "gerente"))
+    if request.args.get("todas") == "1":
+        params["merchant_id"] = _filtro_in(l["merchant_id"] for l in lojas_financeiro)
+    else:
         params["merchant_id"] = f"eq.{_merchant_id()}"
     resp = requests.get(f"{SUPABASE_URL}/rest/v1/pedidos", headers=_supabase_headers(), params=params, timeout=15)
     resp.raise_for_status()
     pedidos = resp.json()
 
-    nomes_lojas = {l["merchant_id"]: l.get("nome") for l in _todas_lojas()}
+    nomes_lojas = {l["merchant_id"]: l.get("nome") for l in lojas_financeiro}
     por_dia, por_plataforma, por_loja, por_pagamento, por_tipo = {}, {}, {}, {}, {}
 
     def somar(mapa, chave, valor, cancelado):
@@ -3580,14 +3762,14 @@ CACHE_DESEMPENHO_SEG = 180
 
 
 def _lojas_ifood_alvo(todas):
-    """Loja atual, ou todas as lojas iFood cadastradas (`?todas=1`)."""
+    """Loja atual, ou todas as lojas iFood em que o usuário é administrador/gerente (`?todas=1`)."""
     if todas:
-        lojas = [l for l in _todas_lojas() if (l.get("plataforma") or "ifood") == "ifood"]
+        lojas = [l for l in _lojas_do_usuario(("administrador", "gerente")) if (l.get("plataforma") or "ifood") == "ifood"]
         if lojas:
             return lojas
     merchant_id = _merchant_id()
     try:
-        cadastradas = {l["merchant_id"]: l for l in _todas_lojas()}
+        cadastradas = {l["merchant_id"]: l for l in _lojas_do_usuario()}
     except requests.exceptions.RequestException:
         cadastradas = {}
     loja = cadastradas.get(merchant_id) or {"merchant_id": merchant_id, "nome": "", "plataforma": "ifood"}

@@ -146,7 +146,7 @@ let contadorToast = 0
 const CHAVE_SESSAO = 'sessao_ifood_v1'
 
 function Painel({ sessao, onSair, tema, setTema, C }) {
-  const { marca } = useContext(MarcaContext)
+  const { marca, setMarca } = useContext(MarcaContext)
   const celular = useCelular()
   const compacta = useTelaCompacta()
   const [sidebarSobreposta, setSidebarSobreposta] = useState(false)
@@ -175,8 +175,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   const [salvando, setSalvando] = useState(false)
   const [erroForm, setErroForm] = useState('')
   const [alterandoStatus, setAlterandoStatus] = useState(null)
-
-  const podeCriarItem = PAPEIS_QUE_PODEM_CRIAR.has(sessao.usuario.papel)
 
   const [lojas, setLojas] = useState([])
   const [lojaForm, setLojaForm] = useState({ nome: '', merchant_id: '', plataforma: 'ifood' })
@@ -640,7 +638,6 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
   useEffect(() => {
     carregarLojas()
-    if (sessao.usuario.papel === 'administrador') carregarUsuarios()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -654,6 +651,30 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
   }, [lojas, lojaId])
 
   const lojaAtual = useMemo(() => lojas.find((l) => l.merchant_id === lojaId) || lojas[0], [lojas, lojaId])
+
+  // Multi-cliente: o papel é POR LOJA (vem em cada item de /lojas). Administração da plataforma
+  // (usuários, lojas, marca) é só do super admin, sempre no cliente da loja ativa.
+  const souSuperAdmin = !!sessao.usuario.super_admin
+  const papelLoja = lojaAtual?.papel || (souSuperAdmin ? 'administrador' : null)
+  const podeCriarItem = PAPEIS_QUE_PODEM_CRIAR.has(papelLoja)
+  const usuarioNaLoja = useMemo(() => ({ ...sessao.usuario, papel: papelLoja }), [sessao.usuario, papelLoja])
+
+  // A marca e a lista de usuários são do cliente dono da loja ativa: trocar pra uma loja de outro
+  // cliente troca as duas.
+  useEffect(() => {
+    if (!lojaAtual) return
+    if (souSuperAdmin) carregarUsuarios()
+    apiFetch('/marca')
+      .then((m) => {
+        const nova = { ...MARCA_PADRAO, ...m }
+        setMarca(nova)
+        guardarMarcaEmCache(nova)
+      })
+      .catch(() => {
+        // sem marca do servidor: segue com a atual
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lojaAtual?.cliente_id, lojaAtual?.merchant_id])
 
   // Cardápio e auditoria acompanham a loja EFETIVA (lojaAtual), não o lojaId cru: com lojaId vazio
   // a loja efetiva é lojas[0], que só aparece quando /lojas responde. Antes, o cardápio carregava
@@ -1464,7 +1485,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             lojas={lojas}
             lojaAtualId={lojaAtual?.merchant_id}
             statusPorLoja={Object.fromEntries((visaoGeral.dados?.lojas || []).map((l) => [l.merchant_id, l]))}
-            podeGerenciar={sessao.usuario.papel === 'administrador'}
+            podeGerenciar={souSuperAdmin}
             onEscolher={(l) => {
               setLojaId(l.merchant_id)
               setModalLojas(false)
@@ -1708,7 +1729,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             apiFetch={apiFetch}
             notificar={notificar}
             podeEditar={podeCriarItem}
-            souAdministrador={sessao.usuario.papel === 'administrador'}
+            souAdministrador={papelLoja === 'administrador'}
             C={C}
             inputCls={inputCls}
             inputStyle={inputStyle}
@@ -1721,7 +1742,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             apiFetch={apiFetch}
             notificar={notificar}
             podeEditar={podeCriarItem}
-            souAdministrador={sessao.usuario.papel === 'administrador'}
+            souAdministrador={papelLoja === 'administrador'}
             C={C}
             inputCls={inputCls}
             inputStyle={inputStyle}
@@ -1834,13 +1855,13 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             lojaNome={lojaAtual?.nome}
             lojaPlataforma={lojaAtual?.plataforma}
             totalLojas={lojas.length}
-            podeTrocarLoja={lojas.length > 1 || sessao.usuario.papel === 'administrador'}
+            podeTrocarLoja={lojas.length > 1 || souSuperAdmin}
             onTrocarLoja={() => setModalLojas(true)}
             userNome={sessao.usuario.nome}
             userIniciais={iniciaisDe(sessao.usuario.nome)}
-            userPapel={sessao.usuario.papel}
+            userPapel={papelLoja}
             podeVerFinanceiro={podeCriarItem}
-            souAdministrador={sessao.usuario.papel === 'administrador'}
+            souAdministrador={souSuperAdmin}
             totalRupturas={totalRupturas}
             onPausarItem={() => setModalPausar({ alvos: [] })}
             onAbrirRupturas={() => {
@@ -1893,11 +1914,11 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
             <main ref={refMain} style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', position: 'relative', padding: celular ? '12px 16px 24px' : compacta ? '20px 20px 32px' : '24px 28px 40px' }}>
               {view === 'mais' && celular && (
                 <MaisView
-                  usuario={sessao.usuario}
+                  usuario={usuarioNaLoja}
                   lojaNome={lojaAtual?.nome}
                   totalRupturas={totalRupturas}
                   podeVerFinanceiro={podeCriarItem}
-                  souAdministrador={sessao.usuario.papel === 'administrador'}
+                  souAdministrador={souSuperAdmin}
                   tema={tema}
                   onAlternarTema={() => setTema(tema === 'escuro' ? 'claro' : 'escuro')}
                   onIr={mudarView}
@@ -2060,7 +2081,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                         apiFetch={apiFetch}
                         notificar={notificar}
                         podeEditar={podeCriarItem}
-                        souAdministrador={sessao.usuario.papel === 'administrador'}
+                        souAdministrador={papelLoja === 'administrador'}
                         C={C}
                         inputCls={inputCls}
                         inputStyle={inputStyle}
@@ -2072,7 +2093,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                         apiFetch={apiFetch}
                         notificar={notificar}
                         podeEditar={podeCriarItem}
-                        souAdministrador={sessao.usuario.papel === 'administrador'}
+                        souAdministrador={papelLoja === 'administrador'}
                         C={C}
                         inputCls={inputCls}
                         inputStyle={inputStyle}
@@ -2187,7 +2208,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
 
               {view === 'auditoria' && <AuditoriaView auditoria={auditoria} />}
 
-              {view === 'usuarios' && sessao.usuario.papel === 'administrador' && (
+              {view === 'usuarios' && souSuperAdmin && (
                 <UsuariosSecao
                   usuarios={usuarios}
                   meuId={sessao.usuario.id}
@@ -2201,7 +2222,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                 />
               )}
 
-              {view === 'lojas-admin' && sessao.usuario.papel === 'administrador' && (
+              {view === 'lojas-admin' && souSuperAdmin && (
                 <LojasSecao
                   lojas={lojas}
                   lojaAtual={lojaAtual}
@@ -2221,7 +2242,7 @@ function Painel({ sessao, onSair, tema, setTema, C }) {
                 />
               )}
 
-              {view === 'marca' && sessao.usuario.papel === 'administrador' && <MarcaSecao apiFetch={apiFetch} notificar={notificar} tema={tema} />}
+              {view === 'marca' && souSuperAdmin && <MarcaSecao apiFetch={apiFetch} notificar={notificar} tema={tema} />}
             </main>
             </LarguraContext.Provider>
             {celular && (
@@ -2280,9 +2301,13 @@ export default function App() {
     localStorage.setItem('tema', tema)
   }, [tema])
 
-  // A marca da empresa cliente: abre na hora com a do cache e confirma com o servidor.
+  // A marca da empresa cliente: abre na hora com a do cache e confirma com o servidor. Antes do
+  // login não há loja, então o cliente vem do link (?cliente=<slug>) ou do último usado aqui;
+  // depois do login, o Painel troca pela marca do cliente da loja ativa.
   useEffect(() => {
-    fetch(`${API}/marca`)
+    const cliente = new URLSearchParams(window.location.search).get('cliente') || marca.cliente
+    if (!cliente) return
+    fetch(`${API}/marca?cliente=${encodeURIComponent(cliente)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((m) => {
         if (!m) return
@@ -2293,6 +2318,7 @@ export default function App() {
       .catch(() => {
         // servidor fora: segue com a marca do cache/padrão
       })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
