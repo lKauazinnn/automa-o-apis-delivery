@@ -9,6 +9,9 @@ Faz duas coisas em loop:
    em `status_lojas` e cada mudança em `status_lojas_historico`.
 3. **Pausas temporárias vencidas a cada 30s**: o que foi pausado com prazo (ex: "volta em 2h")
    é despausado sozinho na plataforma quando passa da hora (tabela `pausas`, sql/010).
+4. **Pedidos do 99 sem status final a cada 30s** (até 20 por ciclo): reconfere com a API do 99,
+   porque o webhook de mudança/cancelamento nem sempre chega — sem isso o pedido ficava "Novo"
+   pra sempre e o cancelamento não entrava nas métricas.
 
 A cada ciclo grava um heartbeat em `monitor_heartbeat`. O painel usa isso pra mostrar "monitor
 ativo", e o backend pra não fazer polling em duplicidade quando a tela de Pedidos/KDS está aberta.
@@ -107,6 +110,15 @@ def main():
             except Exception as exc:
                 info["ultimo_erro"] = f"polling: {exc}"[:300]
                 logger.error("Falha no polling de eventos: %s", exc)
+
+        try:
+            sincronizados = backend.sincronizar_pedidos_99_abertos()
+            if sincronizados:
+                info["pedidos_99_sincronizados_total"] = info.get("pedidos_99_sincronizados_total", 0) + sincronizados
+                logger.info("%d pedido(s) do 99 reconferido(s) com a API.", sincronizados)
+        except Exception as exc:
+            info["ultimo_erro"] = f"pedidos 99: {exc}"[:300]
+            logger.error("Falha ao reconferir pedidos do 99: %s", exc)
 
         try:
             reativadas = backend.reativar_pausas_vencidas()

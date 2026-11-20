@@ -2864,6 +2864,36 @@ def _centavos(v):
     return round((v or 0) / 100.0, 2) if isinstance(v, (int, float)) else float(v or 0)
 
 
+def _unix_iso(ts):
+    return datetime.fromtimestamp(int(ts), timezone.utc).isoformat()
+
+
+# Quem cancelou, pelo código de status do 99 (tabela oficial, ver STATUS_99_KDS): 901/902 cliente,
+# 921/922/923 loja (922 = não confirmou a tempo), 961 atendimento, 971/981 entregador.
+def _responsavel_cancelamento_99(st):
+    codigo = str(st)
+    if codigo.startswith("90"):
+        return "cliente"
+    if codigo.startswith("92"):
+        return "loja"
+    if codigo.startswith("96"):
+        return "plataforma"
+    if codigo.startswith(("97", "98")):
+        return "entregador"
+    return "desconhecido"
+
+
+def _receita_99(price, promocoes=None):
+    """Receita do pedido pra loja, em centavos, como na "Receita de vendas estimada" do portal do
+    99: preço cheio dos itens − a parte dos descontos que a loja bancou − entrega cobrada da loja.
+    O 99 de produção NÃO manda real_price/real_pay_price (usados só se vierem, ex. ambiente de
+    teste). Conferido com o portal em 19/11/2026: 597 pedidos, R$ 31.045,51 contra R$ 31.174,59."""
+    if price.get("real_pay_price") or price.get("real_price"):
+        return price.get("real_pay_price") or price.get("real_price")
+    subsidio_loja = sum((p or {}).get("shop_subside_price") or 0 for p in promocoes or [])
+    return (price.get("order_price") or 0) - subsidio_loja - (price.get("store_charged_delivery_price") or 0)
+
+
 def _mapear_pedido_99(app_shop_id, data):
     """Converte o payload de pedido do 99 numa linha da tabela `pedidos`.
     Aceita o formato REAL (evento orderNew: data.order_info.*) e o achatado (simulação)."""
@@ -2876,8 +2906,7 @@ def _mapear_pedido_99(app_shop_id, data):
     dt = oi.get("delivery_type", data.get("order_type", data.get("type")))
     tipo = TIPO_99_KDS.get(str(dt).lower(), "RETIRADA" if str(dt) in ("2", "3") else "ENTREGA")
     price = oi.get("price") if isinstance(oi.get("price"), dict) else {}
-    bruto = (price.get("real_pay_price") or price.get("real_price") or price.get("order_price")
-             or data.get("total_amount") or data.get("total") or 0)
+    bruto = _receita_99(price, oi.get("promotions")) if price else (data.get("total_amount") or data.get("total") or 0)
     itens_src = oi.get("order_items") or data.get("items") or []
     itens = []
     for it in itens_src:
@@ -2902,7 +2931,15 @@ def _mapear_pedido_99(app_shop_id, data):
             }
         )
     oid = order_id if order_id.startswith("99-") else f"99-{order_id}"
-    return {
+    # Horários do 99 (unix) viram a linha do tempo real do pedido; sem eles (simulação), "agora".
+    horarios = {k: oi.get(k) for k in ("create_time", "pay_time", "shop_confirm_time", "complete_time", "cancel_time") if oi.get(k)}
+    timeline = [
+        {"status": s_kds, "em": _unix_iso(horarios[campo])}
+        for campo, s_kds in (("create_time", "NOVO"), ("shop_confirm_time", "CONFIRMADO"), ("complete_time", "CONCLUIDO"), ("cancel_time", "CANCELADO"))
+        # cancelado: o 99 repete o cancel_time no complete_time — não é "concluído"
+        if horarios.get(campo) and not (campo == "complete_time" and horarios.get("cancel_time"))
+    ] or [{"status": status, "em": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime())}]
+    pedido = {
         "ifood_order_id": oid,
         "merchant_id": app_shop_id,
         "status": status,
@@ -2914,14 +2951,29 @@ def _mapear_pedido_99(app_shop_id, data):
         "detalhes_brutos": {
             "origem": "99Food (webhook)",
             "status_99": st,
+            "status_anterior_99": oi.get("before_status"),
+            # Bloco `price` do 99 como veio (centavos): itens, entrega, descontos, cupom, reembolso.
+            # É dele que saem as métricas iguais às do portal do 99.
+            "preco_99": price or None,
+            # [{promo_type, promo_discount, shop_subside_price}] — quanto de cada desconto a loja bancou
+            "promocoes_99": oi.get("promotions") or None,
+            # custo da entrega pro 99 (centavos) — entra na "perda financeira" de cancelamento do portal
+            "logistica_99": oi.get("logistics_cost"),
+            "horarios_99": horarios,
             "itens": itens,
-            "timeline": [{"status": status, "em": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime())}],
+            "timeline": timeline,
         },
     }
+    if status == "CANCELADO":
+        pedido["detalhes_brutos"]["cancelamento"] = {"codigo": st, "responsavel": _responsavel_cancelamento_99(st)}
+    if horarios.get("create_time"):
+        pedido["recebido_em"] = _unix_iso(horarios["create_time"])
+    return pedido
 
 
 def _upsert_pedido_99(pedido):
-    """Insere (pedido novo) ou atualiza o status (pedido existente) na tabela `pedidos`."""
+    """Insere (pedido novo) ou atualiza (pedido existente) na tabela `pedidos`. Na atualização,
+    junta o `detalhes_brutos` novo com o que já estava (o painel guarda coisas lá, ex. negociação)."""
     if not SUPABASE_CONFIGURADO:
         return
     oid = pedido["ifood_order_id"]
@@ -2929,11 +2981,14 @@ def _upsert_pedido_99(pedido):
     achar = requests.get(
         f"{SUPABASE_URL}/rest/v1/pedidos",
         headers=_supabase_headers(),
-        params={"select": "id", "ifood_order_id": f"eq.{oid}"},
+        params={"select": "id,detalhes_brutos", "ifood_order_id": f"eq.{oid}"},
         timeout=10,
     )
-    if achar.ok and achar.json():
-        requests.patch(
+    achar.raise_for_status()
+    existentes = achar.json()
+    if existentes:
+        antigo = existentes[0].get("detalhes_brutos") or {}
+        resp = requests.patch(
             f"{SUPABASE_URL}/rest/v1/pedidos",
             headers=_supabase_headers(),
             params={"ifood_order_id": f"eq.{oid}"},
@@ -2943,13 +2998,37 @@ def _upsert_pedido_99(pedido):
                 "pagamento": pedido["pagamento"],
                 "cliente": pedido["cliente"],
                 "total": pedido["total"],
-                "detalhes_brutos": pedido["detalhes_brutos"],
+                "detalhes_brutos": {**(antigo if isinstance(antigo, dict) else {}), **pedido["detalhes_brutos"]},
                 "atualizado_em": agora,
             },
             timeout=10,
         )
     else:
-        requests.post(f"{SUPABASE_URL}/rest/v1/pedidos", headers=_supabase_headers(), json=pedido, timeout=10)
+        resp = requests.post(f"{SUPABASE_URL}/rest/v1/pedidos", headers=_supabase_headers(), json=pedido, timeout=10)
+    resp.raise_for_status()
+
+
+def _registrar_evento_99(evento, app_shop_id, order_id):
+    """Guarda o webhook cru do 99 em `eventos_ifood` (tabela de eventos de todas as plataformas),
+    pra dar pra ver exatamente o que o 99 mandou — ex.: como chega um cancelamento. Best-effort."""
+    if not (SUPABASE_CONFIGURADO and app_shop_id):
+        return
+    try:
+        requests.post(
+            f"{SUPABASE_URL}/rest/v1/eventos_ifood",
+            headers=_supabase_headers(),
+            json={
+                "merchant_id": app_shop_id,
+                "pedido_ifood_id": f"99-{order_id}" if order_id else None,
+                "tipo": str(evento.get("type") or "?")[:60],
+                "origem": "99Food (webhook)",
+                "tratado": True,
+                "payload": evento,
+            },
+            timeout=10,
+        ).raise_for_status()
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Não gravei o evento do 99 (%s): %s", evento.get("type"), exc)
 
 
 def _processar_evento_99(evento):
@@ -2965,23 +3044,85 @@ def _processar_evento_99(evento):
     order_id = data.get("order_id") or data.get("id") or evento.get("order_id")
     if "order" not in tipo_evt and not order_id:
         return  # não é evento de pedido
+    _registrar_evento_99(evento, app_shop_id, order_id)
 
-    # Webhook real costuma trazer só o id → busca o detalhe via API. Se já veio inline
-    # (simulação/teste), usa direto.
+    # Pedido real (id numérico): SEMPRE busca o detalhe completo na API — o webhook às vezes traz
+    # só parte dos dados (sem o bloco `price`, sem o status final), e as métricas dependem dele.
+    # Pedido de teste (id "TESTE...") ou detalhe indisponível: usa o que veio inline no evento.
     tem_inline = any(k in data for k in ("total_amount", "total", "user_info", "cliente", "order_status", "order_info"))
-    if order_id and not tem_inline and food99 and app_shop_id:
+    if order_id and str(order_id).isdigit() and food99 and app_shop_id:
         try:
             det = food99.order_detail(app_shop_id, order_id)
             if isinstance(det, dict):
                 data = {**data, **det}
         except Exception as exc:
-            logger.warning("order_detail 99 falhou (%s) — sem dados pra materializar", exc)
-            return
+            if not tem_inline:
+                logger.warning("order_detail 99 falhou (%s) — sem dados pra materializar", exc)
+                return
+            logger.warning("order_detail 99 falhou (%s) — usando os dados do webhook", exc)
+    elif not tem_inline:
+        return
 
     pedido = _mapear_pedido_99(app_shop_id, data)
     if pedido:
         _upsert_pedido_99(pedido)
         logger.info("pedido 99 materializado no KDS: %s (%s)", pedido["ifood_order_id"], pedido["status"])
+
+
+# Pedidos do 99 que não chegaram a um status final (o webhook de mudança nem sempre chega): o
+# worker reconfere com a API, poucos por ciclo, os mais antigos primeiro.
+STATUS_ABERTOS_KDS = ("NOVO", "CONFIRMADO", "DESPACHADO")
+
+
+def sincronizar_pedidos_99_abertos(limite=20, horas=48):
+    if not (food99 and FOOD99_CONFIGURADO and SUPABASE_CONFIGURADO):
+        return 0
+    desde = (datetime.now(timezone.utc) - timedelta(hours=horas)).isoformat()
+    ate = (datetime.now(timezone.utc) - timedelta(minutes=3)).isoformat()
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/pedidos",
+        headers=_supabase_headers(),
+        params={
+            "select": "ifood_order_id,merchant_id",
+            "ifood_order_id": "like.99-*",
+            "status": _filtro_in(STATUS_ABERTOS_KDS),
+            "and": f"(recebido_em.gte.{desde},atualizado_em.lt.{ate})",
+            "order": "atualizado_em.asc",
+            "limit": limite,
+        },
+        timeout=15,
+    )
+    resp.raise_for_status()
+    return reprocessar_pedidos_99(resp.json())
+
+
+def reprocessar_pedidos_99(pedidos, pausa=0.2):
+    """Busca de novo no 99 o detalhe de cada pedido ({ifood_order_id, merchant_id}) e regrava.
+    Devolve quantos foram atualizados. Um pedido com erro não para os outros."""
+    ok = 0
+    for p in pedidos:
+        order_id = str(p["ifood_order_id"]).removeprefix("99-")
+        if not order_id.isdigit():
+            continue
+        try:
+            det = food99.order_detail(p["merchant_id"], order_id)
+            pedido = _mapear_pedido_99(p["merchant_id"], det if isinstance(det, dict) else {})
+            if pedido:
+                pedido["detalhes_brutos"]["origem"] = "99Food (API)"
+                _upsert_pedido_99(pedido)
+                ok += 1
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Não reprocessei o pedido 99 %s: %s", p["ifood_order_id"], exc)
+            # Vai pro fim da fila do worker, pra um pedido com erro não travar os outros.
+            requests.patch(
+                f"{SUPABASE_URL}/rest/v1/pedidos",
+                headers=_supabase_headers(),
+                params={"ifood_order_id": f"eq.{p['ifood_order_id']}"},
+                json={"atualizado_em": _agora_iso()},
+                timeout=10,
+            )
+        time.sleep(pausa)
+    return ok
 
 
 # ---- 99Food (multi-plataforma) ----
